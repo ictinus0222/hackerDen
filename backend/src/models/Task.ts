@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { Task as TaskType, ColumnName } from '../types/index.js';
+import type { Task as TaskType, ColumnName } from '../types/index.js';
 
 export interface ITask extends Document {
   id: string;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ApiResponse, TeamMember, JudgingCriterion } from '../types/index.js';
+import type { ApiResponse, TeamMember, JudgingCriterion, Task, ColumnName } from '../types/index.js';
 
 // Validation schemas
 const TeamMemberSchema = z.object({
@@ -53,6 +53,22 @@ const ProjectUpdateSchema = z.object({
   judgingCriteria: z.array(JudgingCriterionSchema).optional()
 });
 
+const TaskCreationSchema = z.object({
+  title: z.string().min(1, 'Task title is required').max(200, 'Task title must be less than 200 characters'),
+  description: z.string().max(1000, 'Task description must be less than 1000 characters').optional(),
+  assignedTo: z.string().max(100, 'Assignee name must be less than 100 characters').optional(),
+  columnId: z.enum(['todo', 'inprogress', 'done']).default('todo'),
+  order: z.number().min(0, 'Order must be non-negative').optional()
+});
+
+const TaskUpdateSchema = z.object({
+  title: z.string().min(1, 'Task title is required').max(200, 'Task title must be less than 200 characters').optional(),
+  description: z.string().max(1000, 'Task description must be less than 1000 characters').optional(),
+  assignedTo: z.string().max(100, 'Assignee name must be less than 100 characters').optional(),
+  columnId: z.enum(['todo', 'inprogress', 'done']).optional(),
+  order: z.number().min(0, 'Order must be non-negative').optional()
+});
+
 /**
  * Validates data against a Zod schema and returns a standardized result
  */
@@ -96,9 +112,9 @@ export function validateData<T>(
 export function validateDataOrThrow<T>(schema: z.ZodSchema<T>, data: unknown): T {
   const result = validateData(schema, data);
   if (!result.success) {
-    const error = new Error(result.error.message);
-    (error as any).code = result.error.code;
-    (error as any).details = result.error.details;
+    const error = new Error(result.error!.message);
+    (error as any).code = result.error!.code;
+    (error as any).details = result.error!.details;
     throw error;
   }
   return result.data;
@@ -153,4 +169,12 @@ export function validateProjectUpdate(data: unknown) {
 
 export function validateTeamMember(data: unknown): Omit<TeamMember, 'id' | 'joinedAt'> {
   return validateDataOrThrow(TeamMemberSchema, data);
+}
+
+export function validateTaskCreation(data: unknown) {
+  return validateDataOrThrow(TaskCreationSchema, data);
+}
+
+export function validateTaskUpdate(data: unknown) {
+  return validateDataOrThrow(TaskUpdateSchema, data);
 }

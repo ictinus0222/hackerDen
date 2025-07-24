@@ -118,7 +118,11 @@
   - Write unit tests for all Project Hub components
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 4.2 Connect Project Hub to API
+- [x] 4.2 Connect Project Hub to API
+
+
+
+
   - Implement API service functions for project operations
   - Add form submission handling and validation
   - Implement error handling and loading states
@@ -127,7 +131,12 @@
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
 - [ ] 5. Implement task management system
-- [ ] 5.1 Create task API endpoints
+- [x] 5.1 Create task API endpoints
+
+
+
+
+
   - Build GET /api/projects/:id/tasks endpoint for task retrieval
   - Create POST /api/projects/:id/tasks endpoint for task creation
   - Implement PUT /api/tasks/:id endpoint for task updates
@@ -135,7 +144,12 @@
   - Write API integration tests for all task endpoints
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 5.2 Build TaskBoard component with drag-and-drop
+- [x] 5.2 Build TaskBoard component with drag-and-drop
+
+
+
+
+
   - Create TaskBoard React component with Kanban columns
   - Implement TaskCard component with assignment and editing
   - Add React DnD for drag-and-drop functionality between columns
@@ -144,6 +158,7 @@
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
 - [ ] 5.3 Connect TaskBoard to API
+
   - Implement task API service functions
   - Add task CRUD operations with optimistic updates
   - Handle drag-and-drop API calls for column changes

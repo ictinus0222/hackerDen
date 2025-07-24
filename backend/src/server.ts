@@ -46,9 +46,11 @@ app.get('/health', (_req, res) => {
 
 // Import and use routes
 import projectRoutes from './routes/projects.js';
+import taskRoutes from './routes/tasks.js';
 
 // API routes
 app.use('/api/projects', projectRoutes);
+app.use('/api/tasks', taskRoutes);
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);

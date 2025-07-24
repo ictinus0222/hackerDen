@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { SubmissionPackage } from '../types/index.js';
+import type { SubmissionPackage } from '../types/index.js';
 
 export interface ISubmission extends Document {
   projectId: string;

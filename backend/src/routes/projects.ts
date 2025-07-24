@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { Project } from '../models/Project.js';
+import { Task } from '../models/Task.js';
 import { authenticateProject, generateProjectToken, type AuthRequest } from '../middleware/auth.js';
-import { validateProjectCreation, validateProjectUpdate, validateTeamMember } from '../utils/validation.js';
-import type { ApiResponse, ProjectHub, TeamMember } from '../types/index.js';
+import { validateProjectCreation, validateProjectUpdate, validateTeamMember, validateTaskCreation } from '../utils/validation.js';
+import type { ApiResponse, ProjectHub, TeamMember, Task as TaskType } from '../types/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
@@ -321,6 +322,144 @@ router.delete('/:id/members/:memberId', authenticateProject, async (req: AuthReq
       error: {
         code: 'REMOVE_MEMBER_FAILED',
         message: error.message || 'Failed to remove team member'
+      },
+      timestamp: new Date()
+    } as ApiResponse);
+  }
+});
+
+// GET /api/projects/:id/tasks - Get all tasks for project
+router.get('/:id/tasks', authenticateProject, async (req: AuthRequest, res: Response) => {
+  try {
+    const projectId = req.params.id;
+    
+    // Verify the authenticated project matches the requested project
+    if (req.projectId !== projectId) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'ACCESS_DENIED',
+          message: 'You can only access your own project tasks'
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+
+    // Verify project exists
+    const project = await Project.findByProjectId(projectId);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'PROJECT_NOT_FOUND',
+          message: 'Project not found'
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+
+    // Get all tasks for the project, sorted by column and order
+    const tasks = await Task.findByProjectId(projectId);
+
+    const response: ApiResponse<TaskType[]> = {
+      success: true,
+      data: tasks.map(task => task.toObject()),
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (error: any) {
+    console.error('Error fetching tasks:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'FETCH_TASKS_FAILED',
+        message: 'Failed to fetch tasks'
+      },
+      timestamp: new Date()
+    } as ApiResponse);
+  }
+});
+
+// POST /api/projects/:id/tasks - Create new task
+router.post('/:id/tasks', authenticateProject, async (req: AuthRequest, res: Response) => {
+  try {
+    const projectId = req.params.id;
+    
+    // Verify the authenticated project matches the requested project
+    if (req.projectId !== projectId) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'ACCESS_DENIED',
+          message: 'You can only create tasks in your own project'
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+
+    // Verify project exists
+    const project = await Project.findByProjectId(projectId);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'PROJECT_NOT_FOUND',
+          message: 'Project not found'
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+
+    const validatedData = validateTaskCreation(req.body);
+    
+    // If assignedTo is provided, verify the team member exists
+    if (validatedData.assignedTo) {
+      const memberExists = project.teamMembers.some(member => member.name === validatedData.assignedTo);
+      if (!memberExists) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_ASSIGNEE',
+            message: 'Assigned team member does not exist in this project'
+          },
+          timestamp: new Date()
+        } as ApiResponse);
+      }
+    }
+
+    // Get the next order number for the column if not provided
+    let order = validatedData.order;
+    if (order === undefined) {
+      const maxOrder = await Task.getMaxOrderInColumn(projectId, validatedData.columnId);
+      order = maxOrder + 1;
+    }
+
+    // Create task
+    const taskData = {
+      id: uuidv4(),
+      projectId,
+      ...validatedData,
+      order
+    };
+
+    const task = new Task(taskData);
+    await task.save();
+
+    const response: ApiResponse<TaskType> = {
+      success: true,
+      data: task.toObject(),
+      timestamp: new Date()
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    console.error('Error creating task:', error);
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'CREATE_TASK_FAILED',
+        message: error.message || 'Failed to create task'
       },
       timestamp: new Date()
     } as ApiResponse);

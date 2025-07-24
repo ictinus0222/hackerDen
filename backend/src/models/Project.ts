@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { ProjectHub, TeamMember, JudgingCriterion, PivotEntry } from '../types/index.js';
+import type { ProjectHub, TeamMember, JudgingCriterion, PivotEntry } from '../types/index.js';
 
 // Subdocument schemas
 const TeamMemberSchema = new Schema<TeamMember>({
