@@ -1,18 +1,22 @@
 import React from 'react';
-import type { ProjectHub as ProjectHubType, TeamMember, JudgingCriterion } from '../types';
+import type { ProjectHub as ProjectHubType, JudgingCriterion } from '../types';
 import { TeamMemberList } from './TeamMember';
 import { DeadlineManager } from './DeadlineManager';
 import { JudgingCriteria } from './JudgingCriteria';
 
 interface ProjectHubProps {
   project: ProjectHubType;
-  onUpdateProject?: (updates: Partial<ProjectHubType>) => void;
+  onUpdateProject?: (updates: Partial<ProjectHubType>) => Promise<void> | void;
+  onAddMember?: (name: string, role?: string) => Promise<void> | void;
+  onRemoveMember?: (memberId: string) => Promise<void> | void;
   canEdit?: boolean;
 }
 
 export const ProjectHub: React.FC<ProjectHubProps> = ({
   project,
   onUpdateProject,
+  onAddMember,
+  onRemoveMember,
   canEdit = false
 }) => {
   const [isEditingBasics, setIsEditingBasics] = React.useState(false);
@@ -28,14 +32,19 @@ export const ProjectHub: React.FC<ProjectHubProps> = ({
     });
   }, [project.projectName, project.oneLineIdea]);
 
-  const handleUpdateBasics = () => {
+  const handleUpdateBasics = async () => {
     if (onUpdateProject) {
-      onUpdateProject({
-        projectName: editedBasics.projectName,
-        oneLineIdea: editedBasics.oneLineIdea
-      });
+      try {
+        await onUpdateProject({
+          projectName: editedBasics.projectName,
+          oneLineIdea: editedBasics.oneLineIdea
+        });
+        setIsEditingBasics(false);
+      } catch (error) {
+        // Error handling is done in the container
+        console.error('Failed to update project basics:', error);
+      }
     }
-    setIsEditingBasics(false);
   };
 
   const handleCancelBasics = () => {
@@ -46,37 +55,43 @@ export const ProjectHub: React.FC<ProjectHubProps> = ({
     setIsEditingBasics(false);
   };
 
-  const handleAddMember = (name: string, role?: string) => {
-    if (onUpdateProject) {
-      const newMember: TeamMember = {
-        id: `member-${Date.now()}`,
-        name,
-        role,
-        joinedAt: new Date()
-      };
-      onUpdateProject({
-        teamMembers: [...project.teamMembers, newMember]
-      });
+  const handleAddMember = async (name: string, role?: string) => {
+    if (onAddMember) {
+      try {
+        await onAddMember(name, role);
+      } catch (error) {
+        console.error('Failed to add team member:', error);
+      }
     }
   };
 
-  const handleRemoveMember = (memberId: string) => {
-    if (onUpdateProject) {
-      onUpdateProject({
-        teamMembers: project.teamMembers.filter(member => member.id !== memberId)
-      });
+  const handleRemoveMember = async (memberId: string) => {
+    if (onRemoveMember) {
+      try {
+        await onRemoveMember(memberId);
+      } catch (error) {
+        console.error('Failed to remove team member:', error);
+      }
     }
   };
 
-  const handleUpdateDeadlines = (deadlines: ProjectHubType['deadlines']) => {
+  const handleUpdateDeadlines = async (deadlines: ProjectHubType['deadlines']) => {
     if (onUpdateProject) {
-      onUpdateProject({ deadlines });
+      try {
+        await onUpdateProject({ deadlines });
+      } catch (error) {
+        console.error('Failed to update deadlines:', error);
+      }
     }
   };
 
-  const handleUpdateCriteria = (criteria: JudgingCriterion[]) => {
+  const handleUpdateCriteria = async (criteria: JudgingCriterion[]) => {
     if (onUpdateProject) {
-      onUpdateProject({ judgingCriteria: criteria });
+      try {
+        await onUpdateProject({ judgingCriteria: criteria });
+      } catch (error) {
+        console.error('Failed to update judging criteria:', error);
+      }
     }
   };
 
