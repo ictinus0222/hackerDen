@@ -66,7 +66,7 @@ JWT_EXPIRES_IN=7d
 - **Styling**: Tailwind CSS
 - **Testing**: Vitest + React Testing Library
 - **Real-time**: Socket.io Client
-- **Drag & Drop**: React DnD
+- **Drag & Drop**: React DnD with HTML5 backend
 - **Routing**: React Router
 - **API Client**: Custom fetch-based client with automatic token management
 - **State Management**: React hooks with custom useProject hook
@@ -78,6 +78,7 @@ JWT_EXPIRES_IN=7d
 - **Real-time**: Socket.io
 - **Authentication**: JWT
 - **Validation**: Zod schemas for request validation
+- **Testing**: Vitest with MongoDB Memory Server
 - **Testing**: Vitest with MongoDB Memory Server
 
 ## Available Scripts
@@ -128,6 +129,19 @@ The application follows a modern web architecture:
 - JWT-based authentication
 - Mobile-first responsive design
 
+### Task Management System
+
+The task management system provides a complete Kanban-style workflow:
+
+- **TaskBoard Component**: Main container with drag-and-drop functionality using React DnD
+- **TaskColumn Component**: Individual columns (To Do, In Progress, Done) with drop zones
+- **TaskCard Component**: Individual task cards with edit/delete actions
+- **TaskModal Component**: Modal for creating and editing tasks
+- **Backend API**: RESTful endpoints for CRUD operations on tasks
+- **Real-time Updates**: Socket.io integration for live collaboration (planned)
+
+
+
 ### API Client Architecture
 
 The frontend includes a comprehensive API service layer (`frontend/src/services/api.ts`) that provides:
@@ -137,6 +151,7 @@ The frontend includes a comprehensive API service layer (`frontend/src/services/
 - **Date Conversion**: Automatic conversion of ISO date strings to JavaScript Date objects
 - **Error Handling**: Consistent error handling with custom ApiError class
 - **Request/Response Interceptors**: Centralized handling of authentication and data transformation
+- **Task Management API**: Complete CRUD operations for task management with project-scoped access
 
 ### Validation Architecture
 
@@ -151,7 +166,7 @@ The backend uses a robust validation system with Zod schemas:
 #### API Usage Example
 
 ```typescript
-import { projectApi, setAuthToken } from '../services/api';
+import { projectApi, taskApi, setAuthToken } from '../services/api';
 
 // Create a new project
 const { project, token } = await projectApi.create({
@@ -170,6 +185,24 @@ const newMember = await projectApi.addMember(project.projectId, {
   name: 'Jane Smith',
   role: 'Designer'
 });
+
+// Task management
+const tasks = await taskApi.getByProject(project.projectId);
+
+const newTask = await taskApi.create(project.projectId, {
+  title: 'Implement user authentication',
+  description: 'Add login and registration functionality',
+  columnId: 'todo',
+  assignedTo: 'Jane Smith'
+});
+
+// Update task status
+const updatedTask = await taskApi.update(newTask.id, {
+  columnId: 'inprogress'
+});
+
+// Delete task
+await taskApi.delete(newTask.id);
 ```
 
 #### Validation Example
@@ -201,6 +234,25 @@ const validatedTask = validateTaskCreation({
 3. **Automatic Headers**: All subsequent API requests include the Bearer token
 4. **Token Persistence**: Tokens persist across browser sessions
 5. **Error Handling**: Invalid or expired tokens trigger appropriate error responses
+
+### API Endpoints
+
+#### Project Management
+- `POST /api/projects` - Create new project
+- `GET /api/projects/:id` - Get project details
+- `PUT /api/projects/:id` - Update project information
+- `POST /api/projects/:id/members` - Add team member
+- `DELETE /api/projects/:id/members/:memberId` - Remove team member
+
+#### Task Management
+- `GET /api/projects/:id/tasks` - Get all tasks for a project
+- `POST /api/projects/:id/tasks` - Create new task
+- `PUT /api/tasks/:id` - Update task
+- `DELETE /api/tasks/:id` - Delete task
+
+All endpoints require JWT authentication via Bearer token, except for project creation which returns the initial token.
+
+
 
 ## Contributing
 

@@ -159,6 +159,9 @@
 
 - [ ] 5.3 Connect TaskBoard to API
 
+
+
+
   - Implement task API service functions
   - Add task CRUD operations with optimistic updates
   - Handle drag-and-drop API calls for column changes

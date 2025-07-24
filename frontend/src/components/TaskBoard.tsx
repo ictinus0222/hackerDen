@@ -33,34 +33,56 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     loadTasks();
   }, [projectId]);
 
-  const loadTasks = async () => {
+  const loadTasks = async (retryCount = 0) => {
+    const maxRetries = 3;
+    const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Exponential backoff
+
     try {
-      setLoading(true);
-      setError(null);
+      if (retryCount === 0) {
+        setLoading(true);
+        setError(null);
+      }
       const fetchedTasks = await taskApi.getByProject(projectId);
       setTasks(fetchedTasks);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load tasks');
-    } finally {
+      setError(null);
       setLoading(false);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load tasks';
+      
+      if (retryCount < maxRetries && errorMessage.includes('Network')) {
+        // Retry on network errors
+        setError(`${errorMessage} (Retrying in ${retryDelay / 1000}s...)`);
+        setTimeout(() => {
+          loadTasks(retryCount + 1);
+        }, retryDelay);
+      } else {
+        setError(errorMessage);
+        setLoading(false);
+      }
     }
   };
 
   const handleTaskMove = async (taskId: string, newColumnId: string) => {
     // Optimistic update
     const taskToMove = tasks.find(task => task.id === taskId);
-    if (!taskToMove) return;
+    if (!taskToMove || taskToMove.columnId === newColumnId) return;
 
+    const originalTasks = [...tasks];
     const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, columnId: newColumnId } : task
+      task.id === taskId ? { ...task, columnId: newColumnId, updatedAt: new Date() } : task
     );
     setTasks(updatedTasks);
 
     try {
-      await taskApi.update(taskId, { columnId: newColumnId });
+      const updatedTask = await taskApi.update(taskId, { columnId: newColumnId });
+      // Update with server response to ensure consistency
+      setTasks(prevTasks => 
+        prevTasks.map(task => task.id === taskId ? updatedTask : task)
+      );
+      setError(null);
     } catch (err) {
       // Revert on error
-      setTasks(tasks);
+      setTasks(originalTasks);
       setError(err instanceof Error ? err.message : 'Failed to move task');
     }
   };
@@ -99,22 +121,40 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     description?: string;
     assignedTo?: string;
     columnId: string;
-  }) => {
+  }): Promise<void> => {
+    // Validate required fields
+    if (!taskData.title.trim()) {
+      setError('Task title is required');
+      throw new Error('Task title is required');
+    }
+
+    const originalTasks = [...tasks];
+
     try {
       if (editingTask) {
+        // Optimistic update for editing
+        const optimisticTask = { ...editingTask, ...taskData, updatedAt: new Date() };
+        setTasks(tasks.map(task => 
+          task.id === editingTask.id ? optimisticTask : task
+        ));
+
         // Update existing task
         const updatedTask = await taskApi.update(editingTask.id, taskData);
-        setTasks(tasks.map(task => 
+        setTasks(prevTasks => prevTasks.map(task => 
           task.id === editingTask.id ? updatedTask : task
         ));
       } else {
         // Create new task
         const newTask = await taskApi.create(projectId, taskData);
-        setTasks([...tasks, newTask]);
+        setTasks(prevTasks => [...prevTasks, newTask]);
       }
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save task');
+      // Revert optimistic update on error
+      setTasks(originalTasks);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save task';
+      setError(errorMessage);
+      throw err; // Re-throw to prevent modal from closing
     }
   };
 
@@ -151,13 +191,27 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4" data-testid="error-message">
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className="ml-2 text-red-500 hover:text-red-700"
-            >
-              ×
-            </button>
+            <div className="flex items-center justify-between">
+              <span>{error}</span>
+              <div className="flex items-center space-x-2">
+                {(error.includes('Failed to load') || error.includes('Network unavailable') || error.includes('Persistent error')) && (
+                  <button
+                    onClick={() => loadTasks()}
+                    className="text-red-600 hover:text-red-800 underline text-sm"
+                    data-testid="retry-button"
+                  >
+                    Retry
+                  </button>
+                )}
+                <button
+                  onClick={() => setError(null)}
+                  className="text-red-500 hover:text-red-700 text-lg leading-none"
+                  data-testid="dismiss-error"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

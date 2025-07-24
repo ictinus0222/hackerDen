@@ -9,7 +9,7 @@ interface TaskModalProps {
     description?: string;
     assignedTo?: string;
     columnId: string;
-  }) => void;
+  }) => Promise<void>;
   task?: Task | null;
   columnId?: string;
   teamMembers: TeamMember[];
@@ -27,6 +27,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [description, setDescription] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
   const [errors, setErrors] = useState<{ title?: string }>({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -45,7 +46,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }
   }, [isOpen, task]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -62,14 +63,23 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     // Determine column ID
     const targetColumnId = task ? task.columnId : columnId || 'todo';
 
-    onSave({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      assignedTo: assignedTo || undefined,
-      columnId: targetColumnId,
-    });
+    setSaving(true);
+    try {
+      await onSave({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        assignedTo: assignedTo || undefined,
+        columnId: targetColumnId,
+      });
 
-    onClose();
+      // Only close on successful save
+      onClose();
+    } catch (error) {
+      // Error is handled by parent component
+      // Modal stays open for user to retry
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleClose = () => {
@@ -167,10 +177,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              disabled={saving}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="save-task"
             >
-              {task ? 'Update' : 'Create'}
+              {saving ? 'Saving...' : (task ? 'Update' : 'Create')}
             </button>
           </div>
         </form>

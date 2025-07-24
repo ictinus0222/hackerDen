@@ -35,11 +35,17 @@ export const clearAuthToken = () => {
   localStorage.removeItem('hackerden_token');
 };
 
-// Generic API request function
+// Request deduplication cache
+const requestCache = new Map<string, Promise<any>>();
+
+// Generic API request function with retry logic and deduplication
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retryCount = 0
 ): Promise<ApiResponse<T>> {
+  const maxRetries = 3;
+  const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 5000);
   const token = getAuthToken();
   
   const config: RequestInit = {
@@ -51,24 +57,84 @@ async function apiRequest<T>(
     ...options,
   };
 
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    const data: ApiResponse<T> = await response.json();
-    
-    // Convert date strings back to Date objects
-    if (data.data && typeof data.data === 'object') {
-      convertDates(data.data);
-    }
-    
-    if (!response.ok) {
-      throw new Error(data.error?.message || `HTTP ${response.status}`);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('API request failed:', error);
-    throw error;
+  // Create cache key for GET requests to avoid duplicate calls
+  const cacheKey = options.method === 'GET' || !options.method 
+    ? `${endpoint}:${JSON.stringify(config)}` 
+    : null;
+
+  if (cacheKey && requestCache.has(cacheKey)) {
+    return requestCache.get(cacheKey);
   }
+
+  const requestPromise = (async (): Promise<ApiResponse<T>> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      
+      // Handle different response types
+      let data: ApiResponse<T>;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // Handle non-JSON responses
+        const text = await response.text();
+        data = {
+          success: response.ok,
+          data: text as any,
+          timestamp: new Date(),
+        };
+      }
+      
+      // Convert date strings back to Date objects
+      if (data.data && typeof data.data === 'object') {
+        convertDates(data.data);
+      }
+      
+      if (!response.ok) {
+        const errorMessage = data.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new ApiError(errorMessage, data.error?.code, data.error?.details);
+      }
+      
+      return data;
+    } catch (error) {
+      // Retry on network errors
+      if (retryCount < maxRetries && (
+        error instanceof TypeError || // Network error
+        (error instanceof ApiError && error.message.includes('Network')) ||
+        (error instanceof Error && error.message.includes('fetch'))
+      )) {
+        console.warn(`API request failed, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries + 1}):`, error);
+        
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        return apiRequest<T>(endpoint, options, retryCount + 1);
+      }
+      
+      console.error('API request failed:', error);
+      
+      // Convert generic errors to ApiError
+      if (!(error instanceof ApiError)) {
+        throw new ApiError(
+          error instanceof Error ? error.message : 'Unknown error occurred',
+          'NETWORK_ERROR'
+        );
+      }
+      
+      throw error;
+    } finally {
+      // Clean up cache after request completes
+      if (cacheKey) {
+        setTimeout(() => requestCache.delete(cacheKey), 1000);
+      }
+    }
+  })();
+
+  // Cache GET requests
+  if (cacheKey) {
+    requestCache.set(cacheKey, requestPromise);
+  }
+
+  return requestPromise;
 }
 
 // Helper function to convert date strings to Date objects
@@ -186,13 +252,30 @@ export const taskApi = {
     assignedTo?: string;
     columnId: string;
   }): Promise<Task> {
+    // Validate required fields
+    if (!task.title.trim()) {
+      throw new ApiError('Task title is required', 'VALIDATION_ERROR');
+    }
+    
+    if (!task.columnId) {
+      throw new ApiError('Task column is required', 'VALIDATION_ERROR');
+    }
+
     const response = await apiRequest<Task>(`/projects/${projectId}/tasks`, {
       method: 'POST',
-      body: JSON.stringify(task),
+      body: JSON.stringify({
+        ...task,
+        title: task.title.trim(),
+        description: task.description?.trim() || undefined,
+      }),
     });
     
     if (!response.success || !response.data) {
-      throw new Error(response.error?.message || 'Failed to create task');
+      throw new ApiError(
+        response.error?.message || 'Failed to create task',
+        response.error?.code || 'CREATE_ERROR',
+        response.error?.details
+      );
     }
     
     return response.data;
@@ -200,13 +283,25 @@ export const taskApi = {
 
   // Update a task
   async update(taskId: string, updates: Partial<Task>): Promise<Task> {
+    // Validate required fields
+    if (updates.title !== undefined && !updates.title.trim()) {
+      throw new ApiError('Task title cannot be empty', 'VALIDATION_ERROR');
+    }
+
     const response = await apiRequest<Task>(`/tasks/${taskId}`, {
       method: 'PUT',
-      body: JSON.stringify(updates),
+      body: JSON.stringify({
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      }),
     });
     
     if (!response.success || !response.data) {
-      throw new Error(response.error?.message || 'Failed to update task');
+      throw new ApiError(
+        response.error?.message || 'Failed to update task',
+        response.error?.code || 'UPDATE_ERROR',
+        response.error?.details
+      );
     }
     
     return response.data;

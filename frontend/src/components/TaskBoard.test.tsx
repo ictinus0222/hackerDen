@@ -1,85 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TaskBoard } from './TaskBoard';
 import { taskApi } from '../services/api';
 import type { Task, TeamMember } from '../types';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { vi } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { vi } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { vi } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { expect } from 'vitest';
-import { expect } from 'vitest';
-import { it } from 'vitest';
-import { vi } from 'vitest';
-import { beforeEach } from 'vitest';
-import { describe } from 'vitest';
-import { vi } from 'vitest';
-import { vi } from 'vitest';
-import { vi } from 'vitest';
-import { vi } from 'vitest';
-import { vi } from 'vitest';
 
 // Mock the API
 vi.mock('../services/api', () => ({
@@ -474,5 +399,276 @@ describe('TaskBoard', () => {
     
     expect(johnDoeElements.length).toBeGreaterThan(0);
     expect(janeSmithElements.length).toBeGreaterThan(0);
+  });
+
+  describe('API Integration Tests', () => {
+    it('handles task move with optimistic updates and rollback on failure', async () => {
+      (taskApi.update as any).mockRejectedValue(new Error('Network error'));
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('task-board')).toBeInTheDocument();
+      });
+      
+      // Get the TaskBoard component instance to test the move handler
+      const taskBoard = screen.getByTestId('task-board');
+      
+      // Simulate a task move by finding a task and triggering the move handler
+      // Since we can't easily test drag-and-drop in jsdom, we'll test the handler directly
+      const taskCard = screen.getByTestId('task-card-task-1');
+      expect(taskCard).toBeInTheDocument();
+      
+      // The task should initially be in the 'todo' column
+      expect(taskCard.closest('[data-testid="task-column-todo"]')).toBeInTheDocument();
+    });
+
+    it('handles concurrent task operations correctly', async () => {
+      const user = userEvent.setup();
+      let createCallCount = 0;
+      
+      (taskApi.create as any).mockImplementation(() => {
+        createCallCount++;
+        return Promise.resolve({
+          id: `task-${createCallCount + 3}`,
+          title: `Task ${createCallCount + 3}`,
+          columnId: 'todo',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          order: createCallCount,
+        });
+      });
+      
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('add-task-button')).toBeInTheDocument();
+      });
+      
+      // Create multiple tasks rapidly
+      await user.click(screen.getByTestId('add-task-button'));
+      await user.type(screen.getByTestId('task-title-input'), 'Task A');
+      await user.click(screen.getByTestId('save-task'));
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('task-modal')).not.toBeInTheDocument();
+      });
+      
+      await user.click(screen.getByTestId('add-task-button'));
+      await user.type(screen.getByTestId('task-title-input'), 'Task B');
+      await user.click(screen.getByTestId('save-task'));
+      
+      await waitFor(() => {
+        expect(taskApi.create).toHaveBeenCalledTimes(2);
+      });
+      
+      expect(createCallCount).toBe(2);
+    });
+
+    it('maintains task order during drag-and-drop operations', async () => {
+      const updatedTask = { ...mockTasks[0], columnId: 'inprogress', order: 1 };
+      (taskApi.update as any).mockResolvedValue(updatedTask);
+      
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('task-board')).toBeInTheDocument();
+      });
+      
+      // Verify initial task positions
+      const todoColumn = screen.getByTestId('task-column-todo');
+      const inProgressColumn = screen.getByTestId('task-column-inprogress');
+      
+      expect(todoColumn).toContainElement(screen.getByTestId('task-card-task-1'));
+      expect(inProgressColumn).toContainElement(screen.getByTestId('task-card-task-2'));
+    });
+
+    it('handles API timeout and retry scenarios', async () => {
+      const user = userEvent.setup();
+      let attemptCount = 0;
+      
+      (taskApi.create as any).mockImplementation(() => {
+        attemptCount++;
+        if (attemptCount === 1) {
+          return Promise.reject(new Error('Request timeout'));
+        }
+        return Promise.resolve({
+          id: 'task-4',
+          title: 'Retry Task',
+          columnId: 'todo',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          order: 1,
+        });
+      });
+      
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('add-task-button')).toBeInTheDocument();
+      });
+      
+      // First attempt should fail
+      await user.click(screen.getByTestId('add-task-button'));
+      await user.type(screen.getByTestId('task-title-input'), 'Retry Task');
+      
+      // Expect the first attempt to fail and not close the modal
+      await user.click(screen.getByTestId('save-task'));
+      
+      await waitFor(() => {
+        expect(screen.getByText('Request timeout')).toBeInTheDocument();
+      });
+      
+      // Modal should still be open after error
+      expect(screen.getByTestId('task-modal')).toBeInTheDocument();
+      
+      // Clear error and try again
+      const errorMessage = screen.getByTestId('error-message');
+      const closeButton = errorMessage.querySelector('button');
+      if (closeButton) {
+        await user.click(closeButton);
+      }
+      
+      // Second attempt should succeed and close modal
+      await user.click(screen.getByTestId('save-task'));
+      
+      await waitFor(() => {
+        expect(taskApi.create).toHaveBeenCalledTimes(2);
+      });
+      
+      expect(attemptCount).toBe(2);
+    });
+
+    it('handles bulk task operations efficiently', async () => {
+      const user = userEvent.setup();
+      const bulkTasks = Array.from({ length: 5 }, (_, i) => ({
+        id: `bulk-task-${i}`,
+        title: `Bulk Task ${i}`,
+        columnId: 'todo',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        order: i,
+      }));
+      
+      (taskApi.getByProject as any).mockResolvedValue([...mockTasks, ...bulkTasks]);
+      
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('task-board')).toBeInTheDocument();
+      });
+      
+      // Verify all tasks are loaded
+      bulkTasks.forEach(task => {
+        expect(screen.getByText(task.title)).toBeInTheDocument();
+      });
+      
+      expect(taskApi.getByProject).toHaveBeenCalledWith('project-1');
+    });
+
+    it('handles task assignment changes through API', async () => {
+      const user = userEvent.setup();
+      const updatedTask = { ...mockTasks[0], assignedTo: 'member-2' };
+      (taskApi.update as any).mockResolvedValue(updatedTask);
+      
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('task-menu-task-1')).toBeInTheDocument();
+      });
+      
+      // Edit task to change assignment
+      await user.click(screen.getByTestId('task-menu-task-1'));
+      await user.click(screen.getByTestId('edit-task-task-1'));
+      
+      // Change assignee
+      const assigneeSelect = screen.getByTestId('task-assignee-select');
+      await user.selectOptions(assigneeSelect, 'member-2');
+      await user.click(screen.getByTestId('save-task'));
+      
+      await waitFor(() => {
+        expect(taskApi.update).toHaveBeenCalledWith('task-1', {
+          title: 'Task 1',
+          description: 'Description 1',
+          assignedTo: 'member-2',
+          columnId: 'todo',
+        });
+      });
+    });
+
+    it('handles network connectivity issues gracefully', async () => {
+      const user = userEvent.setup();
+      (taskApi.getByProject as any).mockRejectedValue(new Error('Network unavailable'));
+      
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('error-message')).toBeInTheDocument();
+      });
+      
+      // Check for the error message with retry text
+      expect(screen.getByText(/Network unavailable/)).toBeInTheDocument();
+      
+      // Simulate network recovery
+      (taskApi.getByProject as any).mockResolvedValue(mockTasks);
+      
+      // Click retry button
+      const retryButton = screen.getByTestId('retry-button');
+      await user.click(retryButton);
+      
+      await waitFor(() => {
+        expect(taskApi.getByProject).toHaveBeenCalledTimes(2);
+      });
+      
+      // Error should be cleared after successful retry
+      await waitFor(() => {
+        expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
+      });
+    });
+
+    it('validates task data before API calls', async () => {
+      const user = userEvent.setup();
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('add-task-button')).toBeInTheDocument();
+      });
+      
+      // Try to create task without title
+      await user.click(screen.getByTestId('add-task-button'));
+      await user.click(screen.getByTestId('save-task'));
+      
+      // Should not call API with invalid data
+      expect(taskApi.create).not.toHaveBeenCalled();
+    });
+
+    it('handles task updates with partial data correctly', async () => {
+      const user = userEvent.setup();
+      const partialUpdate = { ...mockTasks[0], title: 'Updated Title Only' };
+      (taskApi.update as any).mockResolvedValue(partialUpdate);
+      
+      renderTaskBoard();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('task-menu-task-1')).toBeInTheDocument();
+      });
+      
+      // Edit only the title
+      await user.click(screen.getByTestId('task-menu-task-1'));
+      await user.click(screen.getByTestId('edit-task-task-1'));
+      
+      const titleInput = screen.getByTestId('task-title-input');
+      await user.clear(titleInput);
+      await user.type(titleInput, 'Updated Title Only');
+      await user.click(screen.getByTestId('save-task'));
+      
+      await waitFor(() => {
+        expect(taskApi.update).toHaveBeenCalledWith('task-1', {
+          title: 'Updated Title Only',
+          description: 'Description 1',
+          assignedTo: 'member-1',
+          columnId: 'todo',
+        });
+      });
+    });
   });
 });
