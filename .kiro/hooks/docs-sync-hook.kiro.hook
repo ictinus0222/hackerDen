@@ -1,0 +1,27 @@
+{
+  "enabled": true,
+  "name": "Documentation Sync",
+  "description": "Monitors TypeScript source files, configuration files, and package files for changes and automatically updates project documentation in README.md",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "frontend/src/**/*.ts",
+      "frontend/src/**/*.tsx",
+      "backend/src/**/*.ts",
+      "frontend/package.json",
+      "backend/package.json",
+      "package.json",
+      "frontend/vite.config.ts",
+      "backend/tsconfig.json",
+      "frontend/tsconfig.json",
+      "frontend/tailwind.config.js",
+      "frontend/eslint.config.js",
+      "backend/vitest.config.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Source code or configuration files have been modified in this TypeScript project. Please review the changes and update the README.md file to reflect any new features, API changes, configuration updates, or architectural modifications. Focus on keeping the documentation accurate and helpful for developers working on this hackathon management tool (hackerDen). Update installation instructions, usage examples, and any technical details that may have changed."
+  }
+}

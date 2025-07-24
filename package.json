@@ -1,0 +1,22 @@
+{
+  "name": "hackathon-management-tool",
+  "version": "1.0.0",
+  "description": "hackerDen - Hackathon Management Tool",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "test": "concurrently \"npm run test:frontend\" \"npm run test:backend\"",
+    "test:frontend": "cd frontend && npm run test:run",
+    "test:backend": "cd backend && npm run test:run"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["hackathon", "management", "collaboration", "react", "express"],
+  "author": "",
+  "license": "MIT"
+}
