@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { ApiResponse, TeamMember, JudgingCriterion, Task, ColumnName } from '../types/index.js';
+import type { ApiResponse, TeamMember, JudgingCriterion, Task, ColumnName, PivotEntry } from '../types/index.js';
 
 // Validation schemas
 const TeamMemberSchema = z.object({
@@ -67,6 +67,11 @@ const TaskUpdateSchema = z.object({
   assignedTo: z.string().max(100, 'Assignee name must be less than 100 characters').optional(),
   columnId: z.enum(['todo', 'inprogress', 'done']).optional(),
   order: z.number().min(0, 'Order must be non-negative').optional()
+});
+
+const PivotEntrySchema = z.object({
+  description: z.string().min(1, 'Pivot description is required').max(1000, 'Pivot description must be less than 1000 characters'),
+  reason: z.string().min(1, 'Pivot reason is required').max(1000, 'Pivot reason must be less than 1000 characters')
 });
 
 /**
@@ -177,4 +182,8 @@ export function validateTaskCreation(data: unknown) {
 
 export function validateTaskUpdate(data: unknown) {
   return validateDataOrThrow(TaskUpdateSchema, data);
+}
+
+export function validatePivotEntry(data: unknown): Omit<PivotEntry, 'id' | 'timestamp'> {
+  return validateDataOrThrow(PivotEntrySchema, data);
 }

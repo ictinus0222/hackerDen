@@ -45,8 +45,8 @@ app.get('/health', (_req, res) => {
 });
 
 // Import and use routes
-import projectRoutes from './routes/projects.js';
-import taskRoutes from './routes/tasks.js';
+import projectRoutes, { setSocketService as setProjectSocketService } from './routes/projects.js';
+import taskRoutes, { setSocketService as setTaskSocketService } from './routes/tasks.js';
 
 // API routes
 app.use('/api/projects', projectRoutes);
@@ -56,19 +56,22 @@ app.use('/api/tasks', taskRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Socket.io connection handling
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-  
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
+// Initialize Socket.io service
+import { SocketService } from './services/socketService.js';
+let socketService: SocketService;
 
 // Connect to database and start server
 const startServer = async () => {
   try {
     await connectDB();
+    
+    // Initialize socket service after database connection
+    socketService = new SocketService(io);
+    
+    // Set socket service references in routes
+    setProjectSocketService(() => socketService);
+    setTaskSocketService(() => socketService);
+    
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Health check: http://localhost:${PORT}/health`);
@@ -80,7 +83,7 @@ const startServer = async () => {
 };
 
 // Export app for testing
-export { app, server, io };
+export { app, server, io, socketService };
 
 // Only start server if this file is run directly
 if (import.meta.url === `file://${process.argv[1]}`) {

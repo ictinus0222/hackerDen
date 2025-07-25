@@ -6,7 +6,15 @@ import { authenticateProject, type AuthRequest } from '../middleware/auth.js';
 import { validateTaskUpdate } from '../utils/validation.js';
 import type { ApiResponse, Task as TaskType } from '../types/index.js';
 
+// Helper function to get socket service (will be set by server)
+let getSocketService: () => any = () => null;
+
 const router = Router();
+
+// Function to set socket service reference
+export const setSocketService = (socketServiceGetter: () => any) => {
+  getSocketService = socketServiceGetter;
+};
 
 // PUT /api/tasks/:id - Update task
 router.put('/:id', authenticateProject, async (req: AuthRequest, res: Response) => {
@@ -66,12 +74,26 @@ router.put('/:id', authenticateProject, async (req: AuthRequest, res: Response) 
     }
 
     // Update task fields
+    const originalColumnId = task.columnId;
     Object.assign(task, validatedData);
     await task.save();
 
+    const taskData = task.toObject();
+
+    // Emit socket event for real-time updates
+    const socketService = getSocketService();
+    if (socketService) {
+      // If column changed, emit task moved event, otherwise emit task updated
+      if (validatedData.columnId && validatedData.columnId !== originalColumnId) {
+        socketService.emitTaskMoved(task.projectId, taskData);
+      } else {
+        socketService.emitTaskUpdated(task.projectId, taskData);
+      }
+    }
+
     const response: ApiResponse<TaskType> = {
       success: true,
-      data: task.toObject(),
+      data: taskData,
       timestamp: new Date()
     };
 
@@ -118,7 +140,14 @@ router.delete('/:id', authenticateProject, async (req: AuthRequest, res: Respons
       } as ApiResponse);
     }
 
+    const projectId = task.projectId;
     await Task.deleteOne({ id: taskId });
+
+    // Emit socket event for real-time updates
+    const socketService = getSocketService();
+    if (socketService) {
+      socketService.emitTaskDeleted(projectId, taskId);
+    }
 
     const response: ApiResponse = {
       success: true,

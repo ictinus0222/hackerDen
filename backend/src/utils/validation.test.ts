@@ -5,7 +5,8 @@ import {
   validateDataOrThrow,
   createApiResponse,
   createSuccessResponse,
-  createErrorResponse
+  createErrorResponse,
+  validatePivotEntry
 } from './validation.js';
 
 // Test schema for validation tests
@@ -193,5 +194,81 @@ describe('createErrorResponse', () => {
     expect(response.error?.code).toBe('TEST_ERROR');
     expect(response.error?.message).toBe('Test message');
     expect(response.error?.details).toEqual(details);
+  });
+});
+
+describe('validatePivotEntry', () => {
+  it('should validate valid pivot entry data', () => {
+    const validPivot = {
+      description: 'Changed from mobile app to web app',
+      reason: 'Web development is faster for our team'
+    };
+
+    const result = validatePivotEntry(validPivot);
+    expect(result.description).toBe(validPivot.description);
+    expect(result.reason).toBe(validPivot.reason);
+  });
+
+  it('should reject empty description', () => {
+    const invalidPivot = {
+      description: '',
+      reason: 'Valid reason'
+    };
+
+    expect(() => validatePivotEntry(invalidPivot)).toThrow('Invalid input data');
+  });
+
+  it('should reject empty reason', () => {
+    const invalidPivot = {
+      description: 'Valid description',
+      reason: ''
+    };
+
+    expect(() => validatePivotEntry(invalidPivot)).toThrow('Invalid input data');
+  });
+
+  it('should reject missing description', () => {
+    const invalidPivot = {
+      reason: 'Valid reason'
+    };
+
+    expect(() => validatePivotEntry(invalidPivot)).toThrow('Invalid input data');
+  });
+
+  it('should reject missing reason', () => {
+    const invalidPivot = {
+      description: 'Valid description'
+    };
+
+    expect(() => validatePivotEntry(invalidPivot)).toThrow('Invalid input data');
+  });
+
+  it('should reject description that is too long', () => {
+    const invalidPivot = {
+      description: 'a'.repeat(1001), // Exceeds 1000 character limit
+      reason: 'Valid reason'
+    };
+
+    expect(() => validatePivotEntry(invalidPivot)).toThrow('Invalid input data');
+  });
+
+  it('should reject reason that is too long', () => {
+    const invalidPivot = {
+      description: 'Valid description',
+      reason: 'a'.repeat(1001) // Exceeds 1000 character limit
+    };
+
+    expect(() => validatePivotEntry(invalidPivot)).toThrow('Invalid input data');
+  });
+
+  it('should accept maximum length description and reason', () => {
+    const validPivot = {
+      description: 'a'.repeat(1000), // Exactly 1000 characters
+      reason: 'b'.repeat(1000) // Exactly 1000 characters
+    };
+
+    const result = validatePivotEntry(validPivot);
+    expect(result.description).toBe(validPivot.description);
+    expect(result.reason).toBe(validPivot.reason);
   });
 });

@@ -3,11 +3,19 @@ import type { Request, Response } from 'express';
 import { Project } from '../models/Project.js';
 import { Task } from '../models/Task.js';
 import { authenticateProject, generateProjectToken, type AuthRequest } from '../middleware/auth.js';
-import { validateProjectCreation, validateProjectUpdate, validateTeamMember, validateTaskCreation } from '../utils/validation.js';
-import type { ApiResponse, ProjectHub, TeamMember, Task as TaskType } from '../types/index.js';
+import { validateProjectCreation, validateProjectUpdate, validateTeamMember, validateTaskCreation, validatePivotEntry } from '../utils/validation.js';
+import type { ApiResponse, ProjectHub, TeamMember, Task as TaskType, PivotEntry } from '../types/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
+// Helper function to get socket service (will be set by server)
+let getSocketService: () => any = () => null;
+
 const router = Router();
+
+// Function to set socket service reference
+export const setSocketService = (socketServiceGetter: () => any) => {
+  getSocketService = socketServiceGetter;
+};
 
 // POST /api/projects - Create new project
 router.post('/', async (req: Request, res: Response) => {
@@ -156,9 +164,17 @@ router.put('/:id', authenticateProject, async (req: AuthRequest, res: Response) 
     Object.assign(project, validatedData);
     await project.save();
 
+    const projectData = project.toObject();
+
+    // Emit socket event for real-time updates
+    const socketService = getSocketService();
+    if (socketService) {
+      socketService.emitProjectUpdate(projectId, projectData);
+    }
+
     const response: ApiResponse<ProjectHub> = {
       success: true,
-      data: project.toObject(),
+      data: projectData,
       timestamp: new Date()
     };
 
@@ -229,6 +245,12 @@ router.post('/:id/members', authenticateProject, async (req: AuthRequest, res: R
     };
     
     await project.addTeamMember(newMember);
+
+    // Emit socket event for real-time updates
+    const socketService = getSocketService();
+    if (socketService) {
+      socketService.emitMemberJoined(projectId, newMember);
+    }
 
     const response: ApiResponse<TeamMember> = {
       success: true,
@@ -308,6 +330,12 @@ router.delete('/:id/members/:memberId', authenticateProject, async (req: AuthReq
 
     // Remove team member
     await project.removeTeamMember(memberId);
+
+    // Emit socket event for real-time updates
+    const socketService = getSocketService();
+    if (socketService) {
+      socketService.emitMemberLeft(projectId, memberId);
+    }
 
     const response: ApiResponse = {
       success: true,
@@ -446,9 +474,17 @@ router.post('/:id/tasks', authenticateProject, async (req: AuthRequest, res: Res
     const task = new Task(taskData);
     await task.save();
 
+    const taskObject = task.toObject();
+
+    // Emit socket event for real-time updates
+    const socketService = getSocketService();
+    if (socketService) {
+      socketService.emitTaskCreated(projectId, taskObject);
+    }
+
     const response: ApiResponse<TaskType> = {
       success: true,
-      data: task.toObject(),
+      data: taskObject,
       timestamp: new Date()
     };
 
@@ -460,6 +496,128 @@ router.post('/:id/tasks', authenticateProject, async (req: AuthRequest, res: Res
       error: {
         code: 'CREATE_TASK_FAILED',
         message: error.message || 'Failed to create task'
+      },
+      timestamp: new Date()
+    } as ApiResponse);
+  }
+});
+
+// POST /api/projects/:id/pivots - Log new pivot
+router.post('/:id/pivots', authenticateProject, async (req: AuthRequest, res: Response) => {
+  try {
+    const projectId = req.params.id;
+    
+    // Verify the authenticated project matches the requested project
+    if (req.projectId !== projectId) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'ACCESS_DENIED',
+          message: 'You can only add pivots to your own project'
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+
+    const validatedPivot = validatePivotEntry(req.body);
+    
+    const project = await Project.findByProjectId(projectId);
+    
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'PROJECT_NOT_FOUND',
+          message: 'Project not found'
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+
+    // Create new pivot entry
+    const newPivot = {
+      id: uuidv4(),
+      ...validatedPivot,
+      timestamp: new Date()
+    };
+    
+    await project.addPivotEntry(newPivot);
+
+    // Emit socket event for real-time updates
+    const socketService = getSocketService();
+    if (socketService) {
+      socketService.emitPivotLogged(projectId, newPivot);
+    }
+
+    const response: ApiResponse<PivotEntry> = {
+      success: true,
+      data: newPivot,
+      timestamp: new Date()
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    console.error('Error adding pivot entry:', error);
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'ADD_PIVOT_FAILED',
+        message: error.message || 'Failed to add pivot entry'
+      },
+      timestamp: new Date()
+    } as ApiResponse);
+  }
+});
+
+// GET /api/projects/:id/pivots - Get pivot history
+router.get('/:id/pivots', authenticateProject, async (req: AuthRequest, res: Response) => {
+  try {
+    const projectId = req.params.id;
+    
+    // Verify the authenticated project matches the requested project
+    if (req.projectId !== projectId) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'ACCESS_DENIED',
+          message: 'You can only access your own project pivots'
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+
+    const project = await Project.findByProjectId(projectId);
+    
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'PROJECT_NOT_FOUND',
+          message: 'Project not found'
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+
+    // Return pivot log sorted by timestamp (most recent first)
+    const sortedPivots = [...project.pivotLog].sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    const response: ApiResponse<PivotEntry[]> = {
+      success: true,
+      data: sortedPivots,
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (error: any) {
+    console.error('Error fetching pivot history:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'FETCH_PIVOTS_FAILED',
+        message: 'Failed to fetch pivot history'
       },
       timestamp: new Date()
     } as ApiResponse);

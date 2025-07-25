@@ -613,4 +613,303 @@ describe('Project API Endpoints', () => {
       }
     });
   });
+
+  describe('POST /api/projects/:id/pivots', () => {
+    let projectId: string;
+    let token: string;
+
+    beforeEach(async () => {
+      // Create a test project
+      const projectData = {
+        projectName: 'Test Project',
+        oneLineIdea: 'Test idea',
+        creatorName: 'Test Creator'
+      };
+
+      const createResponse = await request(app)
+        .post('/api/projects')
+        .send(projectData);
+
+      projectId = createResponse.body.data.project.projectId;
+      token = createResponse.body.data.token;
+    });
+
+    it('should log a new pivot successfully', async () => {
+      const pivotData = {
+        description: 'Changed from mobile app to web app',
+        reason: 'Web development is faster for our team'
+      };
+
+      const response = await request(app)
+        .post(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(pivotData)
+        .expect(201);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.description).toBe(pivotData.description);
+      expect(response.body.data.reason).toBe(pivotData.reason);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.timestamp).toBeDefined();
+    });
+
+    it('should require authentication', async () => {
+      const pivotData = {
+        description: 'Test pivot',
+        reason: 'Test reason'
+      };
+
+      await request(app)
+        .post(`/api/projects/${projectId}/pivots`)
+        .send(pivotData)
+        .expect(401);
+    });
+
+    it('should validate pivot data', async () => {
+      const invalidPivotData = {
+        description: '', // Empty description
+        reason: 'Valid reason'
+      };
+
+      const response = await request(app)
+        .post(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(invalidPivotData)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('ADD_PIVOT_FAILED');
+    });
+
+    it('should require both description and reason', async () => {
+      const incompletePivotData = {
+        description: 'Valid description'
+        // Missing reason
+      };
+
+      const response = await request(app)
+        .post(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(incompletePivotData)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should reject pivot data that is too long', async () => {
+      const longPivotData = {
+        description: 'a'.repeat(1001), // Exceeds 1000 character limit
+        reason: 'Valid reason'
+      };
+
+      const response = await request(app)
+        .post(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(longPivotData)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should prevent access to other projects', async () => {
+      // Create another project
+      const otherProjectData = {
+        projectName: 'Other Project',
+        oneLineIdea: 'Other idea',
+        creatorName: 'Other Creator'
+      };
+
+      const otherResponse = await request(app)
+        .post('/api/projects')
+        .send(otherProjectData);
+
+      const otherProjectId = otherResponse.body.data.project.projectId;
+
+      const pivotData = {
+        description: 'Test pivot',
+        reason: 'Test reason'
+      };
+
+      // Try to add pivot to other project with wrong token
+      const response = await request(app)
+        .post(`/api/projects/${otherProjectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(pivotData)
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('ACCESS_DENIED');
+    });
+
+    it('should return 404 for non-existent project', async () => {
+      const nonExistentProjectId = 'non-existent-id';
+      const pivotData = {
+        description: 'Test pivot',
+        reason: 'Test reason'
+      };
+
+      // Generate token for non-existent project
+      const fakeToken = generateProjectToken(nonExistentProjectId);
+
+      const response = await request(app)
+        .post(`/api/projects/${nonExistentProjectId}/pivots`)
+        .set('Authorization', `Bearer ${fakeToken}`)
+        .send(pivotData)
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('PROJECT_NOT_FOUND');
+    });
+  });
+
+  describe('GET /api/projects/:id/pivots', () => {
+    let projectId: string;
+    let token: string;
+
+    beforeEach(async () => {
+      // Create a test project
+      const projectData = {
+        projectName: 'Test Project',
+        oneLineIdea: 'Test idea',
+        creatorName: 'Test Creator'
+      };
+
+      const createResponse = await request(app)
+        .post('/api/projects')
+        .send(projectData);
+
+      projectId = createResponse.body.data.project.projectId;
+      token = createResponse.body.data.token;
+    });
+
+    it('should return empty pivot history for new project', async () => {
+      const response = await request(app)
+        .get(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toEqual([]);
+    });
+
+    it('should return pivot history in chronological order (newest first)', async () => {
+      // Add multiple pivots
+      const pivot1 = {
+        description: 'First pivot',
+        reason: 'First reason'
+      };
+
+      const pivot2 = {
+        description: 'Second pivot',
+        reason: 'Second reason'
+      };
+
+      // Add first pivot
+      await request(app)
+        .post(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(pivot1);
+
+      // Wait a bit to ensure different timestamps
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      // Add second pivot
+      await request(app)
+        .post(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(pivot2);
+
+      // Get pivot history
+      const response = await request(app)
+        .get(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveLength(2);
+      
+      // Should be in reverse chronological order (newest first)
+      expect(response.body.data[0].description).toBe(pivot2.description);
+      expect(response.body.data[1].description).toBe(pivot1.description);
+      
+      // Verify timestamps are in correct order
+      const firstTimestamp = new Date(response.body.data[0].timestamp);
+      const secondTimestamp = new Date(response.body.data[1].timestamp);
+      expect(firstTimestamp.getTime()).toBeGreaterThan(secondTimestamp.getTime());
+    });
+
+    it('should require authentication', async () => {
+      await request(app)
+        .get(`/api/projects/${projectId}/pivots`)
+        .expect(401);
+    });
+
+    it('should prevent access to other projects', async () => {
+      // Create another project
+      const otherProjectData = {
+        projectName: 'Other Project',
+        oneLineIdea: 'Other idea',
+        creatorName: 'Other Creator'
+      };
+
+      const otherResponse = await request(app)
+        .post('/api/projects')
+        .send(otherProjectData);
+
+      const otherProjectId = otherResponse.body.data.project.projectId;
+
+      // Try to access other project's pivots with wrong token
+      const response = await request(app)
+        .get(`/api/projects/${otherProjectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('ACCESS_DENIED');
+    });
+
+    it('should return 404 for non-existent project', async () => {
+      const nonExistentProjectId = 'non-existent-id';
+      
+      // Generate token for non-existent project
+      const fakeToken = generateProjectToken(nonExistentProjectId);
+
+      const response = await request(app)
+        .get(`/api/projects/${nonExistentProjectId}/pivots`)
+        .set('Authorization', `Bearer ${fakeToken}`)
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('PROJECT_NOT_FOUND');
+    });
+
+    it('should include all pivot entry fields', async () => {
+      const pivotData = {
+        description: 'Test pivot description',
+        reason: 'Test pivot reason'
+      };
+
+      // Add a pivot
+      await request(app)
+        .post(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(pivotData);
+
+      // Get pivot history
+      const response = await request(app)
+        .get(`/api/projects/${projectId}/pivots`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveLength(1);
+      
+      const pivot = response.body.data[0];
+      expect(pivot.id).toBeDefined();
+      expect(pivot.description).toBe(pivotData.description);
+      expect(pivot.reason).toBe(pivotData.reason);
+      expect(pivot.timestamp).toBeDefined();
+      expect(new Date(pivot.timestamp)).toBeInstanceOf(Date);
+    });
+  });
 });
