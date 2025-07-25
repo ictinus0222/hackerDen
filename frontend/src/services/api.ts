@@ -1,4 +1,4 @@
-import type { ProjectHub, TeamMember, Task, TaskBoard } from '../types';
+import type { ProjectHub, TeamMember, Task, TaskBoard, PivotEntry } from '../types';
 
 // API Response types
 export interface ApiResponse<T = any> {
@@ -316,6 +316,53 @@ export const taskApi = {
     if (!response.success) {
       throw new Error(response.error?.message || 'Failed to delete task');
     }
+  },
+};
+
+// Pivot API functions
+export const pivotApi = {
+  // Get pivot history for a project
+  async getByProject(projectId: string): Promise<PivotEntry[]> {
+    const response = await apiRequest<PivotEntry[]>(`/projects/${projectId}/pivots`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || 'Failed to fetch pivot history');
+    }
+    
+    return response.data;
+  },
+
+  // Log a new pivot
+  async create(projectId: string, pivot: {
+    description: string;
+    reason: string;
+  }): Promise<PivotEntry> {
+    // Validate required fields
+    if (!pivot.description.trim()) {
+      throw new ApiError('Pivot description is required', 'VALIDATION_ERROR');
+    }
+    
+    if (!pivot.reason.trim()) {
+      throw new ApiError('Pivot reason is required', 'VALIDATION_ERROR');
+    }
+
+    const response = await apiRequest<PivotEntry>(`/projects/${projectId}/pivots`, {
+      method: 'POST',
+      body: JSON.stringify({
+        description: pivot.description.trim(),
+        reason: pivot.reason.trim(),
+      }),
+    });
+    
+    if (!response.success || !response.data) {
+      throw new ApiError(
+        response.error?.message || 'Failed to log pivot',
+        response.error?.code || 'CREATE_ERROR',
+        response.error?.details
+      );
+    }
+    
+    return response.data;
   },
 };
 

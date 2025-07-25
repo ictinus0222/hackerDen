@@ -1,10 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { projectApi, setAuthToken, getAuthToken, clearAuthToken } from './api';
-import type { ProjectHub, TeamMember } from '../types';
+import { projectApi, taskApi, pivotApi, setAuthToken, getAuthToken, clearAuthToken, ApiError } from './api';
+import type { ProjectHub, TeamMember, Task } from '../types';
 
 // Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
+
+// Helper to create proper mock response
+const createMockResponse = (data: any, ok = true, status = 200) => ({
+  ok,
+  status,
+  statusText: ok ? 'OK' : 'Error',
+  headers: {
+    get: vi.fn((name: string) => {
+      if (name === 'content-type') return 'application/json';
+      return null;
+    })
+  },
+  json: () => Promise.resolve(data)
+});
 
 // Mock localStorage
 const mockLocalStorage = {
@@ -16,33 +30,26 @@ Object.defineProperty(window, 'localStorage', {
   value: mockLocalStorage,
 });
 
-const mockProject: ProjectHub = {
-  projectId: 'test-project-1',
-  projectName: 'Test Project',
-  oneLineIdea: 'A test project for testing',
-  teamMembers: [
-    {
-      id: 'member-1',
-      name: 'John Doe',
-      role: 'Team Lead',
-      joinedAt: new Date('2024-01-01T10:00:00Z')
-    }
-  ],
-  deadlines: {
-    hackingEnds: new Date('2024-01-02T18:00:00Z'),
-    submissionDeadline: new Date('2024-01-02T20:00:00Z'),
-    presentationTime: new Date('2024-01-03T09:00:00Z')
+const mockTasks: Task[] = [
+  {
+    id: 'task-1',
+    title: 'Test Task 1',
+    description: 'First test task',
+    assignedTo: 'member-1',
+    columnId: 'todo',
+    createdAt: new Date('2024-01-01T10:00:00Z'),
+    updatedAt: new Date('2024-01-01T10:00:00Z'),
+    order: 1
   },
-  judgingCriteria: [
-    {
-      id: 'criteria-1',
-      name: 'Business Potential',
-      description: 'How viable is this as a business?',
-      completed: false
-    }
-  ],
-  pivotLog: []
-};
+  {
+    id: 'task-2',
+    title: 'Test Task 2',
+    columnId: 'inprogress',
+    createdAt: new Date('2024-01-01T11:00:00Z'),
+    updatedAt: new Date('2024-01-01T11:00:00Z'),
+    order: 1
+  }
+];
 
 describe('API Service', () => {
   beforeEach(() => {
@@ -59,7 +66,6 @@ describe('API Service', () => {
 
   describe('Token management', () => {
     beforeEach(() => {
-      // Clear token state before each test
       clearAuthToken();
     });
 
@@ -81,334 +87,306 @@ describe('API Service', () => {
     });
 
     it('should clear auth token', () => {
-      // Set a token first
       setAuthToken('test-token');
       
       clearAuthToken();
       
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('hackerden_token');
       
-      // Mock localStorage to return null after clearing
       mockLocalStorage.getItem.mockReturnValue(null);
       expect(getAuthToken()).toBeNull();
     });
   });
 
-  describe('Project API', () => {
-    describe('create', () => {
-      it('should create project successfully', async () => {
-        const createData = {
-          projectName: 'New Project',
-          oneLineIdea: 'A new project idea',
-          creatorName: 'John Doe'
-        };
-
-        const responseData = {
-          project: mockProject,
-          token: 'new-token-123'
-        };
-
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: responseData,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        const result = await projectApi.create(createData);
-
-        expect(mockFetch).toHaveBeenCalledWith(
-          'http://localhost:3000/api/projects',
-          expect.objectContaining({
-            method: 'POST',
-            headers: expect.objectContaining({
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify(createData)
-          })
-        );
-
-        expect(result).toEqual(responseData);
-        expect(mockLocalStorage.setItem).toHaveBeenCalledWith('hackerden_token', 'new-token-123');
-      });
-
-      it('should handle create project errors', async () => {
-        mockFetch.mockResolvedValue({
-          ok: false,
-          json: () => Promise.resolve({
-            success: false,
-            error: {
-              code: 'CREATION_FAILED',
-              message: 'Project name already exists'
-            },
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        await expect(projectApi.create({
-          projectName: 'Existing Project',
-          oneLineIdea: 'Test idea',
-          creatorName: 'John Doe'
-        })).rejects.toThrow('Project name already exists');
-      });
+  describe('Task API', () => {
+    beforeEach(() => {
+      setAuthToken('test-token-123');
     });
 
-    describe('getById', () => {
-      it('should fetch project successfully', async () => {
-        const token = 'auth-token-123';
-        setAuthToken(token);
+    describe('getByProject', () => {
+      it('should fetch tasks for project successfully', async () => {
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: true,
+          data: mockTasks,
+          timestamp: new Date().toISOString()
+        }));
 
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockProject,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        const result = await projectApi.getById('test-project-1');
+        const result = await taskApi.getByProject('test-project-1');
 
         expect(mockFetch).toHaveBeenCalledWith(
-          'http://localhost:3000/api/projects/test-project-1',
+          'http://localhost:3000/api/projects/test-project-1/tasks',
           expect.objectContaining({
             headers: expect.objectContaining({
-              'Authorization': `Bearer ${token}`
+              'Authorization': 'Bearer test-token-123'
             })
           })
         );
 
-        expect(result).toEqual(mockProject);
+        expect(result).toEqual(mockTasks);
+        expect(result[0].createdAt).toBeInstanceOf(Date);
+        expect(result[0].updatedAt).toBeInstanceOf(Date);
       });
 
-      it('should handle fetch project errors', async () => {
-        mockFetch.mockResolvedValue({
-          ok: false,
-          json: () => Promise.resolve({
-            success: false,
-            error: {
-              code: 'PROJECT_NOT_FOUND',
-              message: 'Project not found'
-            },
-            timestamp: new Date().toISOString()
-          })
-        });
+      it('should handle fetch tasks errors', async () => {
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: false,
+          error: {
+            code: 'PROJECT_NOT_FOUND',
+            message: 'Project not found'
+          },
+          timestamp: new Date().toISOString()
+        }, false, 404));
 
-        await expect(projectApi.getById('nonexistent-project')).rejects.toThrow('Project not found');
+        await expect(taskApi.getByProject('nonexistent-project'))
+          .rejects.toThrow('Project not found');
+      });
+    });
+
+    describe('create', () => {
+      it('should create task successfully', async () => {
+        const taskData = {
+          title: 'New Task',
+          description: 'Task description',
+          assignedTo: 'member-1',
+          columnId: 'todo'
+        };
+
+        const createdTask: Task = {
+          id: 'task-3',
+          ...taskData,
+          createdAt: new Date('2024-01-01T12:00:00Z'),
+          updatedAt: new Date('2024-01-01T12:00:00Z'),
+          order: 1
+        };
+
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: true,
+          data: createdTask,
+          timestamp: new Date().toISOString()
+        }));
+
+        const result = await taskApi.create('test-project-1', taskData);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://localhost:3000/api/projects/test-project-1/tasks',
+          expect.objectContaining({
+            method: 'POST',
+            headers: expect.objectContaining({
+              'Authorization': 'Bearer test-token-123',
+              'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify(taskData)
+          })
+        );
+
+        expect(result).toEqual(createdTask);
+      });
+
+      it('should validate required fields', async () => {
+        await expect(taskApi.create('test-project-1', {
+          title: '',
+          columnId: 'todo'
+        })).rejects.toThrow('Task title is required');
+
+        await expect(taskApi.create('test-project-1', {
+          title: '   ',
+          columnId: 'todo'
+        })).rejects.toThrow('Task title is required');
+
+        await expect(taskApi.create('test-project-1', {
+          title: 'Valid Title',
+          columnId: ''
+        })).rejects.toThrow('Task column is required');
+      });
+
+      it('should trim whitespace from inputs', async () => {
+        const taskData = {
+          title: '  Trimmed Task  ',
+          description: '  Trimmed description  ',
+          columnId: 'todo'
+        };
+
+        const createdTask: Task = {
+          id: 'task-3',
+          title: 'Trimmed Task',
+          description: 'Trimmed description',
+          columnId: 'todo',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          order: 1
+        };
+
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: true,
+          data: createdTask,
+          timestamp: new Date().toISOString()
+        }));
+
+        await taskApi.create('test-project-1', taskData);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://localhost:3000/api/projects/test-project-1/tasks',
+          expect.objectContaining({
+            body: JSON.stringify({
+              title: 'Trimmed Task',
+              description: 'Trimmed description',
+              columnId: 'todo'
+            })
+          })
+        );
+      });
+
+      it('should handle creation errors', async () => {
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid column ID',
+            details: { columnId: 'invalid-column' }
+          },
+          timestamp: new Date().toISOString()
+        }, false, 400));
+
+        await expect(taskApi.create('test-project-1', {
+          title: 'Test Task',
+          columnId: 'invalid-column'
+        })).rejects.toThrow('Invalid column ID');
       });
     });
 
     describe('update', () => {
-      it('should update project successfully', async () => {
-        const token = 'auth-token-123';
-        setAuthToken(token);
-
+      it('should update task successfully', async () => {
         const updates = {
-          projectName: 'Updated Project Name',
-          oneLineIdea: 'Updated idea'
+          title: 'Updated Task',
+          description: 'Updated description',
+          assignedTo: 'member-2',
+          columnId: 'inprogress'
         };
 
-        const updatedProject = { ...mockProject, ...updates };
+        const updatedTask: Task = {
+          ...mockTasks[0],
+          ...updates,
+          updatedAt: new Date('2024-01-01T13:00:00Z')
+        };
 
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: updatedProject,
-            timestamp: new Date().toISOString()
-          })
-        });
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: true,
+          data: updatedTask,
+          timestamp: new Date().toISOString()
+        }));
 
-        const result = await projectApi.update('test-project-1', updates);
+        const result = await taskApi.update('task-1', updates);
 
         expect(mockFetch).toHaveBeenCalledWith(
-          'http://localhost:3000/api/projects/test-project-1',
+          'http://localhost:3000/api/tasks/task-1',
           expect.objectContaining({
             method: 'PUT',
             headers: expect.objectContaining({
-              'Authorization': `Bearer ${token}`,
+              'Authorization': 'Bearer test-token-123',
               'Content-Type': 'application/json'
             }),
-            body: JSON.stringify(updates)
+            body: expect.stringContaining('"title":"Updated Task"')
           })
         );
 
-        expect(result).toEqual(updatedProject);
+        expect(result).toEqual(updatedTask);
       });
 
-      it('should handle update project errors', async () => {
-        mockFetch.mockResolvedValue({
-          ok: false,
-          json: () => Promise.resolve({
-            success: false,
-            error: {
-              code: 'UPDATE_FAILED',
-              message: 'Validation failed'
-            },
-            timestamp: new Date().toISOString()
-          })
-        });
+      it('should handle partial updates', async () => {
+        const updates = { columnId: 'done' };
 
-        await expect(projectApi.update('test-project-1', {})).rejects.toThrow('Validation failed');
+        const updatedTask: Task = {
+          ...mockTasks[0],
+          columnId: 'done',
+          updatedAt: new Date()
+        };
+
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: true,
+          data: updatedTask,
+          timestamp: new Date().toISOString()
+        }));
+
+        const result = await taskApi.update('task-1', updates);
+
+        expect(result.columnId).toBe('done');
+        expect(result.title).toBe(mockTasks[0].title);
+      });
+
+      it('should validate title updates', async () => {
+        await expect(taskApi.update('task-1', { title: '' }))
+          .rejects.toThrow('Task title cannot be empty');
+
+        await expect(taskApi.update('task-1', { title: '   ' }))
+          .rejects.toThrow('Task title cannot be empty');
+      });
+
+      it('should handle update errors', async () => {
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: false,
+          error: {
+            code: 'TASK_NOT_FOUND',
+            message: 'Task not found'
+          },
+          timestamp: new Date().toISOString()
+        }, false, 404));
+
+        await expect(taskApi.update('nonexistent-task', { title: 'Updated' }))
+          .rejects.toThrow('Task not found');
+      });
+
+      it('should include updatedAt timestamp in request', async () => {
+        const updates = { title: 'Updated Task' };
+
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: true,
+          data: { ...mockTasks[0], ...updates },
+          timestamp: new Date().toISOString()
+        }));
+
+        await taskApi.update('task-1', updates);
+
+        const requestBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(requestBody.updatedAt).toBeDefined();
+        expect(new Date(requestBody.updatedAt)).toBeInstanceOf(Date);
       });
     });
 
-    describe('addMember', () => {
-      it('should add team member successfully', async () => {
-        const token = 'auth-token-123';
-        setAuthToken(token);
+    describe('delete', () => {
+      it('should delete task successfully', async () => {
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: true,
+          timestamp: new Date().toISOString()
+        }));
 
-        const memberData = {
-          name: 'Jane Smith',
-          role: 'Developer'
-        };
-
-        const newMember: TeamMember = {
-          id: 'member-2',
-          name: 'Jane Smith',
-          role: 'Developer',
-          joinedAt: new Date('2024-01-01T11:00:00Z')
-        };
-
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: newMember,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        const result = await projectApi.addMember('test-project-1', memberData);
+        await taskApi.delete('task-1');
 
         expect(mockFetch).toHaveBeenCalledWith(
-          'http://localhost:3000/api/projects/test-project-1/members',
-          expect.objectContaining({
-            method: 'POST',
-            headers: expect.objectContaining({
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify(memberData)
-          })
-        );
-
-        expect(result).toEqual(newMember);
-      });
-
-      it('should handle add member errors', async () => {
-        mockFetch.mockResolvedValue({
-          ok: false,
-          json: () => Promise.resolve({
-            success: false,
-            error: {
-              code: 'MEMBER_EXISTS',
-              message: 'Team member with this name already exists'
-            },
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        await expect(projectApi.addMember('test-project-1', {
-          name: 'John Doe'
-        })).rejects.toThrow('Team member with this name already exists');
-      });
-    });
-
-    describe('removeMember', () => {
-      it('should remove team member successfully', async () => {
-        const token = 'auth-token-123';
-        setAuthToken(token);
-
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        await projectApi.removeMember('test-project-1', 'member-2');
-
-        expect(mockFetch).toHaveBeenCalledWith(
-          'http://localhost:3000/api/projects/test-project-1/members/member-2',
+          'http://localhost:3000/api/tasks/task-1',
           expect.objectContaining({
             method: 'DELETE',
             headers: expect.objectContaining({
-              'Authorization': `Bearer ${token}`
+              'Authorization': 'Bearer test-token-123'
             })
           })
         );
       });
 
-      it('should handle remove member errors', async () => {
-        mockFetch.mockResolvedValue({
-          ok: false,
-          json: () => Promise.resolve({
-            success: false,
-            error: {
-              code: 'CANNOT_REMOVE_LAST_MEMBER',
-              message: 'Cannot remove the last team member'
-            },
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        await expect(projectApi.removeMember('test-project-1', 'member-1'))
-          .rejects.toThrow('Cannot remove the last team member');
-      });
-    });
-  });
-
-  describe('Date conversion', () => {
-    it('should convert date strings to Date objects', async () => {
-      const projectWithDateStrings = {
-        ...mockProject,
-        teamMembers: [{
-          ...mockProject.teamMembers[0],
-          joinedAt: '2024-01-01T10:00:00.000Z'
-        }],
-        deadlines: {
-          hackingEnds: '2024-01-02T18:00:00.000Z',
-          submissionDeadline: '2024-01-02T20:00:00.000Z',
-          presentationTime: '2024-01-03T09:00:00.000Z'
-        }
-      };
-
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: projectWithDateStrings,
+      it('should handle deletion errors', async () => {
+        mockFetch.mockResolvedValue(createMockResponse({
+          success: false,
+          error: {
+            code: 'TASK_NOT_FOUND',
+            message: 'Task not found'
+          },
           timestamp: new Date().toISOString()
-        })
+        }, false, 404));
+
+        await expect(taskApi.delete('nonexistent-task'))
+          .rejects.toThrow('Task not found');
       });
-
-      const result = await projectApi.getById('test-project-1');
-
-      expect(result.teamMembers[0].joinedAt).toBeInstanceOf(Date);
-      expect(result.deadlines.hackingEnds).toBeInstanceOf(Date);
-      expect(result.deadlines.submissionDeadline).toBeInstanceOf(Date);
-      expect(result.deadlines.presentationTime).toBeInstanceOf(Date);
-    });
-  });
-
-  describe('Network errors', () => {
-    it('should handle network failures', async () => {
-      mockFetch.mockRejectedValue(new Error('Network error'));
-
-      await expect(projectApi.getById('test-project-1')).rejects.toThrow('Network error');
     });
 
-    it('should handle malformed responses', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.reject(new Error('Invalid JSON'))
-      });
 
-      await expect(projectApi.getById('test-project-1')).rejects.toThrow('Invalid JSON');
-    });
   });
 });
