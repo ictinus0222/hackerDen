@@ -1,18 +1,22 @@
 import React, { useEffect } from 'react';
 import { ProjectHub } from './ProjectHub';
 import { useProject } from '../hooks/useProject';
-import type { ProjectHub as ProjectHubType } from '../types';
+import { useSocket, useProjectRealtime } from '../hooks/useSocket';
+import { ConnectionStatus } from './ConnectionStatus';
+import type { ProjectHub as ProjectHubType, TeamMember, PivotEntry } from '../types';
 
 interface ProjectHubContainerProps {
   projectId?: string;
   initialProject?: ProjectHubType;
   canEdit?: boolean;
+  userName?: string;
 }
 
 export const ProjectHubContainer: React.FC<ProjectHubContainerProps> = ({
   projectId,
   initialProject,
-  canEdit = true
+  canEdit = true,
+  userName
 }) => {
   const {
     project,
@@ -27,6 +31,13 @@ export const ProjectHubContainer: React.FC<ProjectHubContainerProps> = ({
     setProject
   } = useProject(initialProject);
 
+  // Socket connection for real-time updates
+  const { connectionStatus, joinProject, leaveProject } = useSocket({
+    projectId,
+    userName,
+    autoConnect: true
+  });
+
   // Load project on mount if projectId is provided and no initial project
   useEffect(() => {
     if (projectId && !initialProject) {
@@ -40,6 +51,58 @@ export const ProjectHubContainer: React.FC<ProjectHubContainerProps> = ({
       setProject(initialProject);
     }
   }, [initialProject, setProject]);
+
+  // Join project room when connected and project is loaded
+  useEffect(() => {
+    if (connectionStatus.connected && projectId && project) {
+      joinProject(projectId, userName);
+    }
+    
+    return () => {
+      if (projectId) {
+        leaveProject();
+      }
+    };
+  }, [connectionStatus.connected, projectId, project, userName, joinProject, leaveProject]);
+
+  // Real-time project updates
+  useProjectRealtime(
+    projectId,
+    // On project update
+    (updatedProject: ProjectHubType) => {
+      setProject(updatedProject);
+    },
+    // On member joined
+    (member: TeamMember) => {
+      if (project) {
+        const updatedProject = {
+          ...project,
+          teamMembers: [...project.teamMembers, member]
+        };
+        setProject(updatedProject);
+      }
+    },
+    // On member left
+    ({ memberId }: { memberId: string }) => {
+      if (project) {
+        const updatedProject = {
+          ...project,
+          teamMembers: project.teamMembers.filter(m => m.id !== memberId)
+        };
+        setProject(updatedProject);
+      }
+    },
+    // On pivot logged
+    (pivot: PivotEntry) => {
+      if (project) {
+        const updatedProject = {
+          ...project,
+          pivotLog: [...project.pivotLog, pivot]
+        };
+        setProject(updatedProject);
+      }
+    }
+  );
 
   const handleUpdateProject = async (updates: Partial<ProjectHubType>) => {
     await updateProject(updates);
@@ -163,6 +226,11 @@ export const ProjectHubContainer: React.FC<ProjectHubContainerProps> = ({
       {saving && (
         <div className="absolute inset-0 bg-white bg-opacity-50 z-10 pointer-events-none" />
       )}
+
+      {/* Connection status indicator */}
+      <div className="mb-4 flex justify-end">
+        <ConnectionStatus showDetails={true} />
+      </div>
 
       <ProjectHub
         project={project}

@@ -157,7 +157,11 @@
   - Write unit tests for TaskBoard components and drag-and-drop logic
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 5.3 Connect TaskBoard to API
+- [x] 5.3 Connect TaskBoard to API
+
+
+
+
 
 
 
@@ -170,14 +174,24 @@
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
 - [ ] 6. Add pivot tracking functionality
-- [ ] 6.1 Implement pivot logging API
+- [x] 6.1 Implement pivot logging API
+
+
+
+
+
   - Create POST /api/projects/:id/pivots endpoint for logging pivots
   - Create GET /api/projects/:id/pivots endpoint for pivot history
   - Add timestamp and validation for pivot entries
   - Write API integration tests for pivot endpoints
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 6.2 Build PivotLog component
+- [x] 6.2 Build PivotLog component
+
+
+
+
+
   - Create PivotLog React component for displaying pivot history
   - Implement PivotForm component for logging new pivots
   - Add timestamp formatting and pivot entry display
@@ -185,7 +199,16 @@
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
 - [ ] 7. Implement real-time collaboration with WebSockets
-- [ ] 7.1 Set up Socket.io server
+- [x] 7.1 Set up Socket.io server
+
+
+
+
+
+
+
+
+
   - Configure Socket.io server with Express integration
   - Implement room-based communication for project isolation
   - Create WebSocket event handlers for project and task updates
@@ -193,7 +216,12 @@
   - Write integration tests for WebSocket functionality
   - _Requirements: 5.1, 5.2, 5.3, 2.5_
 
-- [ ] 7.2 Add real-time updates to frontend
+- [x] 7.2 Add real-time updates to frontend
+
+
+
+
+
   - Integrate Socket.io client into React components
   - Implement real-time updates for project hub changes
   - Add real-time task board synchronization

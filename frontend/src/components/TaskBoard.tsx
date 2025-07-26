@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TaskColumn } from './TaskColumn';
 import { TaskModal } from './TaskModal';
+import { ConnectionStatus } from './ConnectionStatus';
 import { taskApi } from '../services/api';
+import { useTaskRealtime } from '../hooks/useSocket';
 import type { Task, TaskColumn as TaskColumnType, TeamMember } from '../types';
 
 interface TaskBoardProps {
@@ -32,6 +34,41 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   useEffect(() => {
     loadTasks();
   }, [projectId]);
+
+  // Real-time task updates
+  const handleTaskCreated = useCallback((task: Task) => {
+    setTasks(prevTasks => {
+      // Avoid duplicates
+      if (prevTasks.some(t => t.id === task.id)) {
+        return prevTasks;
+      }
+      return [...prevTasks, task];
+    });
+  }, []);
+
+  const handleTaskUpdated = useCallback((task: Task) => {
+    setTasks(prevTasks => 
+      prevTasks.map(t => t.id === task.id ? task : t)
+    );
+  }, []);
+
+  const handleTaskMoved = useCallback((task: Task) => {
+    setTasks(prevTasks => 
+      prevTasks.map(t => t.id === task.id ? task : t)
+    );
+  }, []);
+
+  const handleTaskDeleted = useCallback(({ taskId }: { taskId: string }) => {
+    setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+  }, []);
+
+  useTaskRealtime(
+    projectId,
+    handleTaskCreated,
+    handleTaskUpdated,
+    handleTaskMoved,
+    handleTaskDeleted
+  );
 
   const loadTasks = async (retryCount = 0) => {
     const maxRetries = 3;
@@ -177,16 +214,19 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       <div className="h-full" data-testid="task-board">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">Task Board</h2>
-          <button
-            onClick={() => handleAddTask('todo')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
-            data-testid="add-task-button"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Task
-          </button>
+          <div className="flex items-center space-x-4">
+            <ConnectionStatus />
+            <button
+              onClick={() => handleAddTask('todo')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+              data-testid="add-task-button"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Task
+            </button>
+          </div>
         </div>
 
         {error && (
