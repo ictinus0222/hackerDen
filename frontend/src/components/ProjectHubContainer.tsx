@@ -12,7 +12,7 @@ interface ProjectHubContainerProps {
   userName?: string;
 }
 
-export const ProjectHubContainer: React.FC<ProjectHubContainerProps> = ({
+const ProjectHubContainer: React.FC<ProjectHubContainerProps> = ({
   projectId,
   initialProject,
   canEdit = true,
@@ -242,3 +242,5 @@ export const ProjectHubContainer: React.FC<ProjectHubContainerProps> = ({
     </div>
   );
 };
+export d
+efault ProjectHubContainer;

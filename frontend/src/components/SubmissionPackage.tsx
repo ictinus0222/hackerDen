@@ -7,7 +7,7 @@ interface SubmissionPackageProps {
   projectId: string;
 }
 
-export const SubmissionPackage: React.FC<SubmissionPackageProps> = ({
+const SubmissionPackage: React.FC<SubmissionPackageProps> = ({
   projectId,
 }) => {
   const [submission, setSubmission] = useState<SubmissionPackageType | null>(null);
@@ -198,4 +198,5 @@ export const SubmissionPackage: React.FC<SubmissionPackageProps> = ({
       )}
     </div>
   );
-};
+};ex
+port default SubmissionPackage;

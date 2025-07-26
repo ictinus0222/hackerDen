@@ -1,4 +1,6 @@
 import type { ProjectHub, TeamMember, Task, TaskBoard, PivotEntry, SubmissionPackage } from '../types';
+import { queueOfflineAction } from '../utils/serviceWorker';
+import { withRetry, getAdaptiveTimeout } from '../utils/apiHelpers';
 
 // API Response types
 export interface ApiResponse<T = any> {
@@ -35,18 +37,18 @@ export const clearAuthToken = () => {
   localStorage.removeItem('hackerden_token');
 };
 
-// Request deduplication cache
+// Request deduplication cache (simplified for now)
 const requestCache = new Map<string, Promise<any>>();
 
-// Generic API request function with retry logic and deduplication
+// This function is now imported from apiHelpers
+
+// Generic API request function with enhanced error handling
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {},
-  retryCount = 0
+  options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const maxRetries = 3;
-  const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 5000);
   const token = getAuthToken();
+  const timeout = getAdaptiveTimeout();
   
   const config: RequestInit = {
     headers: {
@@ -54,6 +56,7 @@ async function apiRequest<T>(
       ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
+    signal: AbortSignal.timeout(timeout),
     ...options,
   };
 
@@ -62,11 +65,7 @@ async function apiRequest<T>(
     ? `${endpoint}:${JSON.stringify(config)}` 
     : null;
 
-  if (cacheKey && requestCache.has(cacheKey)) {
-    return requestCache.get(cacheKey);
-  }
-
-  const requestPromise = (async (): Promise<ApiResponse<T>> => {
+  const operation = async (): Promise<ApiResponse<T>> => {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
       
@@ -98,16 +97,18 @@ async function apiRequest<T>(
       
       return data;
     } catch (error) {
-      // Retry on network errors
-      if (retryCount < maxRetries && (
-        error instanceof TypeError || // Network error
-        (error instanceof ApiError && error.message.includes('Network')) ||
-        (error instanceof Error && error.message.includes('fetch'))
-      )) {
-        console.warn(`API request failed, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries + 1}):`, error);
+      // Handle offline scenarios
+      if (!navigator.onLine) {
+        // Queue non-GET requests for background sync
+        if (options.method && options.method !== 'GET') {
+          await queueOfflineAction({
+            id: `${Date.now()}-${Math.random()}`,
+            url: `${API_BASE_URL}${endpoint}`,
+            options: config
+          });
+        }
         
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-        return apiRequest<T>(endpoint, options, retryCount + 1);
+        throw new ApiError('You are currently offline. Changes will be synced when connection is restored.', 'OFFLINE');
       }
       
       console.error('API request failed:', error);
@@ -121,20 +122,28 @@ async function apiRequest<T>(
       }
       
       throw error;
-    } finally {
-      // Clean up cache after request completes
-      if (cacheKey) {
-        setTimeout(() => requestCache.delete(cacheKey), 1000);
-      }
     }
-  })();
+  };
 
-  // Cache GET requests
+  // Use retry logic with caching for GET requests
+  const executeWithRetry = () => withRetry(operation);
+
+  // Use request deduplication for GET requests
   if (cacheKey) {
-    requestCache.set(cacheKey, requestPromise);
+    if (requestCache.has(cacheKey)) {
+      return requestCache.get(cacheKey);
+    }
+    
+    const promise = executeWithRetry().finally(() => {
+      // Clean up cache after request completes
+      setTimeout(() => requestCache.delete(cacheKey), 1000);
+    });
+    
+    requestCache.set(cacheKey, promise);
+    return promise;
   }
 
-  return requestPromise;
+  return executeWithRetry();
 }
 
 // Helper function to convert date strings to Date objects

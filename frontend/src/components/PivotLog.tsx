@@ -9,7 +9,7 @@ interface PivotLogProps {
   onPivotAdded?: (pivot: PivotEntry) => void;
 }
 
-export const PivotLog: React.FC<PivotLogProps> = ({
+const PivotLog: React.FC<PivotLogProps> = ({
   projectId,
   initialPivots = [],
   onPivotAdded
@@ -162,4 +162,5 @@ export const PivotLog: React.FC<PivotLogProps> = ({
       )}
     </div>
   );
-};
+};export defa
+ult PivotLog;

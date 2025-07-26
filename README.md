@@ -74,6 +74,7 @@ BASE_URL=http://localhost:3000
 - **API Client**: Custom fetch-based client with automatic token management
 - **WebSocket Client**: Type-safe Socket.io client with automatic reconnection and room management
 - **State Management**: React hooks with custom useProject hook
+- **Error Handling**: React Error Boundaries with development debugging and production error reporting
 - **Responsive Design**: Mobile-first with enhanced small screen support using custom breakpoints
 
 ### Backend
@@ -138,6 +139,7 @@ BASE_URL=http://localhost:3000
 - **Mobile Responsive**: Works on phones and tablets with enhanced small screen support
 - **JWT Authentication**: Secure project-based authentication system
 - **Type-Safe API**: Full TypeScript support with Zod validation and automatic date conversion
+- **Error Boundaries**: Comprehensive error handling with React Error Boundaries for graceful error recovery
 - **Comprehensive Testing**: Vitest with MongoDB Memory Server for backend, React Testing Library for frontend, comprehensive API client testing with mocked fetch and localStorage
 - **Judge-Friendly Submissions**: Public submission pages accessible without authentication for easy judge evaluation
 
@@ -151,6 +153,7 @@ The application follows a modern web architecture:
 - JWT-based authentication
 - Public submission pages for judges without authentication
 - Mobile-first responsive design with custom Tailwind breakpoints
+- Comprehensive error handling with React Error Boundaries
 
 ### Responsive Design Configuration
 
@@ -318,7 +321,55 @@ useEffect(() => {
 - **Connection Errors**: Graceful handling of connection failures and timeouts
 - **Room Management**: Automatic cleanup when users disconnect
 - **Error Events**: Dedicated error events for client-side error handling
-- **Error Events**: Dedicated error events for client-side error handling
+
+### Error Handling System
+
+The application includes comprehensive error handling with React Error Boundaries:
+
+#### ErrorBoundary Component
+
+The `ErrorBoundary` component provides graceful error recovery and debugging capabilities:
+
+- **Development Mode**: Displays detailed error information including stack traces and component stacks
+- **Production Mode**: Shows user-friendly error messages with retry functionality
+- **Custom Fallbacks**: Supports custom fallback UI components
+- **Error Reporting**: Integrates with error reporting services in production
+- **Retry Mechanism**: Allows users to retry failed operations or refresh the page
+
+#### Usage Examples
+
+```typescript
+import { ErrorBoundary, withErrorBoundary } from '../components/ErrorBoundary';
+
+// Wrap components with ErrorBoundary
+<ErrorBoundary onError={(error, errorInfo) => console.log('Error caught:', error)}>
+  <MyComponent />
+</ErrorBoundary>
+
+// Use Higher-Order Component
+const SafeComponent = withErrorBoundary(MyComponent, <div>Custom fallback</div>);
+
+// Custom error handler
+const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+  // Send to error reporting service
+  errorReportingService.captureException(error, { extra: errorInfo });
+};
+
+<ErrorBoundary onError={handleError}>
+  <App />
+</ErrorBoundary>
+```
+
+#### Error Boundary Features
+
+- **Automatic Error Catching**: Catches JavaScript errors anywhere in the component tree
+- **Development Debugging**: Detailed error information with expandable stack traces
+- **Production Safety**: Clean, user-friendly error messages in production builds
+- **Retry Functionality**: "Try Again" button to reset error state
+- **Page Refresh**: "Refresh Page" button for complete application reset
+- **Custom Fallbacks**: Support for custom error UI components
+- **Error Reporting Integration**: Ready for production error monitoring services
+- **HOC Pattern**: Higher-order component for easy component wrapping
 
 ### API Client Architecture
 

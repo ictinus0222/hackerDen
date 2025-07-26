@@ -35,7 +35,7 @@ const DEFAULT_COLUMNS: TaskColumnType[] = [
   { id: 'done', name: 'done', displayName: 'Done', order: 3 },
 ];
 
-export const TaskBoard: React.FC<TaskBoardProps> = ({
+const TaskBoard: React.FC<TaskBoardProps> = ({
   projectId,
   teamMembers,
 }) => {
@@ -298,4 +298,5 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       </div>
     </DndProvider>
   );
-};
+};export
+ default TaskBoard;

@@ -9,7 +9,7 @@ interface PublicSubmissionPageProps {
   generatedAt: Date;
 }
 
-export const PublicSubmissionPage: React.FC<PublicSubmissionPageProps> = ({
+const PublicSubmissionPage: React.FC<PublicSubmissionPageProps> = ({
   projectName,
   oneLineIdea,
   teamMembers,
@@ -236,4 +236,5 @@ export const PublicSubmissionPage: React.FC<PublicSubmissionPageProps> = ({
       </div>
     </div>
   );
-};
+};export 
+default PublicSubmissionPage;
