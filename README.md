@@ -120,12 +120,19 @@ BASE_URL=http://localhost:3000
   - Track pivot count in project overview
   - Form validation and error handling
 - **Submission Package**: Complete submission management system for judges
+  - **SubmissionForm Component**: User-friendly form with URL validation and completion tracking
+  - **SubmissionPackage Component**: Main container with loading states and error handling
+  - **PublicSubmissionPage Component**: Clean, professional judge-facing pages
   - Create and update submission packages with GitHub, presentation, and demo video URLs
   - Automatic completion status tracking based on required fields (GitHub + presentation URLs)
+  - Real-time completion progress with visual indicators
   - Generate public submission pages for judges with clean, professional layout
   - Real-time submission updates across team members via WebSocket
-  - URL validation and automatic public page generation
+  - URL validation with specific error messages and format checking
+  - Automatic public page generation with shareable URLs
   - Judge-accessible public pages without authentication requirements
+  - Copy-to-clipboard functionality for sharing submission URLs
+  - Platform-specific icons and labels (GitHub, YouTube, Google Slides, etc.)
 - **Real-time Collaboration**: Live updates across all team members
 - **Mobile Responsive**: Works on phones and tablets
 - **JWT Authentication**: Secure project-based authentication system
@@ -171,14 +178,18 @@ The pivot tracking system allows teams to document major direction changes:
 
 The submission package system provides comprehensive submission management for judges:
 
-- **Submission Model**: MongoDB model with automatic completion status tracking
-- **Backend API**: RESTful endpoints for creating, updating, and retrieving submissions
-- **Public Pages**: Judge-accessible public submission pages without authentication
-- **URL Validation**: Server-side validation for GitHub, presentation, and demo video URLs
-- **Auto-completion**: Automatic tracking of submission completeness based on required fields
-- **Public URL Generation**: Automatic generation of public submission page URLs
+- **SubmissionForm Component**: User-friendly form with URL validation, completion tracking, and real-time progress indicators
+- **SubmissionPackage Component**: Main container component with loading states, error handling, and public URL management
+- **PublicSubmissionPage Component**: Clean, professional judge-facing pages with platform-specific icons and responsive design
+- **Submission Model**: MongoDB model with automatic completion status tracking and public data methods
+- **Backend API**: RESTful endpoints for creating, updating, and retrieving submissions with proper authentication
+- **Public Pages**: Judge-accessible public submission pages without authentication requirements
+- **URL Validation**: Client and server-side validation for GitHub, presentation, and demo video URLs
+- **Auto-completion**: Automatic tracking of submission completeness based on required fields (GitHub + presentation URLs)
+- **Public URL Generation**: Automatic generation of shareable public submission page URLs
 - **Real-time Updates**: Socket.io integration for live submission updates across team members
-- **Judge Interface**: Clean, professional public pages for judge evaluation
+- **Judge Interface**: Clean, professional public pages for judge evaluation with copy-to-clipboard functionality
+- **Platform Recognition**: Automatic detection and display of platform-specific icons (GitHub, YouTube, Google Slides, etc.)
 
 ### Real-time Collaboration System
 
@@ -296,6 +307,7 @@ The frontend includes a comprehensive API service layer (`frontend/src/services/
 - **Request/Response Interceptors**: Centralized handling of authentication and data transformation
 - **Task Management API**: Complete CRUD operations for task management with project-scoped access
 - **Pivot Tracking API**: Full CRUD operations for pivot logging with validation and error handling
+- **Submission Management API**: Complete submission package management with URL validation and public page generation
 - **Input Validation**: Client-side validation with automatic trimming and required field checks
 - **Comprehensive Testing**: Full test coverage with mocked fetch and localStorage (`frontend/src/services/api.test.ts`)
 
@@ -306,6 +318,7 @@ The API client includes comprehensive test coverage that validates:
 - **Token Management**: Setting, getting, and clearing JWT tokens with localStorage persistence
 - **Task CRUD Operations**: Creating, reading, updating, and deleting tasks with proper validation
 - **Pivot CRUD Operations**: Creating and reading pivot entries with validation and error handling
+- **Submission CRUD Operations**: Creating, updating, and reading submission packages with URL validation
 - **Input Validation**: Client-side validation with automatic trimming and required field checks
 - **Error Handling**: Proper error propagation and custom ApiError handling
 - **Date Conversion**: Automatic conversion of ISO date strings to JavaScript Date objects
@@ -327,6 +340,7 @@ The backend uses a robust validation system with Zod schemas:
   - Task descriptions: max 1000 characters
   - Team member names: 1-100 characters
   - Pivot descriptions and reasons: 1-1000 characters each
+  - Submission URLs: Valid HTTP/HTTPS URLs with platform-specific validation
 - **Date Validation**: Automatic parsing and validation of ISO date strings with logical ordering constraints
 - **Pivot Tracking**: Complete validation for pivot entries with required description and reason fields
 - **Submission Management**: URL validation for GitHub, presentation, and demo video URLs with automatic completion tracking
@@ -334,7 +348,7 @@ The backend uses a robust validation system with Zod schemas:
 #### API Usage Example
 
 ```typescript
-import { projectApi, taskApi, pivotApi, setAuthToken } from '../services/api';
+import { projectApi, taskApi, pivotApi, submissionApi, setAuthToken } from '../services/api';
 
 // Create a new project
 const { project, token } = await projectApi.create({
@@ -380,18 +394,18 @@ const newPivot = await pivotApi.create(project.projectId, {
   reason: 'Web development is faster for our team'
 });
 
-// Submission management (API client to be implemented)
-// const submission = await submissionApi.createOrUpdate(project.projectId, {
-//   githubUrl: 'https://github.com/team/hackathon-project',
-//   presentationUrl: 'https://slides.com/presentation',
-//   demoVideoUrl: 'https://youtube.com/watch?v=demo'
-// });
+// Submission management
+const submission = await submissionApi.createOrUpdate(project.projectId, {
+  githubUrl: 'https://github.com/team/hackathon-project',
+  presentationUrl: 'https://slides.com/presentation',
+  demoVideoUrl: 'https://youtube.com/watch?v=demo'
+});
 
 // Get submission for team
-// const teamSubmission = await submissionApi.getByProject(project.projectId);
+const teamSubmission = await submissionApi.getByProject(project.projectId);
 
 // Get public submission page data (no auth required)
-// const publicSubmission = await submissionApi.getPublic(project.projectId);
+const publicSubmission = await submissionApi.getPublic(project.projectId);
 ```
 
 #### Validation Example

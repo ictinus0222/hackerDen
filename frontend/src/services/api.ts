@@ -1,4 +1,4 @@
-import type { ProjectHub, TeamMember, Task, TaskBoard, PivotEntry } from '../types';
+import type { ProjectHub, TeamMember, Task, TaskBoard, PivotEntry, SubmissionPackage } from '../types';
 
 // API Response types
 export interface ApiResponse<T = any> {
@@ -360,6 +360,77 @@ export const pivotApi = {
         response.error?.code || 'CREATE_ERROR',
         response.error?.details
       );
+    }
+    
+    return response.data;
+  },
+};
+
+// Submission API functions
+export const submissionApi = {
+  // Create or update submission package
+  async createOrUpdate(projectId: string, submission: {
+    githubUrl?: string;
+    presentationUrl?: string;
+    demoVideoUrl?: string;
+  }): Promise<SubmissionPackage> {
+    const response = await apiRequest<SubmissionPackage>(`/projects/${projectId}/submission`, {
+      method: 'POST',
+      body: JSON.stringify(submission),
+    });
+    
+    if (!response.success || !response.data) {
+      throw new ApiError(
+        response.error?.message || 'Failed to create or update submission package',
+        response.error?.code || 'SUBMISSION_ERROR',
+        response.error?.details
+      );
+    }
+    
+    return response.data;
+  },
+
+  // Get submission package
+  async getByProject(projectId: string): Promise<SubmissionPackage | null> {
+    try {
+      const response = await apiRequest<SubmissionPackage>(`/projects/${projectId}/submission`);
+      
+      if (!response.success) {
+        // Return null if submission doesn't exist yet
+        if (response.error?.code === 'SUBMISSION_NOT_FOUND') {
+          return null;
+        }
+        throw new Error(response.error?.message || 'Failed to fetch submission package');
+      }
+      
+      return response.data || null;
+    } catch (error) {
+      // Return null if submission doesn't exist yet
+      if (error instanceof ApiError && error.code === 'SUBMISSION_NOT_FOUND') {
+        return null;
+      }
+      throw error;
+    }
+  },
+
+  // Get public submission page data
+  async getPublic(projectId: string): Promise<{
+    projectName: string;
+    oneLineIdea: string;
+    teamMembers: Array<{ name: string; role?: string }>;
+    submission: SubmissionPackage;
+    generatedAt: Date;
+  }> {
+    const response = await apiRequest<{
+      projectName: string;
+      oneLineIdea: string;
+      teamMembers: Array<{ name: string; role?: string }>;
+      submission: SubmissionPackage;
+      generatedAt: Date;
+    }>(`/submission/${projectId}/public`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || 'Failed to fetch public submission page');
     }
     
     return response.data;
