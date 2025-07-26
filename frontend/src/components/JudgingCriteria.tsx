@@ -83,8 +83,8 @@ export const JudgingCriteria: React.FC<JudgingCriteriaProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900">Judging Criteria</h3>
           <p className="text-sm text-gray-600">
             {completedCount} of {totalCount} criteria addressed ({Math.round(completionPercentage)}%)
@@ -93,7 +93,7 @@ export const JudgingCriteria: React.FC<JudgingCriteriaProps> = ({
         {canEdit && !isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 self-start touch-manipulation"
           >
             Edit Criteria
           </button>
@@ -184,16 +184,16 @@ export const JudgingCriteria: React.FC<JudgingCriteriaProps> = ({
             </div>
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm touch-manipulation"
             >
               Save Changes
             </button>
             <button
               onClick={handleCancel}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm touch-manipulation"
             >
               Cancel
             </button>

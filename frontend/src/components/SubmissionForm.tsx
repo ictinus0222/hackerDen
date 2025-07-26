@@ -25,7 +25,6 @@ interface ValidationErrors {
 }
 
 export const SubmissionForm: React.FC<SubmissionFormProps> = ({
-  projectId,
   initialData,
   onSubmit,
   isLoading = false,
@@ -145,16 +144,16 @@ export const SubmissionForm: React.FC<SubmissionFormProps> = ({
   const completionStatus = getCompletionStatus();
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Submission Package</h2>
-        <p className="text-gray-600">
+    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Submission Package</h2>
+        <p className="text-sm sm:text-base text-gray-600">
           Prepare your final submission with all the necessary links and information.
         </p>
         
         {/* Completion Status */}
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1">
             <span className="text-sm font-medium text-gray-700">
               Completion Status
             </span>
@@ -181,7 +180,7 @@ export const SubmissionForm: React.FC<SubmissionFormProps> = ({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* GitHub Repository URL */}
         <div>
           <label htmlFor="githubUrl" className="block text-sm font-medium text-gray-700 mb-2">
@@ -255,18 +254,18 @@ export const SubmissionForm: React.FC<SubmissionFormProps> = ({
         </div>
 
         {/* Submit Button */}
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-gray-500">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 gap-3">
+          <p className="text-sm text-gray-500 order-2 sm:order-1">
             * Required fields
           </p>
           <button
             type="submit"
             disabled={isLoading || isSubmitting}
-            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+            className={`px-4 sm:px-6 py-2 rounded-md font-medium transition-colors touch-manipulation order-1 sm:order-2 ${
               isLoading || isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-            } text-white`}
+            } text-white text-sm sm:text-base`}
           >
             {isSubmitting ? 'Saving...' : 'Save Submission Package'}
           </button>

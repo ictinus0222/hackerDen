@@ -1,12 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { TouchBackend } from 'react-dnd-touch-backend';
 import { TaskColumn } from './TaskColumn';
 import { TaskModal } from './TaskModal';
 import { ConnectionStatus } from './ConnectionStatus';
 import { taskApi } from '../services/api';
 import { useTaskRealtime } from '../hooks/useSocket';
 import type { Task, TaskColumn as TaskColumnType, TeamMember } from '../types';
+
+// Multi-backend configuration for both desktop and mobile
+const getBackend = () => {
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  return isTouchDevice ? TouchBackend : HTML5Backend;
+};
+
+const getBackendOptions = () => {
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  return isTouchDevice ? {
+    enableMouseEvents: true,
+    delayTouchStart: 200,
+    delayMouseStart: 0,
+  } : {};
+};
 
 interface TaskBoardProps {
   projectId: string;
@@ -210,21 +226,22 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider backend={getBackend()} options={getBackendOptions()}>
       <div className="h-full" data-testid="task-board">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Task Board</h2>
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Task Board</h2>
+          <div className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4">
             <ConnectionStatus />
             <button
               onClick={() => handleAddTask('todo')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 flex items-center text-sm sm:text-base"
               data-testid="add-task-button"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Add Task
+              <span className="hidden xs:inline">Add Task</span>
+              <span className="xs:hidden">Add</span>
             </button>
           </div>
         </div>
@@ -255,7 +272,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           </div>
         )}
 
-        <div className="flex gap-6 overflow-x-auto pb-4">
+        <div className="flex gap-3 sm:gap-6 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
           {DEFAULT_COLUMNS.map(column => (
             <TaskColumn
               key={column.id}

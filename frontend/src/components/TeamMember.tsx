@@ -19,11 +19,11 @@ export const TeamMember: React.FC<TeamMemberProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-      <div className="flex-1">
-        <h4 className="font-medium text-gray-900">{member.name}</h4>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg border gap-2">
+      <div className="flex-1 min-w-0">
+        <h4 className="font-medium text-gray-900 truncate">{member.name}</h4>
         {member.role && (
-          <p className="text-sm text-gray-600">{member.role}</p>
+          <p className="text-sm text-gray-600 truncate">{member.role}</p>
         )}
         <p className="text-xs text-gray-500">
           Joined {member.joinedAt.toLocaleDateString()}
@@ -32,7 +32,7 @@ export const TeamMember: React.FC<TeamMemberProps> = ({
       {canRemove && onRemove && (
         <button
           onClick={handleRemove}
-          className="ml-3 text-red-600 hover:text-red-800 text-sm font-medium"
+          className="text-red-600 hover:text-red-800 text-sm font-medium self-start sm:self-auto touch-manipulation"
           aria-label={`Remove ${member.name}`}
         >
           Remove
@@ -71,12 +71,12 @@ export const TeamMemberList: React.FC<TeamMemberListProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-900">Team Members</h3>
         {canManageMembers && (
           <button
             onClick={() => setIsAddingMember(true)}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 self-start sm:self-auto touch-manipulation"
           >
             Add Member
           </button>
@@ -124,10 +124,10 @@ export const TeamMemberList: React.FC<TeamMemberListProps> = ({
                 placeholder="e.g., Frontend Developer, Designer"
               />
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm touch-manipulation"
               >
                 Add Member
               </button>
@@ -138,7 +138,7 @@ export const TeamMemberList: React.FC<TeamMemberListProps> = ({
                   setNewMemberName('');
                   setNewMemberRole('');
                 }}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm touch-manipulation"
               >
                 Cancel
               </button>

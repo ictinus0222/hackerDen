@@ -66,7 +66,7 @@ BASE_URL=http://localhost:3000
 ### Frontend
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS with custom responsive breakpoints (`xs: 475px` for enhanced small screen support)
 - **Testing**: Vitest + React Testing Library
 - **Real-time**: Socket.io Client with automatic reconnection
 - **Drag & Drop**: React DnD with HTML5 backend
@@ -74,6 +74,7 @@ BASE_URL=http://localhost:3000
 - **API Client**: Custom fetch-based client with automatic token management
 - **WebSocket Client**: Type-safe Socket.io client with automatic reconnection and room management
 - **State Management**: React hooks with custom useProject hook
+- **Responsive Design**: Mobile-first with enhanced small screen support using custom breakpoints
 
 ### Backend
 - **Runtime**: Node.js with TypeScript (ES modules)
@@ -134,7 +135,7 @@ BASE_URL=http://localhost:3000
   - Copy-to-clipboard functionality for sharing submission URLs
   - Platform-specific icons and labels (GitHub, YouTube, Google Slides, etc.)
 - **Real-time Collaboration**: Live updates across all team members
-- **Mobile Responsive**: Works on phones and tablets
+- **Mobile Responsive**: Works on phones and tablets with enhanced small screen support
 - **JWT Authentication**: Secure project-based authentication system
 - **Type-Safe API**: Full TypeScript support with Zod validation and automatic date conversion
 - **Comprehensive Testing**: Vitest with MongoDB Memory Server for backend, React Testing Library for frontend, comprehensive API client testing with mocked fetch and localStorage
@@ -149,7 +150,30 @@ The application follows a modern web architecture:
 - MongoDB for data persistence
 - JWT-based authentication
 - Public submission pages for judges without authentication
-- Mobile-first responsive design
+- Mobile-first responsive design with custom Tailwind breakpoints
+
+### Responsive Design Configuration
+
+The frontend uses Tailwind CSS with custom breakpoints for enhanced mobile experience:
+
+```javascript
+// tailwind.config.js
+theme: {
+  extend: {
+    screens: {
+      'xs': '475px',  // Custom breakpoint for small screens
+    },
+  },
+}
+```
+
+**Breakpoint Usage:**
+- `xs` (475px+): Enhanced layout for larger phones and small tablets
+- `sm` (640px+): Standard small screen breakpoint
+- `md` (768px+): Tablet and desktop layouts
+- `lg` (1024px+): Large desktop layouts
+
+This configuration ensures optimal user experience across all device sizes, with particular attention to the 375px-640px range where many mobile devices fall.
 
 ### Task Management System
 

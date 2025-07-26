@@ -73,13 +73,13 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
 
   return (
     <div
-      ref={drop}
-      className={`flex-1 min-w-80 ${getColumnColor(column.name)} border rounded-lg p-4 ${
+      ref={drop as any}
+      className={`flex-1 min-w-72 sm:min-w-80 ${getColumnColor(column.name)} border rounded-lg p-3 sm:p-4 ${
         isOver && canDrop ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
       }`}
       data-testid={`task-column-${column.id}`}
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center">
           <h3 className={`font-semibold text-sm ${getHeaderColor(column.name)}`}>
             {column.displayName}
@@ -91,7 +91,7 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
         
         <button
           onClick={() => onAddTask(column.id)}
-          className="text-gray-400 hover:text-gray-600 p-1"
+          className="text-gray-400 hover:text-gray-600 p-1 touch-manipulation"
           data-testid={`add-task-${column.id}`}
           title="Add task"
         >
@@ -101,7 +101,7 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
         </button>
       </div>
       
-      <div className="space-y-2 min-h-32">
+      <div className="space-y-2 min-h-24 sm:min-h-32">
         {columnTasks.map(task => (
           <TaskCard
             key={task.id}
@@ -113,7 +113,7 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
         ))}
         
         {columnTasks.length === 0 && (
-          <div className="text-center py-8 text-gray-400 text-sm">
+          <div className="text-center py-6 sm:py-8 text-gray-400 text-sm">
             {isOver && canDrop ? 'Drop task here' : 'No tasks'}
           </div>
         )}

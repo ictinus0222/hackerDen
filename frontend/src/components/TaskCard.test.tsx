@@ -164,7 +164,7 @@ describe('TaskCard', () => {
     renderTaskCard(longTitleTask);
     
     const titleElement = screen.getByText(longTitleTask.title);
-    expect(titleElement).toHaveClass('truncate');
+    expect(titleElement).toHaveClass('break-words');
   });
 
   it('handles team member not found gracefully', () => {

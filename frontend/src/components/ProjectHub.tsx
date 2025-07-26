@@ -96,21 +96,21 @@ export const ProjectHub: React.FC<ProjectHubProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="text-center border-b pb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Project Hub</h1>
-        <p className="text-gray-600">Your team's central command center</p>
+      <div className="text-center border-b pb-4 sm:pb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Project Hub</h1>
+        <p className="text-sm sm:text-base text-gray-600">Your team's central command center</p>
       </div>
 
       {/* Project Basics */}
-      <div className="bg-white rounded-lg border p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Project Vitals</h2>
+      <div className="bg-white rounded-lg border p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Project Vitals</h2>
           {canEdit && !isEditingBasics && (
             <button
               onClick={() => setIsEditingBasics(true)}
-              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 self-start sm:self-auto"
             >
               Edit
             </button>
@@ -147,7 +147,7 @@ export const ProjectHub: React.FC<ProjectHubProps> = ({
                 required
               />
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
               <button
                 onClick={handleUpdateBasics}
                 disabled={!editedBasics.projectName.trim() || !editedBasics.oneLineIdea.trim()}
@@ -174,7 +174,7 @@ export const ProjectHub: React.FC<ProjectHubProps> = ({
       </div>
 
       {/* Team Members */}
-      <div className="bg-white rounded-lg border p-6">
+      <div className="bg-white rounded-lg border p-4 sm:p-6">
         <TeamMemberList
           members={project.teamMembers}
           onAddMember={handleAddMember}
@@ -184,7 +184,7 @@ export const ProjectHub: React.FC<ProjectHubProps> = ({
       </div>
 
       {/* Deadlines */}
-      <div className="bg-white rounded-lg border p-6">
+      <div className="bg-white rounded-lg border p-4 sm:p-6">
         <DeadlineManager
           deadlines={project.deadlines}
           onUpdateDeadlines={handleUpdateDeadlines}
@@ -193,7 +193,7 @@ export const ProjectHub: React.FC<ProjectHubProps> = ({
       </div>
 
       {/* Judging Criteria */}
-      <div className="bg-white rounded-lg border p-6">
+      <div className="bg-white rounded-lg border p-4 sm:p-6">
         <JudgingCriteria
           criteria={project.judgingCriteria}
           onUpdateCriteria={handleUpdateCriteria}
@@ -202,22 +202,22 @@ export const ProjectHub: React.FC<ProjectHubProps> = ({
       </div>
 
       {/* Project Stats */}
-      <div className="bg-gray-50 rounded-lg border p-6">
+      <div className="bg-gray-50 rounded-lg border p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{project.teamMembers.length}</div>
-            <div className="text-sm text-gray-600">Team Members</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="text-center p-3 bg-white rounded-lg">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">{project.teamMembers.length}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Team Members</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+          <div className="text-center p-3 bg-white rounded-lg">
+            <div className="text-xl sm:text-2xl font-bold text-green-600">
               {project.judgingCriteria.filter(c => c.completed).length}
             </div>
-            <div className="text-sm text-gray-600">Criteria Addressed</div>
+            <div className="text-xs sm:text-sm text-gray-600">Criteria Addressed</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{project.pivotLog.length}</div>
-            <div className="text-sm text-gray-600">Pivots Logged</div>
+          <div className="text-center p-3 bg-white rounded-lg">
+            <div className="text-xl sm:text-2xl font-bold text-purple-600">{project.pivotLog.length}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Pivots Logged</div>
           </div>
         </div>
       </div>

@@ -93,15 +93,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="task-modal">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-testid="task-modal">
+      <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             {task ? 'Edit Task' : 'Create Task'}
           </h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 p-1 touch-manipulation"
             data-testid="close-modal"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,11 +166,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </select>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-3 pt-4">
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 touch-manipulation order-2 sm:order-1"
               data-testid="cancel-task"
             >
               Cancel
@@ -178,7 +178,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation order-1 sm:order-2"
               data-testid="save-task"
             >
               {saving ? 'Saving...' : (task ? 'Update' : 'Create')}

@@ -121,12 +121,12 @@ export const DeadlineManager: React.FC<DeadlineManagerProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-900">Key Deadlines</h3>
         {canEdit && !isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 self-start sm:self-auto touch-manipulation"
           >
             Edit Deadlines
           </button>
@@ -150,16 +150,16 @@ export const DeadlineManager: React.FC<DeadlineManagerProps> = ({
               />
             </div>
           ))}
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm touch-manipulation"
             >
               Save Changes
             </button>
             <button
               onClick={handleCancel}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm touch-manipulation"
             >
               Cancel
             </button>
@@ -173,15 +173,15 @@ export const DeadlineManager: React.FC<DeadlineManagerProps> = ({
             
             return (
               <div key={key} className={`p-3 rounded-lg border ${urgencyColor}`}>
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
                     <h4 className="font-medium">{label}</h4>
                     <p className="text-sm opacity-75">{description}</p>
-                    <p className="text-sm font-medium mt-1">
+                    <p className="text-sm font-medium mt-1 break-words">
                       {formatDisplayDate(date)}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right flex-shrink-0">
                     <p className="text-sm font-medium">
                       {getTimeRemaining(date)}
                     </p>

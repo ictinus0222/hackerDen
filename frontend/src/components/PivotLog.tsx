@@ -82,11 +82,11 @@ export const PivotLog: React.FC<PivotLogProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h3 className="text-lg font-semibold text-gray-900">Pivot Log</h3>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 self-start sm:self-auto touch-manipulation"
         >
           {showForm ? 'Hide Form' : 'Log Pivot'}
         </button>
@@ -99,7 +99,7 @@ export const PivotLog: React.FC<PivotLogProps> = ({
       )}
 
       {showForm && (
-        <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
+        <div className="p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-md">
           <h4 className="text-md font-medium text-gray-900 mb-3">Log a New Pivot</h4>
           <PivotForm
             onSubmit={handleAddPivot}
@@ -122,7 +122,7 @@ export const PivotLog: React.FC<PivotLogProps> = ({
           pivots.map((pivot) => (
             <div
               key={pivot.id}
-              className="p-4 bg-white border border-gray-200 rounded-md shadow-sm"
+              className="p-3 sm:p-4 bg-white border border-gray-200 rounded-md shadow-sm"
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center space-x-2">
@@ -136,14 +136,14 @@ export const PivotLog: React.FC<PivotLogProps> = ({
               <div className="space-y-2">
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-1">What changed:</h4>
-                  <p className="text-sm text-gray-700 leading-relaxed">
+                  <p className="text-sm text-gray-700 leading-relaxed break-words">
                     {pivot.description}
                   </p>
                 </div>
                 
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-1">Why:</h4>
-                  <p className="text-sm text-gray-700 leading-relaxed">
+                  <p className="text-sm text-gray-700 leading-relaxed break-words">
                     {pivot.reason}
                   </p>
                 </div>

@@ -45,28 +45,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div
-      ref={drag}
-      className={`bg-white rounded-lg border border-gray-200 p-3 mb-2 cursor-move shadow-sm hover:shadow-md transition-shadow ${
+      ref={drag as any}
+      className={`bg-white rounded-lg border border-gray-200 p-3 mb-2 cursor-move shadow-sm hover:shadow-md transition-shadow touch-manipulation ${
         isDragging ? 'opacity-50' : ''
       }`}
       data-testid={`task-card-${task.id}`}
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-gray-900 truncate">
+        <div className="flex-1 min-w-0 pr-2">
+          <h4 className="text-sm font-medium text-gray-900 break-words">
             {task.title}
           </h4>
           {task.description && (
-            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+            <p className="text-xs text-gray-600 mt-1 line-clamp-3 break-words">
               {task.description}
             </p>
           )}
         </div>
         
-        <div className="relative ml-2">
+        <div className="relative flex-shrink-0">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-gray-400 hover:text-gray-600 p-1"
+            className="text-gray-400 hover:text-gray-600 p-2 -m-1 touch-manipulation"
             data-testid={`task-menu-${task.id}`}
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -75,17 +75,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </button>
           
           {isMenuOpen && (
-            <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-24">
+            <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-28">
               <button
                 onClick={handleEdit}
-                className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 touch-manipulation"
                 data-testid={`edit-task-${task.id}`}
               >
                 Edit
               </button>
               <button
                 onClick={handleDelete}
-                className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-50"
+                className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-gray-50 touch-manipulation"
                 data-testid={`delete-task-${task.id}`}
               >
                 Delete
@@ -96,13 +96,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       </div>
       
       {assignedMember && (
-        <div className="mt-2 flex items-center">
-          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+        <div className="mt-3 flex items-center">
+          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
             <span className="text-xs text-white font-medium">
               {assignedMember.name.charAt(0).toUpperCase()}
             </span>
           </div>
-          <span className="ml-2 text-xs text-gray-600">
+          <span className="ml-2 text-xs text-gray-600 truncate">
             {assignedMember.name}
           </span>
         </div>
