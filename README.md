@@ -83,7 +83,8 @@ BASE_URL=http://localhost:3000
 - **Database**: MongoDB with Mongoose
 - **Real-time**: Socket.io
 - **Authentication**: JWT
-- **Validation**: Zod schemas for request validation
+- **Validation**: Zod schemas with comprehensive request validation middleware
+- **Security**: Input sanitization, content-type validation, and request size limits
 - **Testing**: Vitest with MongoDB Memory Server
 
 ## Available Scripts
@@ -154,6 +155,38 @@ The application follows a modern web architecture:
 - Public submission pages for judges without authentication
 - Mobile-first responsive design with custom Tailwind breakpoints
 - Comprehensive error handling with React Error Boundaries
+- Layered security middleware with input sanitization and validation
+
+### Middleware Stack
+
+The backend uses a layered middleware architecture for security and validation:
+
+```typescript
+// Security and validation middleware stack
+app.use(requestIdMiddleware);           // Request tracking
+app.use(requestLogger);                 // Request logging
+app.use(validateContentType);           // Content-type validation
+app.use(validateRequestSize(5 * 1024 * 1024)); // 5MB payload limit
+app.use(rateLimiters.general);          // Rate limiting
+app.use(cors({ /* config */ }));        // CORS handling
+app.use(express.json({ limit: '5mb' })); // JSON parsing
+app.use(sanitizeInput);                 // Input sanitization
+
+// Route-specific validation
+app.use('/api/projects', validateRequest({
+  body: ProjectSchema,
+  params: commonSchemas.uuid,
+  query: commonSchemas.pagination
+}));
+```
+
+**Middleware Features:**
+- **Request Validation**: Zod schema validation for body, params, and query
+- **Input Sanitization**: Automatic string trimming and dangerous key filtering
+- **Content-Type Enforcement**: JSON-only for POST/PUT/PATCH requests
+- **Payload Size Limits**: Configurable request size validation
+- **Rate Limiting**: IP-based request throttling
+- **Request Tracking**: Unique request IDs for debugging
 
 ### Responsive Design Configuration
 
@@ -395,6 +428,7 @@ The API client includes comprehensive test coverage that validates:
 - **Pivot CRUD Operations**: Creating and reading pivot entries with validation and error handling
 - **Submission CRUD Operations**: Creating, updating, and reading submission packages with URL validation
 - **Input Validation**: Client-side validation with automatic trimming and required field checks
+- **Server-side Validation**: Integration with new validation middleware for comprehensive data validation
 - **Error Handling**: Proper error propagation and custom ApiError handling
 - **Date Conversion**: Automatic conversion of ISO date strings to JavaScript Date objects
 - **Request Headers**: Proper authentication headers and content-type handling
@@ -402,14 +436,27 @@ The API client includes comprehensive test coverage that validates:
 
 ### Validation Architecture
 
-The backend uses a robust validation system with Zod schemas:
+The backend uses a comprehensive validation system with Zod schemas and security middleware:
 
-- **Runtime Validation**: All API inputs are validated using Zod schemas
-- **Type Safety**: Validation schemas provide compile-time type checking
-- **Consistent Error Handling**: Standardized validation error responses
+#### Request Validation Middleware
+- **Zod Schema Validation**: Comprehensive validation for request body, parameters, and query strings
+- **Type Safety**: Validation schemas provide compile-time type checking with automatic type inference
+- **Consistent Error Handling**: Standardized validation error responses with detailed field-level errors
 - **Schema Reuse**: Shared validation schemas between different endpoints
-- **Column Type Safety**: Task columns are validated against enum types ('todo' | 'inprogress' | 'done')
-- **Input Constraints**: Automatic validation of field lengths, required fields, and data formats
+
+#### Security Middleware
+- **Input Sanitization**: Automatic sanitization of all request data including:
+  - String trimming and null byte removal
+  - Recursive object and array sanitization
+  - Protection against dangerous object keys (e.g., `__proto__`, `constructor`)
+- **Content-Type Validation**: Enforces `application/json` for POST/PUT/PATCH requests
+- **Request Size Limits**: Configurable payload size validation (default 1MB, configurable up to 5MB)
+- **MongoDB ObjectId Validation**: Proper validation of MongoDB ObjectId format
+- **UUID Validation**: Standard UUID format validation
+- **Pagination Support**: Built-in pagination parameter validation with limits
+
+#### Common Validation Schemas
+- **Field Constraints**: Automatic validation of field lengths, required fields, and data formats
   - Project names: 1-200 characters
   - Task titles: 1-200 characters  
   - Task descriptions: max 1000 characters
@@ -417,8 +464,37 @@ The backend uses a robust validation system with Zod schemas:
   - Pivot descriptions and reasons: 1-1000 characters each
   - Submission URLs: Valid HTTP/HTTPS URLs with platform-specific validation
 - **Date Validation**: Automatic parsing and validation of ISO date strings with logical ordering constraints
-- **Pivot Tracking**: Complete validation for pivot entries with required description and reason fields
-- **Submission Management**: URL validation for GitHub, presentation, and demo video URLs with automatic completion tracking
+- **Email and URL Validation**: Built-in validation for common data types
+- **Column Type Safety**: Task columns are validated against enum types ('todo' | 'inprogress' | 'done')
+
+#### Usage Examples
+```typescript
+import { validateRequest, commonSchemas } from '../middleware/validation.js';
+
+// Validate request body, params, and query
+app.post('/api/projects/:id/tasks', 
+  validateRequest({
+    params: z.object({ id: commonSchemas.uuid }),
+    body: z.object({
+      title: commonSchemas.nonEmptyString.max(200),
+      description: z.string().max(1000).optional(),
+      assignedTo: z.string().max(100).optional()
+    }),
+    query: commonSchemas.pagination
+  }),
+  taskController.create
+);
+
+// Common validation schemas
+const schemas = {
+  mongoId: commonSchemas.mongoId,           // MongoDB ObjectId validation
+  uuid: commonSchemas.uuid,                 // UUID validation
+  email: commonSchemas.email,               // Email validation
+  url: commonSchemas.url,                   // URL validation
+  isoDate: commonSchemas.isoDate,           // ISO date with auto-conversion
+  pagination: commonSchemas.pagination      // Page/limit validation
+};
+```
 
 #### API Usage Example
 
@@ -483,13 +559,38 @@ const teamSubmission = await submissionApi.getByProject(project.projectId);
 const publicSubmission = await submissionApi.getPublic(project.projectId);
 ```
 
-#### Validation Example
+#### Validation Examples
 
 ```typescript
-// Backend validation with Zod
+// Backend validation with new middleware
+import { validateRequest, commonSchemas } from '../middleware/validation.js';
 import { validateProjectCreation, validateTaskCreation, validatePivotEntry } from '../utils/validation.js';
 
-// This will throw an error if validation fails
+// Using the new validation middleware
+app.post('/api/projects/:id/tasks', 
+  validateRequest({
+    params: z.object({ 
+      id: commonSchemas.uuid 
+    }),
+    body: z.object({
+      title: commonSchemas.nonEmptyString.max(200),
+      description: z.string().max(1000).optional(),
+      assignedTo: z.string().max(100).optional(),
+      columnId: z.enum(['todo', 'inprogress', 'done'])
+    }),
+    query: commonSchemas.pagination
+  }),
+  async (req, res) => {
+    // Request data is automatically validated and sanitized
+    const { title, description, assignedTo, columnId } = req.body;
+    const { id: projectId } = req.params;
+    const { page, limit } = req.query;
+    
+    // Data is guaranteed to be valid at this point
+  }
+);
+
+// Legacy validation functions still available
 const validatedData = validateProjectCreation({
   projectName: 'My Project',
   oneLineIdea: 'A great idea',
