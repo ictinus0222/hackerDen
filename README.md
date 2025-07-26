@@ -56,7 +56,10 @@ MONGODB_URI=mongodb://localhost:27017/hackathon-management
 FRONTEND_URL=http://localhost:5173
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 JWT_EXPIRES_IN=7d
+BASE_URL=http://localhost:3000
 ```
+
+**Note**: `BASE_URL` is used for generating public submission page URLs. In production, set this to your actual domain.
 
 ## Development
 
@@ -116,12 +119,19 @@ JWT_EXPIRES_IN=7d
   - View chronological pivot history (newest first)
   - Track pivot count in project overview
   - Form validation and error handling
-- **Submission Package**: Generate clean submission pages for judges
+- **Submission Package**: Complete submission management system for judges
+  - Create and update submission packages with GitHub, presentation, and demo video URLs
+  - Automatic completion status tracking based on required fields (GitHub + presentation URLs)
+  - Generate public submission pages for judges with clean, professional layout
+  - Real-time submission updates across team members via WebSocket
+  - URL validation and automatic public page generation
+  - Judge-accessible public pages without authentication requirements
 - **Real-time Collaboration**: Live updates across all team members
 - **Mobile Responsive**: Works on phones and tablets
 - **JWT Authentication**: Secure project-based authentication system
 - **Type-Safe API**: Full TypeScript support with Zod validation and automatic date conversion
 - **Comprehensive Testing**: Vitest with MongoDB Memory Server for backend, React Testing Library for frontend, comprehensive API client testing with mocked fetch and localStorage
+- **Judge-Friendly Submissions**: Public submission pages accessible without authentication for easy judge evaluation
 
 
 ## Architecture
@@ -131,6 +141,7 @@ The application follows a modern web architecture:
 - Express.js backend with REST API and Socket.io
 - MongoDB for data persistence
 - JWT-based authentication
+- Public submission pages for judges without authentication
 - Mobile-first responsive design
 
 ### Task Management System
@@ -155,6 +166,19 @@ The pivot tracking system allows teams to document major direction changes:
 - **API Client**: Type-safe pivot API with comprehensive validation
 - **Project Integration**: Pivot count displayed in project overview statistics
 - **Validation**: Client and server-side validation for required fields and character limits
+
+### Submission Package System
+
+The submission package system provides comprehensive submission management for judges:
+
+- **Submission Model**: MongoDB model with automatic completion status tracking
+- **Backend API**: RESTful endpoints for creating, updating, and retrieving submissions
+- **Public Pages**: Judge-accessible public submission pages without authentication
+- **URL Validation**: Server-side validation for GitHub, presentation, and demo video URLs
+- **Auto-completion**: Automatic tracking of submission completeness based on required fields
+- **Public URL Generation**: Automatic generation of public submission page URLs
+- **Real-time Updates**: Socket.io integration for live submission updates across team members
+- **Judge Interface**: Clean, professional public pages for judge evaluation
 
 ### Real-time Collaboration System
 
@@ -185,6 +209,9 @@ The system broadcasts the following real-time events to all team members:
 - `task:updated` - Task information updated
 - `task:moved` - Task moved between columns
 - `task:deleted` - Task deleted
+
+**Submission Events:**
+- `submission:updated` - Submission package updated
 
 **User Events:**
 - `user-joined` - User connected to project room
@@ -302,6 +329,7 @@ The backend uses a robust validation system with Zod schemas:
   - Pivot descriptions and reasons: 1-1000 characters each
 - **Date Validation**: Automatic parsing and validation of ISO date strings with logical ordering constraints
 - **Pivot Tracking**: Complete validation for pivot entries with required description and reason fields
+- **Submission Management**: URL validation for GitHub, presentation, and demo video URLs with automatic completion tracking
 
 #### API Usage Example
 
@@ -351,6 +379,19 @@ const newPivot = await pivotApi.create(project.projectId, {
   description: 'Changed from mobile app to web app',
   reason: 'Web development is faster for our team'
 });
+
+// Submission management (API client to be implemented)
+// const submission = await submissionApi.createOrUpdate(project.projectId, {
+//   githubUrl: 'https://github.com/team/hackathon-project',
+//   presentationUrl: 'https://slides.com/presentation',
+//   demoVideoUrl: 'https://youtube.com/watch?v=demo'
+// });
+
+// Get submission for team
+// const teamSubmission = await submissionApi.getByProject(project.projectId);
+
+// Get public submission page data (no auth required)
+// const publicSubmission = await submissionApi.getPublic(project.projectId);
 ```
 
 #### Validation Example
@@ -378,6 +419,13 @@ const validatedTask = validateTaskCreation({
 const validatedPivot = validatePivotEntry({
   description: 'Changed from mobile app to web app',
   reason: 'Web development is faster for our team'
+});
+
+// Submission package validation
+const validatedSubmission = validateSubmissionCreation({
+  githubUrl: 'https://github.com/team/hackathon-project',
+  presentationUrl: 'https://slides.com/presentation',
+  demoVideoUrl: 'https://youtube.com/watch?v=demo'
 });
 ```
 
@@ -408,7 +456,12 @@ const validatedPivot = validatePivotEntry({
 - `POST /api/projects/:id/pivots` - Log new pivot entry
 - `GET /api/projects/:id/pivots` - Get pivot history (sorted by most recent first)
 
-All endpoints require JWT authentication via Bearer token, except for project creation which returns the initial token.
+#### Submission Management
+- `POST /api/projects/:id/submission` - Create or update submission package
+- `GET /api/projects/:id/submission` - Get submission package for project team
+- `GET /api/submission/:id/public` - Get public submission page for judges (no auth required)
+
+All endpoints require JWT authentication via Bearer token, except for project creation which returns the initial token, and the public submission page which is accessible to judges without authentication.
 
 #### WebSocket Events
 
@@ -431,6 +484,7 @@ The WebSocket server provides real-time communication through Socket.io:
 - `task:updated` - Task was updated
 - `task:moved` - Task was moved between columns
 - `task:deleted` - Task was deleted
+- `submission:updated` - Submission package was updated
 - `error` - WebSocket error occurred
 
 **Connection URL:** `ws://localhost:3000` (development) or your production WebSocket URL

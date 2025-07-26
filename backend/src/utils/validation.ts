@@ -74,6 +74,12 @@ const PivotEntrySchema = z.object({
   reason: z.string().min(1, 'Pivot reason is required').max(1000, 'Pivot reason must be less than 1000 characters')
 });
 
+const SubmissionCreationSchema = z.object({
+  githubUrl: z.string().url('Invalid GitHub URL').optional(),
+  presentationUrl: z.string().url('Invalid presentation URL').optional(),
+  demoVideoUrl: z.string().url('Invalid demo video URL').optional()
+});
+
 /**
  * Validates data against a Zod schema and returns a standardized result
  */
@@ -186,4 +192,8 @@ export function validateTaskUpdate(data: unknown) {
 
 export function validatePivotEntry(data: unknown): Omit<PivotEntry, 'id' | 'timestamp'> {
   return validateDataOrThrow(PivotEntrySchema, data);
+}
+
+export function validateSubmissionCreation(data: unknown) {
+  return validateDataOrThrow(SubmissionCreationSchema, data);
 }

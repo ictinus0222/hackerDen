@@ -47,10 +47,13 @@ app.get('/health', (_req, res) => {
 // Import and use routes
 import projectRoutes, { setSocketService as setProjectSocketService } from './routes/projects.js';
 import taskRoutes, { setSocketService as setTaskSocketService } from './routes/tasks.js';
+import submissionRoutes, { setSocketService as setSubmissionSocketService } from './routes/submissions.js';
 
 // API routes
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/projects', submissionRoutes);
+app.use('/api/submission', submissionRoutes);
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);
@@ -71,6 +74,7 @@ const startServer = async () => {
     // Set socket service references in routes
     setProjectSocketService(() => socketService);
     setTaskSocketService(() => socketService);
+    setSubmissionSocketService(() => socketService);
     
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

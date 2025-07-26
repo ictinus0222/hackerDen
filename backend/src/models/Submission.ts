@@ -125,7 +125,9 @@ SubmissionSchema.methods.updateUrls = function(urls: {
 
 SubmissionSchema.methods.generatePublicUrl = function(baseUrl: string) {
   if (!this.generatedPageUrl) {
-    this.generatedPageUrl = `${baseUrl}/submission/${this.projectId}/public`;
+    // Ensure baseUrl has proper format
+    const cleanBaseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
+    this.generatedPageUrl = `${cleanBaseUrl}/api/submission/${this.projectId}/public`;
     return this.save();
   }
   return Promise.resolve(this);

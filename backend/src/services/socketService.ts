@@ -139,6 +139,11 @@ export class SocketService {
     this.io.to(`project:${projectId}`).emit('task:deleted', { taskId });
   }
 
+  // Submission-related events
+  emitSubmissionUpdated(projectId: string, submission: any) {
+    this.io.to(`project:${projectId}`).emit('submission:updated', submission);
+  }
+
   // Utility methods
   getConnectedUsers(): SocketUser[] {
     return Array.from(this.connectedUsers.values());

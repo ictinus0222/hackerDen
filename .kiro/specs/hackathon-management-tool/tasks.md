@@ -231,7 +231,11 @@
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 2.5_
 
 - [ ] 8. Build submission package system
-- [ ] 8.1 Create submission API endpoints
+- [x] 8.1 Create submission API endpoints
+
+
+
+
   - Implement POST /api/projects/:id/submission for package creation/updates
   - Create GET /api/projects/:id/submission for package retrieval
   - Build GET /api/submission/:id/public for public submission pages
