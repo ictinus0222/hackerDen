@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { socketService } from './socket';
 import { io } from 'socket.io-client';
 
 // Mock socket.io-client
@@ -9,8 +8,10 @@ vi.mock('socket.io-client', () => ({
 
 describe('SocketService', () => {
   let mockSocket: any;
+  let SocketService: any;
+  let socketService: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Create mock socket
     mockSocket = {
       id: 'test-socket-id',
@@ -23,10 +24,18 @@ describe('SocketService', () => {
 
     // Mock io function
     (io as any).mockReturnValue(mockSocket);
+
+    // Import SocketService after mocking
+    const module = await import('./socket');
+    SocketService = module.SocketService;
+    socketService = new SocketService();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    if (socketService) {
+      socketService.disconnect();
+    }
   });
 
   describe('initialization', () => {

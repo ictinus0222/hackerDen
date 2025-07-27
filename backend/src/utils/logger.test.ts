@@ -58,7 +58,7 @@ describe('Logger Utility', () => {
       );
     });
 
-    it('should respect log level filtering', () => {
+    it('should respect log level filtering', async () => {
       process.env.LOG_LEVEL = 'WARN';
       
       // Create new logger instance to pick up env change

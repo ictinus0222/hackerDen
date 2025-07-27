@@ -71,12 +71,41 @@ The project has been fully migrated from Jest to Vitest for improved performance
 - **Test Patterns**: All existing test patterns and assertions remain the same, only the framework has changed
 - **Mock Functions**: `jest.mock()` → `vi.mock()`, `jest.fn()` → `vi.fn()`, `jest.Mocked<T>` → `vi.Mocked<T>`
 - **Import Updates**: Vitest functions (`describe`, `it`, `expect`, `beforeEach`, `vi`) are now explicitly imported
+- **Dynamic Imports**: Test files use dynamic imports for better module isolation and mocking control
+- **Test Isolation**: Services and modules are imported after mocking setup to ensure proper test isolation
+
+#### Testing Best Practices
+
+The project follows modern testing patterns with Vitest for optimal test isolation:
+
+```typescript
+describe('Service Tests', () => {
+  let mockDependency: any;
+  let ServiceClass: any;
+  let serviceInstance: any;
+
+  beforeEach(async () => {
+    // Setup mocks first
+    mockDependency = { method: vi.fn() };
+    
+    // Import after mocking for proper isolation
+    const module = await import('./service');
+    ServiceClass = module.ServiceClass;
+    serviceInstance = new ServiceClass();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    serviceInstance?.cleanup();
+  });
+});
+```
 
 ### Frontend
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with custom responsive breakpoints (`xs: 475px` for enhanced small screen support)
-- **Testing**: Vitest + React Testing Library + jsdom (migrated from Jest)
+- **Testing**: Vitest + React Testing Library + jsdom with dynamic imports for test isolation
 - **Real-time**: Socket.io Client with automatic reconnection
 - **Drag & Drop**: React DnD with HTML5 backend
 - **Routing**: React Router
@@ -94,7 +123,7 @@ The project has been fully migrated from Jest to Vitest for improved performance
 - **Authentication**: JWT
 - **Validation**: Zod schemas with comprehensive request validation middleware
 - **Security**: Input sanitization, content-type validation, and request size limits
-- **Testing**: Vitest with MongoDB Memory Server (migrated from Jest)
+- **Testing**: Vitest with MongoDB Memory Server and dynamic imports for test isolation
 
 ## Available Scripts
 
@@ -150,7 +179,7 @@ The project has been fully migrated from Jest to Vitest for improved performance
 - **JWT Authentication**: Secure project-based authentication system
 - **Type-Safe API**: Full TypeScript support with Zod validation and automatic date conversion
 - **Error Boundaries**: Comprehensive error handling with React Error Boundaries for graceful error recovery
-- **Comprehensive Testing**: Vitest with MongoDB Memory Server for backend, React Testing Library for frontend (migrated from Jest), comprehensive API client testing with mocked fetch and localStorage
+- **Comprehensive Testing**: Vitest with MongoDB Memory Server for backend, React Testing Library for frontend, comprehensive API client testing with mocked fetch and localStorage, and improved socket service testing with dynamic imports
 - **Judge-Friendly Submissions**: Public submission pages accessible without authentication for easy judge evaluation
 
 
@@ -308,6 +337,8 @@ The system broadcasts the following real-time events to all team members:
 5. **Notifications**: Other team members are notified of user joining
 6. **Event Listening**: Client receives real-time updates for project activities
 7. **Reconnection**: Automatic reconnection with exponential backoff and project room rejoining
+
+
 
 #### Frontend SocketService Features
 

@@ -325,65 +325,74 @@ describe('classifyError', () => {
 });
 
 describe('getConnectionQuality', () => {
+  let originalConnection: any;
+
+  beforeEach(() => {
+    originalConnection = (navigator as any).connection;
+  });
+
+  afterEach(() => {
+    if (originalConnection !== undefined) {
+      (navigator as any).connection = originalConnection;
+    } else {
+      delete (navigator as any).connection;
+    }
+  });
+
   it('returns fast for unknown connection', () => {
-    // Mock navigator without connection
-    Object.defineProperty(navigator, 'connection', { value: undefined });
+    delete (navigator as any).connection;
     
     expect(getConnectionQuality()).toBe('fast');
   });
 
   it('detects slow connection', () => {
-    Object.defineProperty(navigator, 'connection', {
-      value: { effectiveType: 'slow-2g' },
-      configurable: true
-    });
+    (navigator as any).connection = { effectiveType: 'slow-2g' };
     
     expect(getConnectionQuality()).toBe('slow');
   });
 
   it('detects medium connection', () => {
-    Object.defineProperty(navigator, 'connection', {
-      value: { effectiveType: '3g' },
-      configurable: true
-    });
+    (navigator as any).connection = { effectiveType: '3g' };
     
     expect(getConnectionQuality()).toBe('medium');
   });
 
   it('detects fast connection', () => {
-    Object.defineProperty(navigator, 'connection', {
-      value: { effectiveType: '4g' },
-      configurable: true
-    });
+    (navigator as any).connection = { effectiveType: '4g' };
     
     expect(getConnectionQuality()).toBe('fast');
   });
 });
 
 describe('getAdaptiveTimeout', () => {
+  let originalConnection: any;
+
+  beforeEach(() => {
+    originalConnection = (navigator as any).connection;
+  });
+
+  afterEach(() => {
+    if (originalConnection !== undefined) {
+      (navigator as any).connection = originalConnection;
+    } else {
+      delete (navigator as any).connection;
+    }
+  });
+
   it('returns longer timeout for slow connections', () => {
-    Object.defineProperty(navigator, 'connection', {
-      value: { effectiveType: 'slow-2g' },
-      configurable: true
-    });
+    (navigator as any).connection = { effectiveType: 'slow-2g' };
     
     expect(getAdaptiveTimeout()).toBe(30000);
   });
 
   it('returns medium timeout for 3g connections', () => {
-    Object.defineProperty(navigator, 'connection', {
-      value: { effectiveType: '3g' },
-      configurable: true
-    });
+    (navigator as any).connection = { effectiveType: '3g' };
     
     expect(getAdaptiveTimeout()).toBe(15000);
   });
 
   it('returns default timeout for fast connections', () => {
-    Object.defineProperty(navigator, 'connection', {
-      value: { effectiveType: '4g' },
-      configurable: true
-    });
+    (navigator as any).connection = { effectiveType: '4g' };
     
     expect(getAdaptiveTimeout()).toBe(10000);
   });

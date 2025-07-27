@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { ToastContainer, Toast } from './Toast';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { ToastContainer, type Toast } from './Toast';
 
 // Mock timers
 vi.useFakeTimers();
