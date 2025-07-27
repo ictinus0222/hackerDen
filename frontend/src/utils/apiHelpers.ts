@@ -77,7 +77,7 @@ export async function withRetry<T>(
     }
   }
   
-  throw lastError;
+  throw new Error('All retry attempts failed');
 }
 
 // Circuit breaker pattern for API calls
@@ -289,7 +289,7 @@ export class RequestBatcher {
       reject: (error: any) => void;
       data: any;
     }>;
-    timer: NodeJS.Timeout;
+    timer: number;
   }>();
   
   constructor(private batchDelay: number = 50) {}

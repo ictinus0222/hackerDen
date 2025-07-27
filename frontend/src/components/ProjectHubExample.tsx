@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProjectHubContainer } from './ProjectHubContainer';
+import ProjectHubContainer from './ProjectHubContainer';
 import type { ProjectHub } from '../types';
 
 // Example component showing how to use the ProjectHubContainer

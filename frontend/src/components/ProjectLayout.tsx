@@ -1,14 +1,14 @@
 import { ReactNode, useState } from 'react'
 import { Navigation } from './Navigation'
 import { ProtectedRoute } from './ProtectedRoute'
-import { Project } from '../types'
+import { ProjectHub } from '../types'
 
 interface ProjectLayoutProps {
   children: ReactNode
 }
 
 export const ProjectLayout = ({ children }: ProjectLayoutProps) => {
-  const [project, setProject] = useState<Project | null>(null)
+  const [project, setProject] = useState<ProjectHub | null>(null)
 
   return (
     <ProtectedRoute onProjectLoad={setProject}>

@@ -38,7 +38,7 @@ class PerformanceMonitor {
               this.metrics.lcp = entry.startTime
               break
             case 'first-input':
-              this.metrics.fid = entry.processingStart - entry.startTime
+              this.metrics.fid = (entry as any).processingStart - entry.startTime
               break
             case 'layout-shift':
               if (!(entry as any).hadRecentInput) {
@@ -122,7 +122,7 @@ export function debounce<T extends (...args: any[]) => any>(
   wait: number,
   immediate = false
 ): T {
-  let timeout: NodeJS.Timeout | null = null
+  let timeout: number | null = null
   
   return ((...args: Parameters<T>) => {
     const later = () => {

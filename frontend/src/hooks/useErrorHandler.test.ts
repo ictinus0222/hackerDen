@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React, { ReactNode } from 'react';
 import { useErrorHandler, useAsyncOperation, useFormErrorHandler } from './useErrorHandler';
 import { ApiError } from '../services/api';
 import { ToastProvider } from './useToast';
-import { ReactNode } from 'react';
 
 // Mock console.error to avoid noise in tests
 const originalConsoleError = console.error;
@@ -15,9 +15,9 @@ afterEach(() => {
   console.error = originalConsoleError;
 });
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <ToastProvider>{children}</ToastProvider>
-);
+const wrapper = ({ children }: { children: ReactNode }) => {
+  return React.createElement(ToastProvider, null, children);
+};
 
 describe('useErrorHandler', () => {
   it('handles generic errors', () => {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
 import { useToast } from '../hooks/useToast'
 
-export const HomePage = () => {
+const HomePage = () => {
   const [projectName, setProjectName] = useState('')
   const [oneLineIdea, setOneLineIdea] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,7 +14,7 @@ export const HomePage = () => {
     e.preventDefault()
     
     if (!projectName.trim()) {
-      showToast('Project name is required', 'error')
+      showToast({ title: 'Error', message: 'Project name is required', type: 'error' })
       return
     }
 
@@ -22,22 +22,15 @@ export const HomePage = () => {
       setLoading(true)
       const project = await api.createProject({
         projectName: projectName.trim(),
-        oneLineIdea: oneLineIdea.trim() || undefined,
-        teamMembers: [],
-        deadlines: {
-          hackingEnds: new Date(),
-          submissionDeadline: new Date(),
-          presentationTime: new Date()
-        },
-        judgingCriteria: [],
-        pivotLog: []
+        oneLineIdea: oneLineIdea.trim() || '',
+        creatorName: 'User'
       })
 
-      showToast('Project created successfully!', 'success')
-      navigate(`/project/${project.id}`)
+      showToast({ title: 'Success', message: 'Project created successfully!', type: 'success' })
+      navigate(`/project/${(project as any).id}`)
     } catch (error) {
       console.error('Failed to create project:', error)
-      showToast('Failed to create project. Please try again.', 'error')
+      showToast({ title: 'Error', message: 'Failed to create project. Please try again.', type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -151,3 +144,5 @@ export const HomePage = () => {
     </div>
   )
 }
+
+export default HomePage;

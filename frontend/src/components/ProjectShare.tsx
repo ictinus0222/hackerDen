@@ -13,11 +13,11 @@ export const ProjectShare = () => {
     try {
       await navigator.clipboard.writeText(projectUrl)
       setCopied(true)
-      showToast({ message: 'Project URL copied to clipboard!', type: 'success' })
+      showToast({ title: 'Success', message: 'Project URL copied to clipboard!', type: 'success' })
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
       console.error('Failed to copy to clipboard:', error)
-      showToast({ message: 'Failed to copy URL. Please copy manually.', type: 'error' })
+      showToast({ title: 'Error', message: 'Failed to copy URL. Please copy manually.', type: 'error' })
     }
   }
 

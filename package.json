@@ -8,7 +8,12 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
-    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:production": "NODE_ENV=production npm run build",
+    "start": "cd backend && npm run start",
+    "start:production": "NODE_ENV=production npm run start",
     "test": "concurrently \"npm run test:frontend\" \"npm run test:backend\"",
     "test:frontend": "cd frontend && npm run test:run",
     "test:backend": "cd backend && npm run test:run",
@@ -16,7 +21,12 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "test:all": "npm run test && npm run test:e2e"
+    "test:all": "npm run test && npm run test:e2e",
+    "clean": "rm -rf frontend/dist backend/dist",
+    "clean:install": "npm run clean && rm -rf node_modules frontend/node_modules backend/node_modules && npm run install:all",
+    "preview": "cd frontend && npm run preview",
+    "deploy:build": "npm run clean && npm run install:all && npm run build:production",
+    "health-check": "curl -f http://localhost:3000/health || exit 1"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.1",

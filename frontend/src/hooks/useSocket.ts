@@ -33,7 +33,7 @@ export function useSocket(options: UseSocketOptions = {}): UseSocketReturn {
     maxReconnectAttempts: socketService.getMaxReconnectAttempts(),
   });
 
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<number | null>(null);
 
   // Update connection status
   const updateConnectionStatus = useCallback((connected: boolean) => {
@@ -107,7 +107,7 @@ export function useSocketEvent<K extends keyof SocketEvents>(
 
   useEffect(() => {
     const wrappedHandler = (...args: any[]) => {
-      handlerRef.current(...args);
+      (handlerRef.current as any)(...args);
     };
 
     socketService.on(event, wrappedHandler);
@@ -160,19 +160,19 @@ export function useTaskRealtime(
   onTaskDeleted?: (data: { taskId: string }) => void
 ): void {
   useSocketEvent('task:created', (task: Task) => {
-    if (task.projectId === projectId && onTaskCreated) {
+    if ((task as any).projectId === projectId && onTaskCreated) {
       onTaskCreated(task);
     }
   }, [projectId, onTaskCreated]);
 
   useSocketEvent('task:updated', (task: Task) => {
-    if (task.projectId === projectId && onTaskUpdated) {
+    if ((task as any).projectId === projectId && onTaskUpdated) {
       onTaskUpdated(task);
     }
   }, [projectId, onTaskUpdated]);
 
   useSocketEvent('task:moved', (task: Task) => {
-    if (task.projectId === projectId && onTaskMoved) {
+    if ((task as any).projectId === projectId && onTaskMoved) {
       onTaskMoved(task);
     }
   }, [projectId, onTaskMoved]);

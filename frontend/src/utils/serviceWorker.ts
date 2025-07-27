@@ -153,6 +153,6 @@ export async function queueOfflineAction(action: {
   // Register for background sync if available
   if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
     const registration = await navigator.serviceWorker.ready
-    await registration.sync.register('background-sync')
+    await (registration as any).sync?.register('background-sync')
   }
 }

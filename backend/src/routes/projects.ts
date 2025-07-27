@@ -387,11 +387,11 @@ router.get('/:id/tasks', authenticateProject, async (req: AuthRequest, res: Resp
     }
 
     // Get all tasks for the project, sorted by column and order
-    const tasks = await Task.findByProjectId(projectId);
+    const tasks = await Task.find({ projectId });
 
     const response: ApiResponse<TaskType[]> = {
       success: true,
-      data: tasks.map(task => task.toObject()),
+      data: tasks.map((task: any) => task.toObject()),
       timestamp: new Date()
     };
 
@@ -459,7 +459,8 @@ router.post('/:id/tasks', authenticateProject, async (req: AuthRequest, res: Res
     // Get the next order number for the column if not provided
     let order = validatedData.order;
     if (order === undefined) {
-      const maxOrder = await Task.getMaxOrderInColumn(projectId, validatedData.columnId);
+      const maxOrderTask = await Task.findOne({ projectId, columnId: validatedData.columnId }).sort({ order: -1 });
+      const maxOrder = maxOrderTask ? maxOrderTask.order : 0;
       order = maxOrder + 1;
     }
 

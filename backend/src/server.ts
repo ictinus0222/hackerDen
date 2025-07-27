@@ -3,7 +3,11 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './config/database.js';
+import { connectRedis } from './config/redis.js';
+import { config, env, isProduction } from './config/environment.js';
 import { errorHandler, notFoundHandler, requestIdMiddleware } from './middleware/errorHandler.js';
 import { rateLimiters, createWebSocketRateLimiter } from './middleware/rateLimiter.js';
 import { sanitizeInput, validateContentType, validateRequestSize } from './middleware/validation.js';
@@ -12,19 +16,36 @@ import { logger, requestLogger } from './utils/logger.js';
 // Load environment variables
 dotenv.config();
 
+// ES module compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    methods: ["GET", "POST"]
-  }
-});
 
-const PORT = process.env.PORT || 3000;
+// Production-ready Socket.io configuration using environment config
+const io = new Server(server, config.socket);
 
-// Trust proxy for accurate IP addresses
-app.set('trust proxy', 1);
+const PORT = env.PORT;
+const NODE_ENV = env.NODE_ENV;
+
+// Production security configurations
+if (isProduction()) {
+  // Trust proxy for accurate IP addresses (required for Heroku, Railway, etc.)
+  app.set('trust proxy', 1);
+  
+  // Security headers
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    next();
+  });
+} else {
+  app.set('trust proxy', 1);
+}
 
 // Request ID middleware (must be first)
 app.use(requestIdMiddleware);
@@ -36,14 +57,16 @@ app.use(requestLogger);
 app.use(validateContentType);
 app.use(validateRequestSize(5 * 1024 * 1024)); // 5MB limit
 
-// Rate limiting
-app.use(rateLimiters.general);
+// Rate limiting using environment config
+if (isProduction()) {
+  app.use(rateLimiters.general);
+} else {
+  // More lenient rate limiting for development
+  app.use((req, res, next) => next());
+}
 
-// CORS middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  credentials: true
-}));
+// CORS middleware with environment-specific origins
+app.use(cors(config.cors));
 
 // Body parsing middleware with error handling
 app.use(express.json({ 
@@ -85,6 +108,33 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', submissionRoutes);
 app.use('/api/submission', submissionRoutes);
 
+// Serve static files in production
+if (isProduction()) {
+  // Serve static files from the React app build directory
+  const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(frontendBuildPath, {
+    maxAge: '1y', // Cache static assets for 1 year
+    etag: true,
+    lastModified: true,
+  }));
+  
+  // Handle React Router - send all non-API requests to React app
+  app.get('*', (req, res) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/') || req.path.startsWith('/health')) {
+      return res.status(404).json({ 
+        success: false, 
+        error: { 
+          code: 'NOT_FOUND', 
+          message: 'API endpoint not found' 
+        } 
+      });
+    }
+    
+    res.sendFile(path.join(frontendBuildPath, 'index.html'));
+  });
+}
+
 // Error handling middleware (must be last)
 app.use(notFoundHandler);
 app.use(errorHandler);
@@ -102,7 +152,18 @@ const wsRateLimiter = createWebSocketRateLimiter({
 // Connect to database and start server
 const startServer = async () => {
   try {
+    // Connect to database
     await connectDB();
+    
+    // Connect to Redis (optional, will fallback to mock if not available)
+    if (config.cache.redis.enabled) {
+      try {
+        await connectRedis();
+        logger.info('Redis connected successfully');
+      } catch (error) {
+        logger.warn('Redis connection failed, using mock client', { error: (error as Error).message });
+      }
+    }
     
     // Apply WebSocket rate limiting
     io.use(wsRateLimiter);
@@ -115,9 +176,55 @@ const startServer = async () => {
     setTaskSocketService(() => socketService);
     setSubmissionSocketService(() => socketService);
     
-    server.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`);
-      logger.info(`Health check: http://localhost:${PORT}/health`);
+    // Graceful shutdown handling
+    const gracefulShutdown = (signal: string) => {
+      logger.info(`Received ${signal}. Starting graceful shutdown...`);
+      
+      server.close(() => {
+        logger.info('HTTP server closed');
+        
+        // Close database connection
+        import('mongoose').then(mongoose => {
+          mongoose.default.connection.close().then(() => {
+            logger.info('Database connection closed');
+            process.exit(0);
+          });
+        });
+      });
+      
+      // Force close after 30 seconds
+      setTimeout(() => {
+        logger.error('Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+      }, 30000);
+    };
+    
+    // Listen for termination signals
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (error) => {
+      logger.error('Uncaught Exception', { error: error.message, stack: error.stack });
+      gracefulShutdown('uncaughtException');
+    });
+    
+    process.on('unhandledRejection', (reason, promise) => {
+      logger.error('Unhandled Rejection', { reason, promise });
+      gracefulShutdown('unhandledRejection');
+    });
+    
+    const host = isProduction() ? '0.0.0.0' : 'localhost';
+    
+    server.listen(PORT, host, () => {
+      logger.info(`Server running in ${NODE_ENV} mode on ${host}:${PORT}`);
+      logger.info(`Health check: http://${host}:${PORT}/health`);
+      
+      if (isProduction()) {
+        logger.info('Production optimizations enabled');
+        logger.info('Serving static files from frontend/dist');
+        logger.info('Redis caching enabled:', config.cache.redis.enabled);
+      }
     });
   } catch (error) {
     logger.error('Failed to start server', { error: (error as Error).message, stack: (error as Error).stack });

@@ -63,6 +63,18 @@ BASE_URL=http://localhost:3000
 
 ## Development
 
+### Build System Optimizations
+
+The project uses Vite with advanced build optimizations for optimal performance:
+
+- **Environment-Specific Builds**: Different configurations for development and production
+- **Bundle Optimization**: Advanced code splitting with vendor chunks for React, utilities, drag-and-drop, and Socket.io
+- **Cache Busting**: Automatic hash generation for all assets to ensure proper cache invalidation
+- **Tree Shaking**: Dead code elimination for smaller bundle sizes
+- **Minification**: Terser with environment-specific console.log removal
+- **Modern Targets**: ES2020 for production, ESNext for development
+- **Source Maps**: Enabled in development, disabled in production for security
+
 ### Testing Framework Migration
 
 The project has been fully migrated from Jest to Vitest for improved performance and better TypeScript integration:
@@ -73,6 +85,47 @@ The project has been fully migrated from Jest to Vitest for improved performance
 - **Import Updates**: Vitest functions (`describe`, `it`, `expect`, `beforeEach`, `vi`) are now explicitly imported
 - **Dynamic Imports**: Test files use dynamic imports for better module isolation and mocking control
 - **Test Isolation**: Services and modules are imported after mocking setup to ensure proper test isolation
+
+#### Build Configuration Features
+
+The Vite configuration includes environment-specific optimizations:
+
+```typescript
+// Environment-specific build configuration
+export default defineConfig(({ mode }) => ({
+  build: {
+    // Production optimizations
+    sourcemap: mode === 'development',
+    target: mode === 'production' ? 'es2020' : 'esnext',
+    terserOptions: {
+      compress: {
+        drop_console: mode === 'production',
+        pure_funcs: mode === 'production' ? ['console.log', 'console.info'] : [],
+      },
+    },
+    // Advanced bundle splitting
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          utils: ['date-fns', 'uuid'],
+          dnd: ['react-dnd', 'react-dnd-html5-backend'],
+          socket: ['socket.io-client'],
+        },
+        // Cache busting with hashed filenames
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]',
+      },
+    },
+  },
+  // Environment-specific globals
+  define: {
+    __DEV__: mode === 'development',
+    __PROD__: mode === 'production',
+  },
+}))
+```
 
 #### Testing Best Practices
 
@@ -103,7 +156,7 @@ describe('Service Tests', () => {
 
 ### Frontend
 - **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite
+- **Build Tool**: Vite with production optimizations and environment-specific configurations
 - **Styling**: Tailwind CSS with custom responsive breakpoints (`xs: 475px` for enhanced small screen support)
 - **Testing**: Vitest + React Testing Library + jsdom with dynamic imports for test isolation
 - **Real-time**: Socket.io Client with automatic reconnection
@@ -114,6 +167,7 @@ describe('Service Tests', () => {
 - **State Management**: React hooks with custom useProject hook
 - **Error Handling**: React Error Boundaries with development debugging and production error reporting
 - **Responsive Design**: Mobile-first with enhanced small screen support using custom breakpoints
+- **Build Optimization**: Advanced bundle splitting, tree shaking, and production optimizations
 
 ### Backend
 - **Runtime**: Node.js with TypeScript (ES modules)
@@ -131,16 +185,19 @@ describe('Service Tests', () => {
 - `npm run install:all` - Install dependencies for all projects
 - `npm run dev` - Start both frontend and backend in development mode
 - `npm run build` - Build both frontend and backend for production
+- `npm run build:production` - Build with production optimizations
 - `npm run test` - Run tests for both frontend and backend
 - `npm run test:e2e` - Run end-to-end tests with Playwright
 - `npm run test:e2e:ui` - Run end-to-end tests with Playwright UI mode
 - `npm run test:e2e:headed` - Run end-to-end tests in headed mode (visible browser)
 - `npm run test:e2e:debug` - Run end-to-end tests in debug mode
 - `npm run test:all` - Run all tests (unit, integration, and end-to-end)
+- `npm run preview` - Preview production build locally
 
 ### Frontend
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
+- `npm run dev` - Start development server (localhost:5173)
+- `npm run build` - Build for production with optimizations
+- `npm run preview` - Preview production build (localhost:4173)
 - `npm run test` - Run tests in watch mode
 - `npm run test:run` - Run tests once
 - `npm run lint` - Run ESLint

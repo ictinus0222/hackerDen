@@ -1,8 +1,8 @@
 import { NavLink, useParams } from 'react-router-dom'
-import { Project } from '../types'
+import { ProjectHub } from '../types'
 
 interface NavigationProps {
-  project?: Project
+  project?: ProjectHub
 }
 
 export const Navigation = ({ project }: NavigationProps) => {
@@ -12,7 +12,7 @@ export const Navigation = ({ project }: NavigationProps) => {
     return null
   }
 
-  const actualProjectId = projectId || project.id
+  const actualProjectId = projectId || (project as any).id
 
   const navItems = [
     {

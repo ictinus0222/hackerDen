@@ -1,17 +1,17 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
-import { Project } from '../types'
+import { ProjectHub } from '../types'
 import { api } from '../services/api'
 import { LoadingSpinner } from './LoadingStates'
 
 interface ProtectedRouteProps {
   children: ReactNode
-  onProjectLoad?: (project: Project) => void
+  onProjectLoad?: (project: ProjectHub) => void
 }
 
 export const ProtectedRoute = ({ children, onProjectLoad }: ProtectedRouteProps) => {
   const { id: projectId } = useParams<{ id: string }>()
-  const [project, setProject] = useState<Project | null>(null)
+  const [project, setProject] = useState<ProjectHub | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

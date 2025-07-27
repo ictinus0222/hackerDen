@@ -19,12 +19,12 @@ export const validateRequest = (schema: {
 
       // Validate request parameters
       if (schema.params) {
-        req.params = schema.params.parse(req.params);
+        req.params = schema.params.parse(req.params) as any;
       }
 
       // Validate query parameters
       if (schema.query) {
-        req.query = schema.query.parse(req.query);
+        req.query = schema.query.parse(req.query) as any;
       }
 
       next();
@@ -39,7 +39,7 @@ export const validateRequest = (schema: {
               path: issue.path.join('.'),
               message: issue.message,
               code: issue.code,
-              received: issue.received
+              received: (issue as any).received
             }))
           },
           timestamp: new Date()

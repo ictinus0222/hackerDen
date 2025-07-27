@@ -49,7 +49,11 @@ router.post('/:id/submission', authenticateProject, async (req: AuthRequest, res
     const validatedData = validateSubmissionCreation(req.body);
     
     // Create or update submission package
-    const submission = await Submission.createOrUpdate(projectId, validatedData);
+    const submission = await Submission.findOneAndUpdate(
+      { projectId },
+      { ...validatedData, projectId },
+      { upsert: true, new: true }
+    );
     
     // Generate public URL if not already set
     if (!submission.generatedPageUrl) {
@@ -133,7 +137,7 @@ router.get('/:id/submission', authenticateProject, async (req: AuthRequest, res:
       } as ApiResponse);
     }
 
-    const submission = await Submission.findByProjectId(projectId);
+    const submission = await Submission.findOne({ projectId });
     
     if (!submission) {
       return res.status(404).json({
@@ -172,7 +176,7 @@ router.get('/:id/public', async (req: Request, res: Response) => {
     const projectId = req.params.id;
 
     // Find the submission package
-    const submission = await Submission.findByProjectId(projectId);
+    const submission = await Submission.findOne({ projectId });
     
     if (!submission) {
       return res.status(404).json({
@@ -207,7 +211,7 @@ router.get('/:id/public', async (req: Request, res: Response) => {
         name: member.name,
         role: member.role
       })),
-      submission: submission.getPublicData(),
+      submission: submission.toObject(),
       generatedAt: new Date()
     };
 

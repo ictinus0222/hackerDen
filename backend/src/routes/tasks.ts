@@ -21,7 +21,7 @@ router.put('/:id', authenticateProject, async (req: AuthRequest, res: Response) 
   try {
     const taskId = req.params.id;
     
-    const task = await Task.findByTaskId(taskId);
+    const task = await Task.findById(taskId);
     if (!task) {
       return res.status(404).json({
         success: false,
@@ -116,7 +116,7 @@ router.delete('/:id', authenticateProject, async (req: AuthRequest, res: Respons
   try {
     const taskId = req.params.id;
     
-    const task = await Task.findByTaskId(taskId);
+    const task = await Task.findById(taskId);
     if (!task) {
       return res.status(404).json({
         success: false,

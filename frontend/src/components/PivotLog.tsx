@@ -162,5 +162,6 @@ const PivotLog: React.FC<PivotLogProps> = ({
       )}
     </div>
   );
-};export defa
-ult PivotLog;
+};
+
+export default PivotLog;

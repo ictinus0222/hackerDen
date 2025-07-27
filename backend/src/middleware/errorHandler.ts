@@ -112,7 +112,7 @@ export const errorHandler = (
       path: issue.path.join('.'),
       message: issue.message,
       code: issue.code,
-      received: issue.received
+      received: (issue as any).received
     }));
     
     logger.warn('Validation error', { ...errorContext, validationIssues: details });

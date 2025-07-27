@@ -7,9 +7,15 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "build:production": "NODE_ENV=production npm run build",
     "start": "node dist/server.js",
+    "start:production": "NODE_ENV=production node dist/server.js",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "migrate": "node dist/scripts/migrate.js"
   },
   "keywords": [
     "hackathon",
@@ -26,6 +32,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.4",
+    "redis": "^4.6.13",
     "socket.io": "^4.8.1",
     "uuid": "^11.1.0",
     "zod": "^4.0.5"
