@@ -118,10 +118,10 @@ node scripts/test-production.js     # Production test suite
 
 ### 🌐 Production URLs
 
-#### Expected Production URLs
-- **Frontend**: `https://hackathon-management-tool.vercel.app`
-- **Backend**: `https://hackathon-management-backend.railway.app`
-- **Health Check**: `https://hackathon-management-backend.railway.app/health`
+#### Actual Production URLs
+- **Frontend**: `https://hackerden.netlify.app` ✅ **DEPLOYED**
+- **Backend**: `https://hackathon-management-backend.railway.app` (Pending deployment)
+- **Health Check**: `https://hackathon-management-backend.railway.app/health` (Pending deployment)
 
 ### 📊 Monitoring and Testing
 
