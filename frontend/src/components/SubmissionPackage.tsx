@@ -198,5 +198,6 @@ const SubmissionPackage: React.FC<SubmissionPackageProps> = ({
       )}
     </div>
   );
-};ex
-port default SubmissionPackage;
+};
+
+export default SubmissionPackage;

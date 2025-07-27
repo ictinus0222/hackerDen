@@ -457,3 +457,33 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
+
+// Main API object that combines all API functions
+export const api = {
+  // Project methods
+  createProject: projectApi.create,
+  getProject: projectApi.getById,
+  updateProject: projectApi.update,
+  addTeamMember: projectApi.addMember,
+  removeTeamMember: projectApi.removeMember,
+  
+  // Task methods
+  getTasks: taskApi.getByProject,
+  createTask: taskApi.create,
+  updateTask: taskApi.update,
+  deleteTask: taskApi.delete,
+  
+  // Pivot methods
+  getPivots: pivotApi.getByProject,
+  createPivot: pivotApi.create,
+  
+  // Submission methods
+  createOrUpdateSubmission: submissionApi.createOrUpdate,
+  getSubmission: submissionApi.getByProject,
+  getPublicSubmission: submissionApi.getPublic,
+  
+  // Auth methods
+  setAuthToken,
+  getAuthToken,
+  clearAuthToken,
+};

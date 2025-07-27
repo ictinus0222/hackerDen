@@ -63,11 +63,20 @@ BASE_URL=http://localhost:3000
 
 ## Development
 
+### Testing Framework Migration
+
+The project has been fully migrated from Jest to Vitest for improved performance and better TypeScript integration:
+
+- **Migration Benefits**: Faster test execution, better ES modules support, improved TypeScript integration
+- **Test Patterns**: All existing test patterns and assertions remain the same, only the framework has changed
+- **Mock Functions**: `jest.mock()` → `vi.mock()`, `jest.fn()` → `vi.fn()`, `jest.Mocked<T>` → `vi.Mocked<T>`
+- **Import Updates**: Vitest functions (`describe`, `it`, `expect`, `beforeEach`, `vi`) are now explicitly imported
+
 ### Frontend
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with custom responsive breakpoints (`xs: 475px` for enhanced small screen support)
-- **Testing**: Vitest + React Testing Library
+- **Testing**: Vitest + React Testing Library + jsdom (migrated from Jest)
 - **Real-time**: Socket.io Client with automatic reconnection
 - **Drag & Drop**: React DnD with HTML5 backend
 - **Routing**: React Router
@@ -85,7 +94,7 @@ BASE_URL=http://localhost:3000
 - **Authentication**: JWT
 - **Validation**: Zod schemas with comprehensive request validation middleware
 - **Security**: Input sanitization, content-type validation, and request size limits
-- **Testing**: Vitest with MongoDB Memory Server
+- **Testing**: Vitest with MongoDB Memory Server (migrated from Jest)
 
 ## Available Scripts
 
@@ -141,7 +150,7 @@ BASE_URL=http://localhost:3000
 - **JWT Authentication**: Secure project-based authentication system
 - **Type-Safe API**: Full TypeScript support with Zod validation and automatic date conversion
 - **Error Boundaries**: Comprehensive error handling with React Error Boundaries for graceful error recovery
-- **Comprehensive Testing**: Vitest with MongoDB Memory Server for backend, React Testing Library for frontend, comprehensive API client testing with mocked fetch and localStorage
+- **Comprehensive Testing**: Vitest with MongoDB Memory Server for backend, React Testing Library for frontend (migrated from Jest), comprehensive API client testing with mocked fetch and localStorage
 - **Judge-Friendly Submissions**: Public submission pages accessible without authentication for easy judge evaluation
 
 
@@ -156,6 +165,8 @@ The application follows a modern web architecture:
 - Mobile-first responsive design with custom Tailwind breakpoints
 - Comprehensive error handling with React Error Boundaries
 - Layered security middleware with input sanitization and validation
+
+
 
 ### Middleware Stack
 
@@ -417,22 +428,22 @@ The frontend includes a comprehensive API service layer (`frontend/src/services/
 - **Pivot Tracking API**: Full CRUD operations for pivot logging with validation and error handling
 - **Submission Management API**: Complete submission package management with URL validation and public page generation
 - **Input Validation**: Client-side validation with automatic trimming and required field checks
-- **Comprehensive Testing**: Full test coverage with mocked fetch and localStorage (`frontend/src/services/api.test.ts`)
+- **Comprehensive Testing**: Full test coverage with mocked fetch and localStorage using Vitest (`frontend/src/services/api.test.ts`)
 
 #### API Testing Coverage
 
-The API client includes comprehensive test coverage that validates:
+The API client includes comprehensive test coverage using Vitest that validates:
 
 - **Token Management**: Setting, getting, and clearing JWT tokens with localStorage persistence
 - **Task CRUD Operations**: Creating, reading, updating, and deleting tasks with proper validation
 - **Pivot CRUD Operations**: Creating and reading pivot entries with validation and error handling
 - **Submission CRUD Operations**: Creating, updating, and reading submission packages with URL validation
 - **Input Validation**: Client-side validation with automatic trimming and required field checks
-- **Server-side Validation**: Integration with new validation middleware for comprehensive data validation
+- **Server-side Validation**: Integration with validation middleware for comprehensive data validation
 - **Error Handling**: Proper error propagation and custom ApiError handling
 - **Date Conversion**: Automatic conversion of ISO date strings to JavaScript Date objects
 - **Request Headers**: Proper authentication headers and content-type handling
-- **Mock Testing**: Comprehensive mocking of fetch API and localStorage for isolated testing
+- **Mock Testing**: Comprehensive mocking of fetch API and localStorage using Vitest mocking utilities
 
 ### Validation Architecture
 

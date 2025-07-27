@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { ProjectHub } from './ProjectHub';
+import { ProjectShare } from './ProjectShare';
 import { useProject } from '../hooks/useProject';
 import { useSocket, useProjectRealtime } from '../hooks/useSocket';
 import { ConnectionStatus } from './ConnectionStatus';
@@ -232,15 +233,22 @@ const ProjectHubContainer: React.FC<ProjectHubContainerProps> = ({
         <ConnectionStatus showDetails={true} />
       </div>
 
-      <ProjectHub
-        project={project}
-        onUpdateProject={handleUpdateProject}
-        onAddMember={handleAddMember}
-        onRemoveMember={handleRemoveMember}
-        canEdit={canEdit && !saving}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <ProjectHub
+            project={project}
+            onUpdateProject={handleUpdateProject}
+            onAddMember={handleAddMember}
+            onRemoveMember={handleRemoveMember}
+            canEdit={canEdit && !saving}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <ProjectShare />
+        </div>
+      </div>
     </div>
   );
 };
-export d
-efault ProjectHubContainer;
+
+export default ProjectHubContainer;
