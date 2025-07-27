@@ -12,13 +12,13 @@ import { errorHandler, notFoundHandler, requestIdMiddleware } from './middleware
 import { rateLimiters, createWebSocketRateLimiter } from './middleware/rateLimiter.js';
 import { sanitizeInput, validateContentType, validateRequestSize } from './middleware/validation.js';
 import { logger, requestLogger } from './utils/logger.js';
-
-// Load environment variables
-dotenv.config();
+import monitoring from './config/monitoring.js';
 
 // ES module compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Environment variables are loaded in environment.ts
 
 const app = express();
 const server = createServer(app);
@@ -87,14 +87,68 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 // Input sanitization
 app.use(sanitizeInput);
 
+// Initialize monitoring
+monitoring.initialize();
+
+// Performance monitoring middleware
+app.use(monitoring.performanceMiddleware);
+
 // Health check endpoint
-app.get('/health', (_req, res) => {
-  res.json({ 
+app.get('/health', async (_req, res) => {
+  const startTime = Date.now();
+  const health: any = {
     success: true,
-    status: 'OK', 
+    status: 'OK',
     message: 'Server is running',
-    timestamp: new Date()
-  });
+    timestamp: new Date(),
+    uptime: process.uptime(),
+    version: process.env.npm_package_version || '1.0.0',
+    environment: NODE_ENV,
+    database: { status: 'unknown' },
+    redis: { status: 'unknown' },
+    memory: process.memoryUsage(),
+    responseTime: 0
+  };
+
+  try {
+    // Import mongoose dynamically to check connection
+    const { default: mongoose } = await import('mongoose');
+    
+    // Check database connection
+    if (mongoose.connection.readyState === 1) {
+      health.database = { status: 'connected', name: mongoose.connection.name || 'unknown' };
+    } else {
+      health.database = { status: 'disconnected' };
+      health.success = false;
+      health.status = 'DEGRADED';
+    }
+
+    // Check Redis connection if available
+    try {
+      const redisModule = await import('./config/redis.js');
+      const redis = redisModule.getRedisClient ? redisModule.getRedisClient() : null;
+      if (redis) {
+        // Test Redis connection by trying to get a key
+        await redis.exists('health-check');
+        health.redis = { status: 'connected' };
+      } else {
+        health.redis = { status: 'not_configured' };
+      }
+    } catch (redisError: any) {
+      health.redis = { status: 'disconnected', error: redisError?.message || 'Unknown error' };
+      // Redis is optional, don't fail health check
+    }
+
+  } catch (error: any) {
+    health.success = false;
+    health.status = 'ERROR';
+    health.message = error?.message || 'Unknown error';
+  }
+
+  health.responseTime = Date.now() - startTime;
+  
+  const statusCode = health.success ? 200 : 503;
+  res.status(statusCode).json(health);
 });
 
 // Import and use routes

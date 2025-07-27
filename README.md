@@ -61,6 +61,68 @@ BASE_URL=http://localhost:3000
 
 **Note**: `BASE_URL` is used for generating public submission page URLs. In production, set this to your actual domain.
 
+## Health Monitoring
+
+The application includes a comprehensive health check endpoint at `/health` that provides detailed system status information:
+
+### Health Check Features
+
+- **Database Status**: MongoDB connection state and database name
+- **Redis Status**: Redis connection state (optional, gracefully handles unavailability)
+- **System Metrics**: Memory usage, uptime, and response time
+- **Environment Info**: Node environment, version, and configuration
+- **Status Codes**: Returns 200 for healthy, 503 for degraded/error states
+
+### Health Check Response
+
+```json
+{
+  "success": true,
+  "status": "OK",
+  "message": "Server is running",
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "uptime": 3600.5,
+  "version": "1.0.0",
+  "environment": "production",
+  "database": {
+    "status": "connected",
+    "name": "hackathon-management"
+  },
+  "redis": {
+    "status": "connected"
+  },
+  "memory": {
+    "rss": 50331648,
+    "heapTotal": 20971520,
+    "heapUsed": 15728640,
+    "external": 1048576
+  },
+  "responseTime": 15
+}
+```
+
+### Health Check Usage
+
+```bash
+# Check application health
+curl http://localhost:3000/health
+
+# Production health monitoring scripts
+npm run health-check          # Comprehensive health checks
+npm run monitor:production    # Health checks + production tests
+npm run test:production       # Full production test suite
+
+# Local health check
+npm run health-check:local    # Simple curl-based local check
+```
+
+The health check endpoint is designed for:
+- Load balancer health checks
+- Container orchestration (Docker, Kubernetes)
+- Monitoring systems (Prometheus, DataDog)
+- CI/CD pipeline validation
+- Production deployment verification
+
 ## Development
 
 ### Build System Optimizations

@@ -1,5 +1,15 @@
 import { z } from 'zod';
 import { logger } from '../utils/logger.js';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 // Environment validation schema
 const environmentSchema = z.object({
@@ -70,15 +80,15 @@ export const validateEnvironment = (): Environment => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       logger.error('Environment validation failed', {
-        errors: (error as any).errors.map((err: any) => ({
-          path: err.path.join('.'),
-          message: err.message,
-          received: err.input
-        }))
+        errors: error.issues?.map((err: any) => ({
+          path: err.path?.join('.') || 'unknown',
+          message: err.message || 'Unknown error',
+          received: err.received
+        })) || []
       });
       
       // Provide helpful error messages
-      const missingVars = (error as any).errors
+      const missingVars = error.issues
         .filter((err: any) => err.code === 'invalid_type' && err.received === 'undefined')
         .map((err: any) => err.path.join('.'));
       

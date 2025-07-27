@@ -18,13 +18,16 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
     /* Record video on failure */
     video: 'retain-on-failure',
+    /* Timeout for each test */
+    actionTimeout: 30000,
+    navigationTimeout: 30000,
   },
 
   /* Configure projects for major browsers */
@@ -54,6 +57,15 @@ export default defineConfig({
       use: { ...devices['iPhone 12'] },
     },
 
+    /* Production testing project */
+    {
+      name: 'production',
+      use: { 
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://hackathon-management-tool.vercel.app'
+      },
+    },
+
     /* Test against branded browsers. */
     // {
     //   name: 'Microsoft Edge',
@@ -65,8 +77,8 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: process.env.SKIP_SERVERS ? undefined : [
+  /* Run your local dev server before starting the tests (only for local testing) */
+  webServer: (process.env.SKIP_SERVERS || process.env.PLAYWRIGHT_BASE_URL) ? undefined : [
     {
       command: 'cd backend && npm run dev',
       port: 3000,
