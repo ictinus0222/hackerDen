@@ -132,6 +132,11 @@ describe('Service Tests', () => {
 - `npm run dev` - Start both frontend and backend in development mode
 - `npm run build` - Build both frontend and backend for production
 - `npm run test` - Run tests for both frontend and backend
+- `npm run test:e2e` - Run end-to-end tests with Playwright
+- `npm run test:e2e:ui` - Run end-to-end tests with Playwright UI mode
+- `npm run test:e2e:headed` - Run end-to-end tests in headed mode (visible browser)
+- `npm run test:e2e:debug` - Run end-to-end tests in debug mode
+- `npm run test:all` - Run all tests (unit, integration, and end-to-end)
 
 ### Frontend
 - `npm run dev` - Start development server
