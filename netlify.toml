@@ -1,6 +1,6 @@
 [build]
   base = "hackerden-v01"
-  publish = "dist"
+  publish = "hackerden-v01/dist"
   command = "npm run build"
 
 [[redirects]]
