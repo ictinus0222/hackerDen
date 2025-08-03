@@ -2,249 +2,272 @@
 
 ## Overview
 
-HackerDen MVP is a real-time team collaboration platform built specifically for hackathon teams. The architecture prioritizes simplicity and rapid development using React + Appwrite, focusing on three core features: team management, Kanban task boards, and real-time chat.
+HackerDen MVP is a React-based team collaboration platform built on Appwrite's Backend-as-a-Service infrastructure. The system provides three core integrated features: team management through join codes, visual task management via Kanban boards, and real-time team chat. The architecture prioritizes rapid development, real-time synchronization, and mobile responsiveness to deliver a streamlined hackathon team experience.
 
-The design emphasizes a serverless approach where Appwrite handles all backend concerns (authentication, database, real-time subscriptions), allowing the React frontend to focus purely on user experience and component logic.
+The application follows a single-page application (SPA) pattern with client-side routing, leveraging Appwrite's real-time subscriptions for live updates and built-in authentication for user management.
 
 ## Architecture
 
+### High-Level Architecture
+
+```mermaid
+graph TB
+    A[React Frontend] --> B[Appwrite SDK]
+    B --> C[Appwrite Cloud]
+    C --> D[Authentication Service]
+    C --> E[Database Collections]
+    C --> F[Real-time Subscriptions]
+    
+    E --> G[Teams Collection]
+    E --> H[Team Members Collection]
+    E --> I[Tasks Collection]
+    E --> J[Messages Collection]
+    
+    F --> K[Task Updates]
+    F --> L[Chat Messages]
+```
+
 ### Technology Stack
 
-**Frontend:**
-- React 18 with Vite for fast development and building
-- Tailwind CSS for responsive, utility-first styling
-- HTML5 Drag and Drop API for Kanban interactions
-- Appwrite Web SDK for all backend interactions
+- **Frontend**: React 18 with Vite for fast development and building
+- **Styling**: Tailwind CSS for responsive design and rapid UI development
+- **Backend**: Appwrite Cloud for authentication, database, and real-time features
+- **State Management**: React Context API with custom hooks for team and auth state
+- **Routing**: React Router for client-side navigation
+- **Real-time**: Appwrite's WebSocket-based real-time subscriptions
 
-**Backend (Serverless):**
-- Appwrite Cloud for authentication, database, and real-time features
-- No custom server required - all logic handled client-side or via Appwrite Functions
+### Data Flow
 
-**Deployment:**
-- Netlify for continuous deployment from GitHub
-- Environment variables for Appwrite configuration
-
-### System Architecture
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   React App     │    │   Appwrite       │    │   Netlify       │
-│                 │    │   Cloud          │    │   Hosting       │
-│ ┌─────────────┐ │    │                  │    │                 │
-│ │ Auth        │ │◄──►│ Authentication   │    │ Static Assets   │
-│ │ Components  │ │    │                  │    │                 │
-│ └─────────────┘ │    │ ┌──────────────┐ │    │ Environment     │
-│                 │    │ │ Collections: │ │    │ Variables       │
-│ ┌─────────────┐ │    │ │ - teams      │ │    │                 │
-│ │ Team        │ │◄──►│ │ - team_members│ │    │                 │
-│ │ Components  │ │    │ │ - tasks      │ │    │                 │
-│ └─────────────┘ │    │ │ - messages   │ │    │                 │
-│                 │    │ └──────────────┘ │    │                 │
-│ ┌─────────────┐ │    │                  │    │                 │
-│ │ Kanban      │ │◄──►│ Real-time        │    │                 │
-│ │ Components  │ │    │ Subscriptions    │    │                 │
-│ └─────────────┘ │    │                  │    │                 │
-│                 │    │                  │    │                 │
-│ ┌─────────────┐ │    │                  │    │                 │
-│ │ Chat        │ │◄──►│                  │    │                 │
-│ │ Components  │ │    │                  │    │                 │
-│ └─────────────┘ │    │                  │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
+1. **Authentication Flow**: Users register/login through Appwrite Auth → Context updates → Route protection
+2. **Team Flow**: Team creation/joining → Database updates → Context updates → Dashboard access
+3. **Task Flow**: Task CRUD operations → Database updates → Real-time sync → UI updates → Chat notifications
+4. **Chat Flow**: Message creation → Database updates → Real-time sync → UI updates
 
 ## Components and Interfaces
 
-### Core Application Structure
+### Core Components
 
+#### Authentication Layer
+- **LoginPage**: Form-based login with validation and error handling
+- **RegisterPage**: User registration with team status checking
+- **ProtectedRoute**: Route wrapper that enforces authentication
+- **useAuth**: Custom hook managing authentication state and methods
+
+#### Team Management
+- **TeamSelector**: Displays create/join options for users without teams
+- **TeamCreationPage**: Team creation form with join code generation
+- **TeamJoinPage**: Join code input with validation and error handling
+- **useTeam**: Custom hook managing team membership and data
+
+#### Dashboard Layout
+- **Dashboard**: Main container with responsive layout switching
+- **Layout**: Common header, navigation, and content structure
+- **MobileTabSwitcher**: Mobile navigation between Kanban and Chat views
+
+#### Kanban System
+- **KanbanBoard**: Four-column board container with drag-and-drop zones
+- **TaskColumn**: Individual column component (To-Do, In Progress, Blocked, Done)
+- **TaskCard**: Individual task display with drag handlers
+- **TaskModal**: Task creation/editing form with validation
+- **useTasks**: Custom hook managing task state and operations
+
+#### Chat System
+- **Chat**: Message list and input container
+- **MessageList**: Scrollable message history with auto-scroll
+- **MessageInput**: Text input with send functionality and validation
+- **MessageItem**: Individual message display with user/system styling
+- **useMessages**: Custom hook managing message state and operations
+
+### Service Interfaces
+
+#### Authentication Service
+```javascript
+interface AuthService {
+  login(email: string, password: string): Promise<User>
+  register(email: string, password: string, name: string): Promise<User>
+  logout(): Promise<void>
+  getCurrentUser(): Promise<User | null>
+}
 ```
-src/
-├── components/
-│   ├── auth/
-│   │   ├── LoginPage.jsx
-│   │   ├── RegisterPage.jsx
-│   │   └── ProtectedRoute.jsx
-│   ├── team/
-│   │   ├── TeamCreationPage.jsx
-│   │   ├── TeamJoinPage.jsx
-│   │   └── TeamSelector.jsx
-│   ├── dashboard/
-│   │   ├── Dashboard.jsx
-│   │   ├── KanbanBoard.jsx
-│   │   ├── TaskCard.jsx
-│   │   ├── TaskModal.jsx
-│   │   └── Chat.jsx
-│   └── common/
-│       ├── Layout.jsx
-│       └── LoadingSpinner.jsx
-├── services/
-│   ├── appwrite.js
-│   ├── auth.js
-│   ├── teams.js
-│   ├── tasks.js
-│   └── chat.js
-├── hooks/
-│   ├── useAuth.js
-│   ├── useTeam.js
-│   ├── useTasks.js
-│   └── useChat.js
-└── utils/
-    ├── constants.js
-    └── helpers.js
+
+#### Team Service
+```javascript
+interface TeamService {
+  createTeam(name: string): Promise<{team: Team, joinCode: string}>
+  joinTeam(joinCode: string): Promise<Team>
+  getUserTeam(userId: string): Promise<Team | null>
+  generateJoinCode(): string
+}
 ```
 
-### Component Interfaces
+#### Task Service
+```javascript
+interface TaskService {
+  createTask(teamId: string, task: TaskData): Promise<Task>
+  updateTaskStatus(taskId: string, status: TaskStatus): Promise<Task>
+  getTeamTasks(teamId: string): Promise<Task[]>
+  subscribeToTasks(teamId: string, callback: Function): Function
+}
+```
 
-**Dashboard Component:**
-- Props: `user` (current user object)
-- State: `activeView` (for mobile: 'kanban' | 'chat')
-- Responsibilities: Layout management, responsive behavior, team data fetching
-
-**KanbanBoard Component:**
-- Props: `teamId`, `userId`
-- State: `tasks` (array), `draggedTask` (object)
-- Methods: `handleTaskCreate()`, `handleTaskMove()`, `handleDragStart()`, `handleDrop()`
-
-**Chat Component:**
-- Props: `teamId`, `userId`
-- State: `messages` (array), `newMessage` (string)
-- Methods: `sendMessage()`, `subscribeToMessages()`
-
-**TaskCard Component:**
-- Props: `task` (object), `onMove` (function)
-- State: None (stateless)
-- Methods: Drag event handlers
+#### Message Service
+```javascript
+interface MessageService {
+  sendMessage(teamId: string, content: string): Promise<Message>
+  sendSystemMessage(teamId: string, content: string, type: string): Promise<Message>
+  getTeamMessages(teamId: string): Promise<Message[]>
+  subscribeToMessages(teamId: string, callback: Function): Function
+}
+```
 
 ## Data Models
 
-### Appwrite Collections
+### Appwrite Collections Schema
 
-**teams**
+#### Teams Collection
 ```javascript
 {
-  $id: string,           // Auto-generated
-  name: string,          // Team name
-  join_code: string,     // 6-character unique code
-  owner_id: string,      // User ID of team creator
-  created_at: datetime,  // Auto-generated
-  updated_at: datetime   // Auto-generated
+  $id: string,
+  name: string,
+  joinCode: string, // 6-character unique code
+  ownerId: string,
+  createdAt: string,
+  updatedAt: string
 }
 ```
 
-**team_members**
+#### Team Members Collection
 ```javascript
 {
-  $id: string,           // Auto-generated
-  team_id: string,       // Reference to teams collection
-  user_id: string,       // Reference to users collection
-  role: string,          // 'owner' | 'member'
-  joined_at: datetime,   // Auto-generated
+  $id: string,
+  teamId: string,
+  userId: string,
+  role: 'owner' | 'member',
+  joinedAt: string
 }
 ```
 
-**tasks**
+#### Tasks Collection
 ```javascript
 {
-  $id: string,           // Auto-generated
-  team_id: string,       // Reference to teams collection
-  title: string,         // Task title
-  description: string,   // Task description (optional)
-  status: string,        // 'todo' | 'in_progress' | 'blocked' | 'done'
-  assigned_to: string,   // User ID (optional)
-  created_by: string,    // User ID of creator
-  created_at: datetime,  // Auto-generated
-  updated_at: datetime   // Auto-generated
+  $id: string,
+  teamId: string,
+  title: string,
+  description: string,
+  status: 'todo' | 'in_progress' | 'blocked' | 'done',
+  assignedTo: string, // userId
+  createdBy: string, // userId
+  createdAt: string,
+  updatedAt: string
 }
 ```
 
-**messages**
+#### Messages Collection
 ```javascript
 {
-  $id: string,           // Auto-generated
-  team_id: string,       // Reference to teams collection
-  user_id: string,       // Reference to users collection
-  content: string,       // Message content
-  type: string,          // 'user' | 'system'
-  created_at: datetime,  // Auto-generated
+  $id: string,
+  teamId: string,
+  userId: string, // null for system messages
+  content: string,
+  type: 'user' | 'system',
+  createdAt: string
 }
 ```
 
-### Client-Side Data Flow
+### Frontend Data Types
 
-1. **Authentication Flow:**
-   - User registers/logs in via Appwrite Auth
-   - App checks if user belongs to a team
-   - Redirects to team selection or dashboard accordingly
+#### User Interface
+```typescript
+interface User {
+  $id: string
+  name: string
+  email: string
+}
+```
 
-2. **Team Management Flow:**
-   - Create team → Generate join code → Add user as owner to team_members
-   - Join team → Validate code → Add user as member to team_members
+#### Team Interface
+```typescript
+interface Team {
+  $id: string
+  name: string
+  joinCode: string
+  ownerId: string
+  members?: TeamMember[]
+}
+```
 
-3. **Real-Time Data Flow:**
-   - Subscribe to tasks collection filtered by team_id
-   - Subscribe to messages collection filtered by team_id
-   - All updates propagate automatically via Appwrite Realtime
+#### Task Interface
+```typescript
+interface Task {
+  $id: string
+  teamId: string
+  title: string
+  description: string
+  status: 'todo' | 'in_progress' | 'blocked' | 'done'
+  assignedTo: string
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+```
 
 ## Error Handling
 
 ### Client-Side Error Handling
 
-**Authentication Errors:**
+#### Authentication Errors
 - Invalid credentials → Display user-friendly error message
 - Network errors → Show retry option with offline indicator
-- Session expiry → Redirect to login with context preservation
+- Session expiry → Automatic redirect to login with context preservation
 
-**Team Operations Errors:**
+#### Team Management Errors
 - Invalid join code → Clear error message with retry option
-- Duplicate team names → Suggest alternatives
-- Permission errors → Graceful degradation of features
+- Duplicate team membership → Redirect to existing team dashboard
+- Team creation failures → Form validation with specific error messages
 
-**Real-Time Connection Errors:**
-- Connection loss → Show reconnecting indicator
-- Failed subscriptions → Automatic retry with exponential backoff
-- Sync conflicts → Use Appwrite's last-write-wins resolution
+#### Real-time Connection Errors
+- WebSocket disconnection → Automatic reconnection with exponential backoff
+- Subscription failures → Fallback to polling with user notification
+- Sync conflicts → Appwrite's built-in conflict resolution with user notification
+
+#### Task Management Errors
+- Validation errors → Inline form validation with field-specific messages
+- Drag-and-drop failures → Revert to original position with error notification
+- Concurrent modifications → Real-time sync with optimistic updates and rollback
 
 ### Error Boundaries
-
-Implement React Error Boundaries at key levels:
-- App-level boundary for catastrophic errors
-- Dashboard-level boundary for feature-specific errors
-- Component-level boundaries for isolated failures
+- Global error boundary for unhandled React errors
+- Component-level error boundaries for isolated failure recovery
+- Service-level error handling with consistent error response format
 
 ## Testing Strategy
 
 ### Unit Testing
-- Test individual components with React Testing Library
-- Mock Appwrite SDK calls for isolated testing
-- Focus on user interactions and state management
+- **Components**: React Testing Library for component behavior and user interactions
+- **Services**: Jest for service function logic and Appwrite integration mocking
+- **Hooks**: React Hooks Testing Library for custom hook behavior
+- **Utilities**: Jest for helper functions and data transformations
 
 ### Integration Testing
-- Test complete user flows (register → join team → create task)
-- Test real-time synchronization between multiple browser instances
-- Verify responsive behavior across device sizes
+- **Authentication Flow**: End-to-end user registration, login, and route protection
+- **Team Management**: Complete team creation and joining workflows
+- **Real-time Features**: Multi-client synchronization testing with WebSocket mocking
+- **Mobile Responsiveness**: Cross-device testing with viewport simulation
 
 ### End-to-End Testing
-- Automated tests for critical paths using Playwright or Cypress
-- Manual testing on actual mobile devices
-- Performance testing for real-time features under load
+- **Core User Journeys**: Complete workflows from registration to task completion
+- **Real-time Synchronization**: Multi-browser testing for live updates
+- **Mobile Experience**: Touch interaction testing on actual devices
+- **Error Recovery**: Network interruption and reconnection scenarios
 
-### CI/CD Testing Strategy
-- Run unit tests on every commit
-- Deploy to staging environment for integration testing
-- Manual verification checklist before production deployment
+### Performance Testing
+- **Real-time Updates**: Latency measurement for task and message synchronization
+- **Mobile Performance**: Touch responsiveness and rendering performance
+- **Load Testing**: Multiple concurrent users and real-time subscriptions
+- **Bundle Size**: Code splitting and lazy loading optimization verification
 
-## Performance Considerations
-
-### Real-Time Optimization
-- Limit message history to last 100 messages for initial load
-- Implement pagination for task history if needed
-- Use Appwrite's built-in query optimization
-
-### Mobile Performance
-- Lazy load non-critical components
-- Optimize bundle size with Vite's tree shaking
-- Use CSS transforms for smooth drag animations
-
-### Caching Strategy
-- Leverage Appwrite's built-in caching for static data
-- Implement optimistic updates for better perceived performance
-- Cache team and user data in React state/context
+### Accessibility Testing
+- **Screen Reader Compatibility**: ARIA labels and semantic HTML validation
+- **Keyboard Navigation**: Tab order and focus management testing
+- **Color Contrast**: WCAG compliance for visual accessibility
+- **Touch Targets**: Mobile accessibility guidelines compliance

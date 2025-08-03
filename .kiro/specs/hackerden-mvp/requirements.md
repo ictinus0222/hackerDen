@@ -76,4 +76,5 @@ The core value proposition is enabling hackathon teams to collaborate effectivel
 1. WHEN accessed on mobile devices THEN the system SHALL display a responsive layout that fits the screen
 2. WHEN on mobile THEN the system SHALL provide easy navigation between Kanban and chat views
 3. WHEN interacting with tasks on mobile THEN the system SHALL support touch-based drag and drop or alternative interaction methods
-4. WHEN typing messages on mobile THEN the system SHALL provide an appropriately sized input area
+4. WHEN typing messages on mobile THEN the system SHALL provide an optimized input experience with proper keyboard handling
+5. WHEN using touch interactions THEN the system SHALL provide appropriate touch targets and feedback
