@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.jsx';
 import { useTeam } from '../hooks/useTeam.jsx';
 
 const TeamJoinPage = () => {
@@ -10,7 +9,6 @@ const TeamJoinPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { user } = useAuth();
   const { joinTeam } = useTeam();
   const navigate = useNavigate();
 

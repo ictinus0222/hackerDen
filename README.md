@@ -18,12 +18,15 @@ A collaborative platform for hackathon teams featuring team management, task tra
 - **Task Creation**: Modal-based task creation with form validation
 - **Task Management**: Create, display, and organize tasks by status
 - **Drag and Drop**: Full drag-and-drop support for moving tasks between columns (desktop and mobile)
+- **Real-time Chat**: Team chat with message display, input form, and live updates
+- **Message Management**: Send and receive messages with timestamps and user identification
+- **Chat Setup Guide**: Automated setup assistance for Appwrite messages collection
 
 ### 🚧 In Development
 - Task editing and deletion functionality
-- Real-time chat functionality
 - Team member management
 - Advanced task features (assignments, due dates, priorities)
+- Enhanced chat features (message reactions, file sharing)
 
 ## Tech Stack
 
@@ -82,11 +85,15 @@ npm run dev
 src/
 ├── components/          # Reusable UI components
 │   ├── AppwriteSetupGuide.jsx   # Appwrite setup instructions
-│   ├── Chat.jsx                 # Chat component placeholder
+│   ├── Chat.jsx                 # Real-time team chat interface
 │   ├── ErrorBoundary.jsx        # Error boundary for crash protection
 │   ├── KanbanBoard.jsx          # Kanban board with task management
 │   ├── Layout.jsx               # Main layout with header and navigation
 │   ├── LoadingSpinner.jsx       # Loading state component
+│   ├── MessageInput.jsx         # Message input form component
+│   ├── MessageItem.jsx          # Individual message display component
+│   ├── MessageList.jsx          # Scrollable message list component
+│   ├── MessagesSetupGuide.jsx   # Messages collection setup guide
 │   ├── MobileTabSwitcher.jsx    # Mobile tab navigation component
 │   ├── ProtectedRoute.jsx       # Route protection component
 │   ├── TaskCard.jsx             # Individual task display component
@@ -98,6 +105,7 @@ src/
 │   └── TeamContext.jsx
 ├── hooks/              # Custom React hooks
 │   ├── useAuth.jsx
+│   ├── useMessages.jsx          # Message data management hook
 │   ├── useTasks.jsx             # Task data management hook
 │   └── useTeam.jsx
 ├── lib/                # Third-party integrations
@@ -110,6 +118,7 @@ src/
 │   └── TeamJoinPage.jsx
 ├── services/           # API services
 │   ├── authService.js
+│   ├── messageService.js        # Message management operations
 │   ├── taskService.js           # Task management operations
 │   └── teamService.js
 ├── docs/               # Documentation
@@ -227,6 +236,38 @@ The application implements smart routing based on user team membership:
 - **Error Handling**: Failed drag operations are handled gracefully
 - **Touch Optimization**: Proper touch event handling prevents scrolling during drag
 
+## Chat System
+
+### Real-time Chat Features
+- **Team-Based Messaging**: Messages are filtered and displayed by team
+- **Real-time Updates**: Live message synchronization using Appwrite subscriptions
+- **Message Display**: Shows user names, timestamps, and message content
+- **Message Input**: Form-based message sending with validation
+- **Auto-scroll**: Automatically scrolls to latest messages
+- **Optimistic Updates**: Messages appear immediately with server confirmation
+
+### Chat Components
+- **Chat**: Main chat interface with message list and input form
+- **MessageList**: Scrollable message display with loading states
+- **MessageInput**: Message input form with keyboard support
+- **MessageItem**: Individual message display with user info and timestamps
+- **MessagesSetupGuide**: Setup assistance for Appwrite messages collection
+
+### Message Management Features
+- **Form Validation**: Prevents empty message submission
+- **User Identification**: Shows "You" for current user's messages
+- **Timestamp Formatting**: Human-readable time display using date-fns
+- **Message Types**: Support for user messages and system notifications
+- **Error Handling**: Comprehensive error management with setup guidance
+- **Loading States**: Visual feedback during message operations
+
+### Chat Flow
+1. **Access**: Chat is available in the dashboard alongside the Kanban board
+2. **Message Display**: All team messages are displayed in chronological order
+3. **Send Message**: Type message and press Enter or click Send button
+4. **Real-time Updates**: New messages appear instantly for all team members
+5. **Auto-scroll**: Chat automatically scrolls to show latest messages
+
 ## Architecture Components
 
 ### Context Providers
@@ -291,8 +332,13 @@ const {
 - `createdAt` (datetime): Creation timestamp
 - `updatedAt` (datetime): Last update timestamp
 
-#### messages (planned)
-- Chat message fields
+#### messages
+- `teamId` (string): Reference to team
+- `userId` (string): Reference to user (null for system messages)
+- `content` (string): Message content
+- `type` (string): Message type ('user' or 'system')
+- `createdAt` (datetime): Creation timestamp
+- `updatedAt` (datetime): Last update timestamp
 
 ## Documentation
 

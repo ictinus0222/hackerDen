@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { teamService } from '../services/teamService';
 
@@ -10,16 +10,9 @@ const TeamProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (user) {
-      checkUserTeam();
-    } else {
-      setTeam(null);
-      setLoading(false);
-    }
-  }, [user]);
-
-  const checkUserTeam = async () => {
+  const checkUserTeam = useCallback(async () => {
+    if (!user?.$id) return;
+    
     try {
       setLoading(true);
       setError(null);
@@ -31,7 +24,16 @@ const TeamProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.$id]);
+
+  useEffect(() => {
+    if (user) {
+      checkUserTeam();
+    } else {
+      setTeam(null);
+      setLoading(false);
+    }
+  }, [user, checkUserTeam]);
 
   const createTeam = async (name) => {
     try {

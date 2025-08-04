@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.jsx';
 import { useTeam } from '../hooks/useTeam.jsx';
 
 const TeamCreationPage = () => {
@@ -12,7 +11,6 @@ const TeamCreationPage = () => {
   const [createdTeam, setCreatedTeam] = useState(null);
   const [showCopySuccess, setShowCopySuccess] = useState(false);
 
-  const { user } = useAuth();
   const { createTeam } = useTeam();
   const navigate = useNavigate();
 

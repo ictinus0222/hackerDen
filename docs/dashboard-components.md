@@ -239,12 +239,183 @@ import TaskModal from '../components/TaskModal.jsx';
 
 ### Chat Component (`src/components/Chat.jsx`)
 
-Placeholder component for the chat functionality (to be implemented in Task 5).
+Real-time team chat interface with message display, input form, and live updates.
 
-#### Current State
-- Displays placeholder content
-- Maintains proper styling and layout structure
-- Ready for chat implementation
+#### Features
+- **Real-time Messaging**: Live message updates using Appwrite subscriptions
+- **Message Display**: Shows user messages with names, timestamps, and content
+- **Message Input**: Form-based message sending with validation
+- **Error Handling**: Setup guide for missing Appwrite collections
+- **Loading States**: Contextual loading messages during data fetch
+- **Optimistic Updates**: Immediate UI feedback for sent messages
+- **Auto-scroll**: Automatically scrolls to latest messages
+
+#### Usage
+```jsx
+import Chat from '../components/Chat.jsx';
+
+<Chat />
+```
+
+#### Dependencies
+- `useMessages` hook for message data management
+- `useAuth` hook for user authentication
+- `MessageList` component for message display
+- `MessageInput` component for message sending
+- `MessagesSetupGuide` component for setup assistance
+
+#### State Management
+- Fetches messages automatically when team changes
+- Handles real-time message updates via Appwrite subscriptions
+- Manages loading and error states
+- Provides optimistic updates for better UX
+
+#### Error States
+- **Collection Missing**: Shows setup guide when messages collection doesn't exist
+- **Schema Issues**: Provides detailed instructions for missing attributes
+- **Permission Errors**: Clear messaging for access issues
+- **Network Errors**: Graceful handling of connection issues
+
+---
+
+### MessageList Component (`src/components/MessageList.jsx`)
+
+Scrollable message display component with auto-scroll and loading states.
+
+#### Features
+- **Message Display**: Renders list of messages with proper styling
+- **Auto-scroll**: Automatically scrolls to bottom when new messages arrive
+- **Loading States**: Shows loading spinner during message fetch
+- **Empty State**: User-friendly message when no messages exist
+- **Responsive Layout**: Adapts to different screen sizes
+
+#### Usage
+```jsx
+import MessageList from '../components/MessageList.jsx';
+
+<MessageList
+  messages={messages}
+  loading={loading}
+  currentUserId={user?.$id}
+/>
+```
+
+#### Props
+- `messages` (array): Array of message objects to display
+- `loading` (boolean): Loading state indicator
+- `currentUserId` (string): Current user's ID for message styling
+
+#### Auto-scroll Behavior
+- Scrolls to bottom on component mount
+- Scrolls to bottom when new messages are added
+- Uses smooth scrolling for better UX
+
+---
+
+### MessageInput Component (`src/components/MessageInput.jsx`)
+
+Message input form with validation and keyboard support.
+
+#### Features
+- **Form Validation**: Prevents empty message submission
+- **Keyboard Support**: Enter key to send, Shift+Enter for new line
+- **Loading States**: Disabled during message sending
+- **Auto-clear**: Clears input after successful send
+- **Responsive Design**: Adapts to different screen sizes
+
+#### Usage
+```jsx
+import MessageInput from '../components/MessageInput.jsx';
+
+<MessageInput
+  onSendMessage={handleSendMessage}
+  disabled={sending || !user}
+/>
+```
+
+#### Props
+- `onSendMessage` (function): Callback when message should be sent
+- `disabled` (boolean, optional): Disables input and send button
+
+#### Keyboard Shortcuts
+- **Enter**: Send message (if not empty)
+- **Shift+Enter**: Add new line (future enhancement)
+
+#### Validation Rules
+- Message must not be empty or whitespace-only
+- Real-time validation with visual feedback
+
+---
+
+### MessageItem Component (`src/components/MessageItem.jsx`)
+
+Individual message display component with user info and timestamps.
+
+#### Features
+- **Message Types**: Supports user and system messages
+- **User Identification**: Shows "You" for current user's messages
+- **Timestamps**: Human-readable time formatting using date-fns
+- **Message Styling**: Different styling for own vs. other messages
+- **System Messages**: Special styling for system notifications
+
+#### Usage
+```jsx
+import MessageItem from '../components/MessageItem.jsx';
+
+<MessageItem
+  message={messageObject}
+  currentUserId={user?.$id}
+/>
+```
+
+#### Props
+- `message` (object): Message object with required fields:
+  - `$id` (string): Unique message identifier
+  - `content` (string): Message content
+  - `type` (string): Message type ('user' or 'system')
+  - `userId` (string|null): Sender's user ID (null for system)
+  - `userName` (string, optional): Sender's display name
+  - `$createdAt` (string): ISO timestamp of creation
+- `currentUserId` (string): Current user's ID for styling
+
+#### Message Types
+- **User Messages**: Regular chat messages from team members
+- **Other Messages**: Messages from other team members
+- **System Messages**: Automated notifications (centered, gray styling)
+
+#### Styling Patterns
+- **Own Messages**: Right-aligned, blue background
+- **Other Messages**: Left-aligned, gray background
+- **System Messages**: Centered, pill-shaped, gray background
+
+---
+
+### MessagesSetupGuide Component (`src/components/MessagesSetupGuide.jsx`)
+
+Helper component that provides step-by-step instructions for setting up the Appwrite messages collection.
+
+#### Features
+- **Error Detection**: Identifies collection vs. schema issues
+- **Step-by-Step Guide**: Clear instructions for manual setup
+- **Visual Hierarchy**: Well-organized sections with proper styling
+- **External Links**: Direct links to Appwrite Console
+- **Code Examples**: Formatted attribute specifications
+
+#### Usage
+```jsx
+import MessagesSetupGuide from '../components/MessagesSetupGuide.jsx';
+
+<MessagesSetupGuide error={errorMessage} />
+```
+
+#### Props
+- `error` (string): Error message from failed message operations
+
+#### Setup Sections
+1. **Collection Creation**: Instructions for creating the messages collection
+2. **Attribute Setup**: Required attributes with types and constraints
+3. **Permissions**: Proper permission configuration
+4. **Indexes**: Optional but recommended database indexes
 
 ## Responsive Design Strategy
 
@@ -597,6 +768,135 @@ Sets up real-time subscription for task updates.
 
 #### Error Handling
 - **Collection Missing**: Specific error for missing tasks collection
+- **Schema Issues**: Detailed error for missing attributes
+- **Permission Errors**: Clear messaging for access issues
+- **Network Errors**: Graceful handling of connection problems
+
+---
+
+## Chat System
+
+### useMessages Hook (`src/hooks/useMessages.jsx`)
+
+Custom React hook for managing message data and real-time updates.
+
+#### Features
+- **Team-Based Filtering**: Automatically filters messages by current team
+- **Real-time Subscriptions**: Live updates via Appwrite subscriptions
+- **Optimistic Updates**: Immediate UI feedback for sent messages
+- **Error Handling**: Comprehensive error management
+- **Loading States**: Proper loading state management
+
+#### Usage
+```jsx
+import { useMessages } from '../hooks/useMessages.jsx';
+
+const MyComponent = () => {
+  const { messages, loading, error, sending, sendMessage } = useMessages();
+  
+  // Use the message data...
+};
+```
+
+#### Return Values
+- `messages` (array): All messages for the current team
+- `loading` (boolean): Loading state indicator
+- `error` (string|null): Error message if any
+- `sending` (boolean): Message sending state
+- `sendMessage` (function): Function to send new messages
+- `refetch` (function): Manual refresh function
+
+#### Real-time Events
+- **Create**: New messages appear automatically
+- **Update**: Message changes reflect immediately
+- **Delete**: Removed messages disappear from the chat
+
+#### Optimistic Updates
+- Messages appear immediately in the UI when sent
+- Real message replaces optimistic message when confirmed
+- Failed messages are removed with error indication
+
+---
+
+### messageService (`src/services/messageService.js`)
+
+Service module for message-related Appwrite operations.
+
+#### Features
+- **CRUD Operations**: Send and fetch message operations
+- **Team Filtering**: Queries messages by team ID
+- **Real-time Subscriptions**: Manages Appwrite real-time connections
+- **Error Handling**: Detailed error messages and logging
+- **Message Types**: Support for user and system messages
+
+#### Methods
+
+##### `sendMessage(teamId, userId, content)`
+Sends a new user message to the specified team.
+
+**Parameters:**
+- `teamId` (string): Team identifier
+- `userId` (string): User identifier of sender
+- `content` (string): Message content
+
+**Automatic Fields:**
+- `type`: Always set to 'user' for user messages
+- `$createdAt`: Automatically set by Appwrite
+
+**Returns:** Promise resolving to created message object
+
+**Usage Example:**
+```javascript
+const newMessage = await messageService.sendMessage(
+  team.$id, 
+  user.$id, 
+  'Hello team!'
+);
+```
+
+##### `sendSystemMessage(teamId, content, type = 'system')`
+Sends a system message (automated notifications).
+
+**Parameters:**
+- `teamId` (string): Team identifier
+- `content` (string): Message content
+- `type` (string, optional): Message type (default: 'system')
+
+**Automatic Fields:**
+- `userId`: Set to null for system messages
+- `$createdAt`: Automatically set by Appwrite
+
+**Returns:** Promise resolving to created message object
+
+##### `getTeamMessages(teamId)`
+Retrieves all messages for a specific team.
+
+**Parameters:**
+- `teamId` (string): Team identifier
+
+**Query Features:**
+- Filters by team ID
+- Orders by creation time (ascending)
+- Limits to last 100 messages for performance
+
+**Returns:** Promise resolving to array of message objects
+
+##### `subscribeToMessages(teamId, callback)`
+Sets up real-time subscription for message updates.
+
+**Parameters:**
+- `teamId` (string): Team identifier
+- `callback` (function): Function to handle real-time updates
+
+**Event Types:**
+- `databases.*.collections.*.documents.*.create`: New messages
+- `databases.*.collections.*.documents.*.update`: Message updates
+- `databases.*.collections.*.documents.*.delete`: Message deletions
+
+**Returns:** Unsubscribe function
+
+#### Error Handling
+- **Collection Missing**: Specific error for missing messages collection
 - **Schema Issues**: Detailed error for missing attributes
 - **Permission Errors**: Clear messaging for access issues
 - **Network Errors**: Graceful handling of connection problems

@@ -254,6 +254,132 @@ const { tasks, tasksByStatus, loading, error, refetch } = useTasks();
 // Use refetch() for manual refresh if needed
 ```
 
+### Working with Chat System
+
+#### Chat Component Integration
+The chat system provides real-time messaging functionality with the following components:
+
+```jsx
+// Using Chat in your component
+import Chat from '../components/Chat.jsx';
+
+<Chat />
+```
+
+#### Message Management
+```jsx
+// Using the useMessages hook
+import { useMessages } from '../hooks/useMessages.jsx';
+
+const MyComponent = () => {
+  const { messages, loading, error, sending, sendMessage } = useMessages();
+  
+  const handleSendMessage = (content) => {
+    sendMessage(content);
+  };
+  
+  return (
+    <div>
+      {/* Your chat UI */}
+    </div>
+  );
+};
+```
+
+#### Real-time Message Updates
+```jsx
+// Messages automatically update in real-time via Appwrite subscriptions
+// No additional setup needed - handled by useMessages hook
+
+// For custom message handling:
+useEffect(() => {
+  if (!team?.$id) return;
+
+  const unsubscribe = messageService.subscribeToMessages(team.$id, (response) => {
+    const { events, payload } = response;
+    
+    if (events.includes('databases.*.collections.*.documents.*.create')) {
+      // Handle new message
+      console.log('New message:', payload);
+    }
+  });
+
+  return unsubscribe;
+}, [team?.$id]);
+```
+
+#### Message Service Operations
+```jsx
+// Sending messages programmatically
+import { messageService } from '../services/messageService';
+
+const sendMessage = async (content) => {
+  try {
+    const message = await messageService.sendMessage(team.$id, user.$id, content);
+    // Message appears automatically via real-time updates
+  } catch (error) {
+    console.error('Failed to send message:', error);
+  }
+};
+
+// Sending system messages
+const sendSystemMessage = async (content) => {
+  try {
+    await messageService.sendSystemMessage(team.$id, content);
+  } catch (error) {
+    console.error('Failed to send system message:', error);
+  }
+};
+```
+
+#### Chat Component Customization
+```jsx
+// Custom message display
+const CustomMessageItem = ({ message, currentUserId }) => {
+  const isOwnMessage = message.userId === currentUserId;
+  
+  return (
+    <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-xs px-4 py-2 rounded-lg ${
+        isOwnMessage ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-900'
+      }`}>
+        <p>{message.content}</p>
+        <span className="text-xs opacity-75">
+          {formatTime(message.$createdAt)}
+        </span>
+      </div>
+    </div>
+  );
+};
+```
+
+#### Error Handling for Chat
+```jsx
+// Chat automatically shows setup guide for collection errors
+// For custom error handling:
+const { error } = useMessages();
+
+if (error && error.includes('collection')) {
+  return <MessagesSetupGuide error={error} />;
+}
+
+if (error) {
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+      <p className="text-red-800">Chat Error: {error}</p>
+    </div>
+  );
+}
+```
+
+#### Testing Chat Functionality
+- **Message Sending**: Type message and press Enter or click Send
+- **Real-time Updates**: Open multiple browser tabs to test live updates
+- **Auto-scroll**: Verify chat scrolls to bottom with new messages
+- **Error States**: Test with missing messages collection
+- **Loading States**: Check loading spinner during message fetch
+- **Responsive Design**: Test on mobile and desktop layouts
+
 ### Working with Task Modal
 
 #### Modal State Management
