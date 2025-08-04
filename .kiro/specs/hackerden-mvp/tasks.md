@@ -20,21 +20,45 @@
   - _Requirements: All requirements depend on this foundation_
 
 - [ ] 2. Team Management System
-- [ ] 2.1 Create team creation functionality
+- [x] 2.1 Create team creation functionality
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   - Build TeamCreationPage component with team name input and join code generation
   - Implement team service functions for creating teams and generating unique join codes
   - Create team_members entry when team is created with owner role
   - Add form validation and error handling for team creation
   - _Requirements: 1.2, 1.3_
 
-- [ ] 2.2 Implement team joining functionality
+- [x] 2.2 Implement team joining functionality
+
+
+
+
+
   - Build TeamJoinPage component with join code input field
   - Implement team service function to validate join codes and add members
   - Create team_members entry when user successfully joins team
-  - Add error handling for invalid join codes and duplicate memberships
+  - Add error handling for invalid join codes and duplicate membe`rships
   - _Requirements: 1.3, 1.5_
 
-- [ ] 2.3 Create team routing logic
+- [x] 2.3 Create team routing logic
+
+
+
+
+
   - Implement useTeam hook to check user's team membership status
   - Create TeamSelector component that shows create/join options for users without teams
   - Add routing logic to redirect users to dashboard if they have a team

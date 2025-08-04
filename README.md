@@ -1,12 +1,209 @@
-# React + Vite
+# HackerDen MVP
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A collaborative platform for hackathon teams featuring team management, task tracking, and real-time communication.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### ✅ Implemented
+- **User Authentication**: Registration, login, and session management
+- **Team Creation**: Create teams with unique join codes
+- **Team Management**: Join teams using invite codes
+- **Team Routing Logic**: Smart routing based on team membership status
+- **Protected Routes**: Secure access to team features
 
-## Expanding the ESLint configuration
+### 🚧 In Development
+- Team Dashboard with Kanban board
+- Real-time chat functionality
+- Task management system
+- Team member management
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tech Stack
+
+- **Frontend**: React 19 + Vite
+- **Styling**: Tailwind CSS
+- **Backend**: Appwrite (BaaS)
+- **Routing**: React Router DOM
+- **State Management**: React Context API
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
+- Appwrite instance (cloud or self-hosted)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd hackerden
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+Create a `.env` file in the root directory:
+```env
+VITE_APPWRITE_ENDPOINT=https://your-appwrite-endpoint
+VITE_APPWRITE_PROJECT_ID=your-project-id
+VITE_APPWRITE_DATABASE_ID=your-database-id
+```
+
+4. Set up Appwrite:
+Follow the setup guide in `docs/appwrite-setup.md` to configure your Appwrite instance.
+
+5. Start the development server:
+```bash
+npm run dev
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ProtectedRoute.jsx
+│   └── TeamSelector.jsx
+├── contexts/           # React contexts
+│   ├── AuthContext.jsx
+│   └── TeamContext.jsx
+├── hooks/              # Custom React hooks
+│   ├── useAuth.jsx
+│   └── useTeam.jsx
+├── lib/                # Third-party integrations
+│   └── appwrite.js
+├── pages/              # Page components
+│   ├── Dashboard.jsx
+│   ├── LoginPage.jsx
+│   ├── RegisterPage.jsx
+│   ├── TeamCreationPage.jsx
+│   └── TeamJoinPage.jsx
+├── services/           # API services
+│   ├── authService.js
+│   └── teamService.js
+└── App.jsx             # Main app component
+```
+
+## Team Management Flow
+
+### Team Routing Logic
+The application implements smart routing based on user team membership:
+
+- **Users with Teams**: Automatically redirected to team dashboard showing team information
+- **Users without Teams**: Presented with team selection options (create or join)
+- **Context-Aware Navigation**: Team state is managed globally and shared across components
+
+### Team Creation Flow
+
+1. **Registration/Login**: Users authenticate via email/password
+2. **Team Selection**: Users without teams see the TeamSelector component
+3. **Team Creation**: Users can create a new team with a unique name
+4. **Join Code Generation**: System generates a 6-character alphanumeric join code
+5. **Team Ownership**: Creator becomes team owner with full permissions
+6. **Code Sharing**: Join code can be copied and shared with team members
+
+### Team Joining Flow
+
+1. **Join Code Entry**: Users enter a 6-character join code
+2. **Code Validation**: System validates code format and existence
+3. **Membership Check**: Prevents duplicate team memberships
+4. **Team Assignment**: User is added as a team member
+5. **Dashboard Redirect**: Automatic redirect to team dashboard
+
+### Team Management Features
+- **Smart Routing**: Automatic navigation based on team membership status
+- **Team Context**: Global team state management with React Context
+- **Form Validation**: Comprehensive validation for team names and join codes
+- **Unique Join Code Generation**: Excludes confusing characters (0, O, I, 1)
+- **Real-time Error Handling**: User-friendly error messages and loading states
+- **Copy-to-Clipboard**: Join code sharing with visual feedback
+- **Membership Management**: Automatic team membership creation and validation
+
+## Architecture Components
+
+### Context Providers
+- **AuthContext**: Manages user authentication state and methods
+- **TeamContext**: Manages team membership state and team operations
+
+### Custom Hooks
+- **useAuth**: Provides access to authentication context and methods
+- **useTeam**: Provides access to team context, membership status, and team operations
+
+### Key Components
+- **TeamSelector**: Displays create/join options for users without teams
+- **ProtectedRoute**: Ensures authenticated access to protected pages
+- **Dashboard**: Smart dashboard that adapts based on team membership
+
+### Routing Strategy
+The application uses conditional routing based on team membership:
+```javascript
+// Users with teams see team dashboard
+{hasTeam ? <TeamDashboard /> : <TeamSelector />}
+```
+
+### Team Context API
+The `useTeam` hook provides the following methods and state:
+
+```javascript
+const {
+  team,           // Current user's team object (null if no team)
+  loading,        // Loading state for team operations
+  error,          // Error message from team operations
+  hasTeam,        // Boolean indicating if user has a team
+  createTeam,     // Function to create a new team
+  joinTeam,       // Function to join a team by code
+  refreshTeam     // Function to refresh team data
+} = useTeam();
+```
+
+## Database Schema
+
+### Collections
+
+#### teams
+- `name` (string): Team name
+- `joinCode` (string): Unique 6-character join code
+- `ownerId` (string): User ID of team owner
+- `createdAt` (datetime): Creation timestamp
+- `updatedAt` (datetime): Last update timestamp
+
+#### team_members
+- `teamId` (string): Reference to team
+- `userId` (string): Reference to user
+- `role` (string): 'owner' or 'member'
+- `joinedAt` (datetime): Join timestamp
+
+#### tasks (planned)
+- Task management fields
+
+#### messages (planned)
+- Chat message fields
+
+## Contributing
+
+1. Follow the existing code style and patterns
+2. Run `npm run lint` before committing
+3. Ensure all builds pass with `npm run build`
+4. Update documentation for new features
+
+## Development Workflow
+
+This project follows a spec-driven development approach:
+- Requirements are defined in `.kiro/specs/hackerden-mvp/requirements.md`
+- Design decisions are documented in `.kiro/specs/hackerden-mvp/design.md`
+- Implementation tasks are tracked in `.kiro/specs/hackerden-mvp/tasks.md`
+
+## License
+
+This project is licensed under the MIT License.
