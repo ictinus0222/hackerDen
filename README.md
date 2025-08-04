@@ -10,9 +10,13 @@ A collaborative platform for hackathon teams featuring team management, task tra
 - **Team Management**: Join teams using invite codes
 - **Team Routing Logic**: Smart routing based on team membership status
 - **Protected Routes**: Secure access to team features
+- **Dashboard Layout**: Responsive dashboard with header, navigation, and main content areas
+- **Responsive Design**: Desktop side-by-side layout and mobile tab switching
+- **Error Boundaries**: Graceful error handling with recovery options
+- **Loading States**: Enhanced loading experience with contextual messages
 
 ### 🚧 In Development
-- Team Dashboard with Kanban board
+- Kanban board functionality
 - Real-time chat functionality
 - Task management system
 - Team member management
@@ -73,8 +77,14 @@ npm run dev
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ProtectedRoute.jsx
-│   └── TeamSelector.jsx
+│   ├── Chat.jsx                 # Chat component placeholder
+│   ├── ErrorBoundary.jsx        # Error boundary for crash protection
+│   ├── KanbanBoard.jsx          # Kanban board placeholder
+│   ├── Layout.jsx               # Main layout with header and navigation
+│   ├── LoadingSpinner.jsx       # Loading state component
+│   ├── MobileTabSwitcher.jsx    # Mobile tab navigation component
+│   ├── ProtectedRoute.jsx       # Route protection component
+│   └── TeamSelector.jsx         # Team creation/join selector
 ├── contexts/           # React contexts
 │   ├── AuthContext.jsx
 │   └── TeamContext.jsx
@@ -84,7 +94,7 @@ src/
 ├── lib/                # Third-party integrations
 │   └── appwrite.js
 ├── pages/              # Page components
-│   ├── Dashboard.jsx
+│   ├── Dashboard.jsx            # Main dashboard with responsive layout
 │   ├── LoginPage.jsx
 │   ├── RegisterPage.jsx
 │   ├── TeamCreationPage.jsx
@@ -92,8 +102,50 @@ src/
 ├── services/           # API services
 │   ├── authService.js
 │   └── teamService.js
+├── docs/               # Documentation
+│   ├── appwrite-setup.md        # Backend setup guide
+│   ├── dashboard-components.md  # Component documentation
+│   └── development-guide.md     # Development workflow
 └── App.jsx             # Main app component
 ```
+
+## Dashboard Layout
+
+### Responsive Design
+The dashboard implements a responsive layout that adapts to different screen sizes:
+
+- **Desktop (lg+)**: Side-by-side layout with Kanban board and Chat components
+- **Mobile/Tablet**: Tab-based interface allowing users to switch between Kanban and Chat views
+- **Loading States**: Contextual loading spinners with descriptive messages
+- **Error Handling**: Error boundaries that gracefully handle crashes with recovery options
+
+### Layout Components
+
+#### Layout Component
+- **Header**: Contains app branding and user information with logout functionality
+- **Main Content Area**: Responsive container for dashboard content
+- **Navigation**: User-friendly navigation with proper spacing and styling
+
+#### MobileTabSwitcher
+- **Tab Navigation**: Clean tab interface for mobile users
+- **Active States**: Visual indicators for the currently selected tab
+- **Smooth Transitions**: Seamless switching between Kanban and Chat views
+
+#### Error Boundary
+- **Crash Protection**: Catches JavaScript errors in child components
+- **Recovery Options**: Provides users with options to refresh and recover
+- **Error Logging**: Logs errors to console for debugging purposes
+
+#### Loading States
+- **Contextual Messages**: Different loading messages based on the operation
+- **Visual Feedback**: Animated spinners with consistent styling
+- **User Experience**: Prevents confusion during data loading
+
+### Team Dashboard Features
+- **Team Information Header**: Displays team name, join code, and active status
+- **Responsive Grid**: Automatically adjusts layout based on screen size
+- **Component Placeholders**: Ready for Kanban and Chat implementation
+- **Consistent Styling**: Uses Tailwind CSS for consistent design language
 
 ## Team Management Flow
 
@@ -190,12 +242,20 @@ const {
 #### messages (planned)
 - Chat message fields
 
+## Documentation
+
+### Additional Documentation
+- **Appwrite Setup**: `docs/appwrite-setup.md` - Backend configuration guide
+- **Dashboard Components**: `docs/dashboard-components.md` - Detailed component documentation
+- **Development Guide**: `docs/development-guide.md` - Development workflow and best practices
+
 ## Contributing
 
 1. Follow the existing code style and patterns
 2. Run `npm run lint` before committing
 3. Ensure all builds pass with `npm run build`
 4. Update documentation for new features
+5. Refer to component documentation in `docs/` for implementation details
 
 ## Development Workflow
 
