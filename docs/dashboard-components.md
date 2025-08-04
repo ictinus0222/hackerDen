@@ -137,10 +137,11 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 ### KanbanBoard Component (`src/components/KanbanBoard.jsx`)
 
-A fully functional Kanban board with four columns for task management and real-time updates.
+A fully functional Kanban board with four columns for task management, task creation, and real-time updates.
 
 #### Features
 - **Four-Column Layout**: To-Do, In Progress, Blocked, Done columns
+- **Task Creation**: "Create Task" button that opens a modal for new task creation
 - **Real-time Updates**: Live task updates using Appwrite subscriptions
 - **Responsive Design**: Adapts from 1 column (mobile) to 4 columns (desktop)
 - **Task Management**: Display tasks filtered by team with proper status grouping
@@ -159,6 +160,7 @@ import KanbanBoard from '../components/KanbanBoard.jsx';
 - `useTeam` hook for team context
 - `useAuth` hook for user authentication
 - `TaskColumn` component for column rendering
+- `TaskModal` component for task creation
 - `AppwriteSetupGuide` component for setup assistance
 
 #### State Management
@@ -166,12 +168,72 @@ import KanbanBoard from '../components/KanbanBoard.jsx';
 - Groups tasks by status (todo, in_progress, blocked, done)
 - Handles real-time task updates via Appwrite subscriptions
 - Manages loading and error states
+- Controls task creation modal visibility
+
+#### Task Creation Flow
+1. User clicks "Create Task" button in the board header
+2. TaskModal opens with form for title and description
+3. Form validation ensures required fields are filled
+4. Task is created with 'todo' status and assigned to current user
+5. Modal closes and new task appears in To-Do column via real-time updates
 
 #### Error States
 - **Collection Missing**: Shows setup guide when tasks collection doesn't exist
 - **Schema Issues**: Provides detailed instructions for missing attributes
 - **Permission Errors**: Clear messaging for access issues
 - **Network Errors**: Graceful handling of connection issues
+
+---
+
+### TaskModal Component (`src/components/TaskModal.jsx`)
+
+Modal component for creating new tasks with form validation and error handling.
+
+#### Features
+- **Modal Interface**: Clean, accessible modal overlay with proper focus management
+- **Form Validation**: Required field validation for title and description
+- **Error Handling**: Comprehensive error display and user feedback
+- **Loading States**: Disabled form during submission with visual feedback
+- **Auto-Assignment**: Tasks are automatically assigned to the current user
+- **Status Setting**: New tasks are created with 'todo' status by default
+
+#### Usage
+```jsx
+import TaskModal from '../components/TaskModal.jsx';
+
+<TaskModal
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  onTaskCreated={handleTaskCreated}
+/>
+```
+
+#### Props
+- `isOpen` (boolean): Controls modal visibility
+- `onClose` (function): Callback when modal should be closed
+- `onTaskCreated` (function, optional): Callback when task is successfully created
+
+#### Form Fields
+- **Title** (required): Task title with validation
+- **Description** (required): Task description with validation
+- **Auto-filled**: assignedTo and createdBy are set to current user
+
+#### Validation Rules
+- Title must not be empty or whitespace-only
+- Description must not be empty or whitespace-only
+- Real-time validation with error clearing on input
+
+#### Error Handling
+- **Field Validation**: Individual field error messages
+- **General Errors**: API errors and missing user/team information
+- **Network Errors**: Graceful handling of connection issues
+- **User Feedback**: Clear error messages with recovery guidance
+
+#### Accessibility Features
+- **Keyboard Navigation**: Tab navigation and escape key support
+- **Focus Management**: Proper focus trapping within modal
+- **Screen Reader Support**: Semantic HTML and ARIA labels
+- **Visual Indicators**: Clear visual feedback for form states
 
 ---
 
@@ -481,7 +543,7 @@ Service module for task-related Appwrite operations.
 #### Methods
 
 ##### `createTask(teamId, taskData)`
-Creates a new task for the specified team.
+Creates a new task for the specified team with automatic status and assignment.
 
 **Parameters:**
 - `teamId` (string): Team identifier
@@ -491,7 +553,21 @@ Creates a new task for the specified team.
   - `assignedTo` (string): User ID of assignee
   - `createdBy` (string): User ID of creator
 
+**Automatic Fields:**
+- `status`: Always set to 'todo' for new tasks
+- `teamId`: Set to the provided team identifier
+
 **Returns:** Promise resolving to created task object
+
+**Usage Example:**
+```javascript
+const newTask = await taskService.createTask(team.$id, {
+  title: 'Implement user authentication',
+  description: 'Add login and registration functionality',
+  assignedTo: user.$id,
+  createdBy: user.$id
+});
+```
 
 ##### `getTeamTasks(teamId)`
 Retrieves all tasks for a specific team.

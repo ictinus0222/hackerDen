@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useTasks } from '../hooks/useTasks';
 import { useTeam } from '../hooks/useTeam';
 import { useAuth } from '../hooks/useAuth';
 import TaskColumn from './TaskColumn';
+import TaskModal from './TaskModal';
 import LoadingSpinner from './LoadingSpinner';
 import AppwriteSetupGuide from './AppwriteSetupGuide';
 import { createTestTasks } from '../utils/testData';
@@ -10,6 +12,7 @@ const KanbanBoard = () => {
   const { tasksByStatus, loading, error, refetch } = useTasks();
   const { team } = useTeam();
   const { user } = useAuth();
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const handleCreateTestTasks = async () => {
     if (!team?.$id || !user?.$id) return;
@@ -20,6 +23,12 @@ const KanbanBoard = () => {
     } catch (error) {
       console.error('Failed to create test tasks:', error);
     }
+  };
+
+  const handleTaskCreated = (newTask) => {
+    // The real-time subscription in useTasks will handle adding the new task
+    // This callback can be used for additional actions if needed
+    console.log('New task created:', newTask);
   };
 
   const columns = [
@@ -56,13 +65,23 @@ const KanbanBoard = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900">Kanban Board</h2>
         
-        {/* Temporary test button - will be removed in later tasks */}
-        <button
-          onClick={handleCreateTestTasks}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-        >
-          Add Test Tasks
-        </button>
+        <div className="flex items-center space-x-2">
+          {/* Create Task Button */}
+          <button
+            onClick={() => setIsTaskModalOpen(true)}
+            className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            Create Task
+          </button>
+          
+          {/* Temporary test button - will be removed in later tasks */}
+          <button
+            onClick={handleCreateTestTasks}
+            className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+          >
+            Add Test Tasks
+          </button>
+        </div>
       </div>
       
       {/* Kanban Columns */}
@@ -77,6 +96,13 @@ const KanbanBoard = () => {
           />
         ))}
       </div>
+
+      {/* Task Creation Modal */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        onTaskCreated={handleTaskCreated}
+      />
     </div>
   );
 };

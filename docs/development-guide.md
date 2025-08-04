@@ -161,10 +161,27 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 ### Working with Kanban Board
 
+#### Task Creation System
+The task creation system uses a modal-based approach with comprehensive validation:
+
+```jsx
+// Using TaskModal in your component
+const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
+<TaskModal
+  isOpen={isTaskModalOpen}
+  onClose={() => setIsTaskModalOpen(false)}
+  onTaskCreated={(newTask) => {
+    console.log('New task created:', newTask);
+    // Real-time updates handle the rest automatically
+  }}
+/>
+```
+
 #### Adding New Task Statuses
 1. Update status arrays in `TaskColumn.jsx` and `TaskCard.jsx`
-2. Add color schemes for new statuses
-3. Update `useTasks.jsx` to handle new status grouping
+2. Add color schemes for new statuses in `getColumnColor()` and `getHeaderColor()`
+3. Update `useTasks.jsx` to handle new status grouping in `tasksByStatus`
 4. Update `taskService.js` validation if needed
 
 #### Customizing Task Cards
@@ -183,14 +200,81 @@ const TaskCard = ({ task, onEdit, onDelete }) => {
 };
 ```
 
+#### Working with Task Creation
+```jsx
+// Creating tasks programmatically
+import { taskService } from '../services/taskService';
+
+const createTask = async (taskData) => {
+  try {
+    const newTask = await taskService.createTask(team.$id, {
+      title: taskData.title,
+      description: taskData.description,
+      assignedTo: user.$id,
+      createdBy: user.$id
+    });
+    // Task appears automatically via real-time updates
+  } catch (error) {
+    console.error('Failed to create task:', error);
+  }
+};
+```
+
 #### Adding Real-time Features
 ```jsx
 // Using the useTasks hook
-const { tasks, tasksByStatus, loading, error } = useTasks();
+const { tasks, tasksByStatus, loading, error, refetch } = useTasks();
 
 // Tasks automatically update in real-time
 // No additional setup needed for basic real-time functionality
+// Use refetch() for manual refresh if needed
 ```
+
+### Working with Task Modal
+
+#### Modal State Management
+```jsx
+// In parent component (e.g., KanbanBoard)
+const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
+const handleTaskCreated = (newTask) => {
+  // Optional callback for additional actions
+  console.log('New task created:', newTask);
+  // Real-time subscription handles UI updates automatically
+};
+
+// Modal integration
+<TaskModal
+  isOpen={isTaskModalOpen}
+  onClose={() => setIsTaskModalOpen(false)}
+  onTaskCreated={handleTaskCreated}
+/>
+```
+
+#### Form Validation Patterns
+```jsx
+// Custom validation in TaskModal
+const validateForm = () => {
+  const newErrors = {};
+  
+  if (!formData.title.trim()) {
+    newErrors.title = 'Task title is required';
+  }
+  
+  if (!formData.description.trim()) {
+    newErrors.description = 'Task description is required';
+  }
+  
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+```
+
+#### Modal Accessibility
+- **Focus Management**: Modal traps focus and returns to trigger element
+- **Keyboard Navigation**: Escape key closes modal, tab navigation works
+- **Screen Reader Support**: Proper ARIA labels and semantic HTML
+- **Visual Indicators**: Clear loading and error states
 
 ### Adding a New Tab to Mobile Switcher
 

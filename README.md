@@ -14,12 +14,15 @@ A collaborative platform for hackathon teams featuring team management, task tra
 - **Responsive Design**: Desktop side-by-side layout and mobile tab switching
 - **Error Boundaries**: Graceful error handling with recovery options
 - **Loading States**: Enhanced loading experience with contextual messages
+- **Kanban Board**: Four-column task board with real-time updates
+- **Task Creation**: Modal-based task creation with form validation
+- **Task Management**: Create, display, and organize tasks by status
 
 ### 🚧 In Development
-- Kanban board functionality
+- Task editing and deletion functionality
 - Real-time chat functionality
-- Task management system
 - Team member management
+- Advanced task features (assignments, due dates, priorities)
 
 ## Tech Stack
 
@@ -77,19 +80,24 @@ npm run dev
 ```
 src/
 ├── components/          # Reusable UI components
+│   ├── AppwriteSetupGuide.jsx   # Appwrite setup instructions
 │   ├── Chat.jsx                 # Chat component placeholder
 │   ├── ErrorBoundary.jsx        # Error boundary for crash protection
-│   ├── KanbanBoard.jsx          # Kanban board placeholder
+│   ├── KanbanBoard.jsx          # Kanban board with task management
 │   ├── Layout.jsx               # Main layout with header and navigation
 │   ├── LoadingSpinner.jsx       # Loading state component
 │   ├── MobileTabSwitcher.jsx    # Mobile tab navigation component
 │   ├── ProtectedRoute.jsx       # Route protection component
+│   ├── TaskCard.jsx             # Individual task display component
+│   ├── TaskColumn.jsx           # Kanban column component
+│   ├── TaskModal.jsx            # Task creation modal component
 │   └── TeamSelector.jsx         # Team creation/join selector
 ├── contexts/           # React contexts
 │   ├── AuthContext.jsx
 │   └── TeamContext.jsx
 ├── hooks/              # Custom React hooks
 │   ├── useAuth.jsx
+│   ├── useTasks.jsx             # Task data management hook
 │   └── useTeam.jsx
 ├── lib/                # Third-party integrations
 │   └── appwrite.js
@@ -101,6 +109,7 @@ src/
 │   └── TeamJoinPage.jsx
 ├── services/           # API services
 │   ├── authService.js
+│   ├── taskService.js           # Task management operations
 │   └── teamService.js
 ├── docs/               # Documentation
 │   ├── appwrite-setup.md        # Backend setup guide
@@ -182,6 +191,31 @@ The application implements smart routing based on user team membership:
 - **Copy-to-Clipboard**: Join code sharing with visual feedback
 - **Membership Management**: Automatic team membership creation and validation
 
+## Task Management System
+
+### Kanban Board Features
+- **Four-Column Layout**: To-Do, In Progress, Blocked, Done columns
+- **Real-time Updates**: Live task synchronization across all team members
+- **Responsive Design**: Adapts from single column (mobile) to four columns (desktop)
+- **Task Creation**: Modal-based task creation with comprehensive form validation
+- **Status Management**: Visual organization of tasks by current status
+- **Team Filtering**: Automatic filtering of tasks by current team
+
+### Task Creation Flow
+1. **Access**: Click "Create Task" button on the Kanban board
+2. **Form**: Fill out task title and description (both required)
+3. **Validation**: Real-time form validation with error feedback
+4. **Creation**: Task is created with 'todo' status and assigned to current user
+5. **Real-time Update**: New task appears immediately for all team members
+
+### Task Management Features
+- **Form Validation**: Required field validation for title and description
+- **Auto-Assignment**: New tasks are automatically assigned to the creator
+- **Status Tracking**: Tasks are organized by status (todo, in_progress, blocked, done)
+- **Real-time Sync**: Changes appear instantly across all team member devices
+- **Error Handling**: Comprehensive error management with user-friendly messages
+- **Loading States**: Visual feedback during task operations
+
 ## Architecture Components
 
 ### Context Providers
@@ -236,8 +270,15 @@ const {
 - `role` (string): 'owner' or 'member'
 - `joinedAt` (datetime): Join timestamp
 
-#### tasks (planned)
-- Task management fields
+#### tasks
+- `teamId` (string): Reference to team
+- `title` (string): Task title
+- `description` (string): Task description
+- `status` (string): Task status ('todo', 'in_progress', 'blocked', 'done')
+- `assignedTo` (string): User ID of assigned team member
+- `createdBy` (string): User ID of task creator
+- `createdAt` (datetime): Creation timestamp
+- `updatedAt` (datetime): Last update timestamp
 
 #### messages (planned)
 - Chat message fields
