@@ -79,7 +79,11 @@
   - _Requirements: 2.1, 2.2, 2.3, 6.1, 6.2_
 
 - [ ] 4. Kanban Board Implementation
-- [ ] 4.1 Build basic Kanban board structure
+- [x] 4.1 Build basic Kanban board structure
+
+
+
+
   - Create KanbanBoard component with four columns: To-Do, In Progress, Blocked, Done
   - Implement task fetching from Appwrite tasks collection filtered by team_id
   - Create TaskCard component to display individual task information

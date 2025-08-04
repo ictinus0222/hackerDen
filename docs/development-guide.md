@@ -18,10 +18,16 @@ Dashboard (Page)
 ├── Team Info Header
 ├── Desktop Layout (lg+)
 │   ├── KanbanBoard
+│   │   ├── TaskColumn (x4)
+│   │   │   └── TaskCard (multiple)
+│   │   └── AppwriteSetupGuide (error state)
 │   └── Chat
 └── Mobile Layout (<lg)
     └── MobileTabSwitcher
         ├── KanbanBoard
+        │   ├── TaskColumn (x4)
+        │   │   └── TaskCard (multiple)
+        │   └── AppwriteSetupGuide (error state)
         └── Chat
 ```
 
@@ -153,6 +159,39 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 ## Common Development Tasks
 
+### Working with Kanban Board
+
+#### Adding New Task Statuses
+1. Update status arrays in `TaskColumn.jsx` and `TaskCard.jsx`
+2. Add color schemes for new statuses
+3. Update `useTasks.jsx` to handle new status grouping
+4. Update `taskService.js` validation if needed
+
+#### Customizing Task Cards
+```jsx
+// In TaskCard.jsx
+const TaskCard = ({ task, onEdit, onDelete }) => {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      {/* Add custom fields here */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-500">Priority: {task.priority}</span>
+        <button onClick={() => onEdit(task)}>Edit</button>
+      </div>
+    </div>
+  );
+};
+```
+
+#### Adding Real-time Features
+```jsx
+// Using the useTasks hook
+const { tasks, tasksByStatus, loading, error } = useTasks();
+
+// Tasks automatically update in real-time
+// No additional setup needed for basic real-time functionality
+```
+
 ### Adding a New Tab to Mobile Switcher
 
 1. Update `MobileTabSwitcher.jsx`:
@@ -211,6 +250,53 @@ try {
     <p className="text-red-800">{error}</p>
   </div>
 )}
+```
+
+### Working with Appwrite Services
+
+#### Creating a New Service
+```jsx
+// src/services/newService.js
+import { databases, DATABASE_ID, COLLECTIONS, Query } from '../lib/appwrite';
+
+export const newService = {
+  async getData(teamId) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.NEW_COLLECTION,
+        [Query.equal('teamId', teamId)]
+      );
+      return response.documents;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw new Error(`Failed to fetch data: ${error.message}`);
+    }
+  }
+};
+```
+
+#### Using Real-time Subscriptions
+```jsx
+// In your custom hook
+useEffect(() => {
+  if (!team?.$id) return;
+
+  const unsubscribe = client.subscribe(
+    `databases.${DATABASE_ID}.collections.${COLLECTIONS.YOUR_COLLECTION}.documents`,
+    (response) => {
+      if (response.payload.teamId === team.$id) {
+        handleRealtimeUpdate(response);
+      }
+    }
+  );
+
+  return () => {
+    if (typeof unsubscribe === 'function') {
+      unsubscribe();
+    }
+  };
+}, [team?.$id]);
 ```
 
 ## Performance Optimization

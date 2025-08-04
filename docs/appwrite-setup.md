@@ -53,23 +53,34 @@ Create the following collections in your Appwrite database:
 ### 3. Tasks Collection (ID: `tasks`)
 
 **Attributes:**
-- `teamId` (string, required) - Reference to teams collection
-- `title` (string, required) - Task title
-- `description` (string, optional) - Task description
-- `status` (string, required) - One of: "todo", "in_progress", "blocked", "done"
-- `assignedTo` (string, required) - User ID of assigned team member
-- `createdBy` (string, required) - User ID of task creator
+- `teamId` (string, required, size: 255) - Reference to teams collection
+- `title` (string, required, size: 255) - Task title
+- `description` (string, optional, size: 1000) - Task description
+- `status` (string, required, size: 50) - One of: "todo", "in_progress", "blocked", "done"
+- `assignedTo` (string, required, size: 255) - User ID of assigned team member
+- `createdBy` (string, required, size: 255) - User ID of task creator
 
 **Indexes:**
-- `teamId` (index on teamId field)
-- `assignedTo` (index on assignedTo field)
-- `status` (index on status field)
+- `teamId` (index on teamId field) - For efficient team-based queries
+- `assignedTo` (index on assignedTo field) - For user-specific task queries
+- `status` (index on status field) - For status-based filtering
 
 **Permissions:**
 - Create: Users
 - Read: Users
 - Update: Users (with conditions for team members)
 - Delete: Users (with conditions for team members)
+
+**Status Values:**
+- `todo` - Tasks that haven't been started
+- `in_progress` - Tasks currently being worked on
+- `blocked` - Tasks that are blocked by dependencies or issues
+- `done` - Completed tasks
+
+**Real-time Features:**
+- Automatic updates when tasks are created, updated, or deleted
+- Live synchronization across all team members
+- No additional configuration required
 
 ### 4. Messages Collection (ID: `messages`)
 
@@ -96,3 +107,58 @@ Enable Email/Password authentication in your Appwrite project settings.
 ## Real-time Setup
 
 Real-time subscriptions are automatically enabled for all collections. No additional setup required.
+
+## Collection Setup Troubleshooting
+
+### Common Issues
+
+#### Tasks Collection Not Found
+**Error:** `Collection with the requested ID could not be found`
+**Solution:** Create the tasks collection with ID `tasks` in your Appwrite database
+
+#### Schema Attribute Missing
+**Error:** `Attribute not found in schema: teamId`
+**Solution:** Add the missing attribute to the tasks collection with the correct type and constraints
+
+#### Permission Denied
+**Error:** `Unauthorized access to tasks`
+**Solution:** Verify that all permission levels (Create, Read, Update, Delete) are set to "Users"
+
+#### Real-time Not Working
+**Issue:** Tasks don't update in real-time
+**Solution:** Ensure real-time is enabled in your Appwrite project settings (it's enabled by default)
+
+### Setup Verification
+
+After creating the collections, you can verify the setup by:
+
+1. **Check Collection Exists:** Go to Database → Collections and verify all collections are present
+2. **Verify Attributes:** Click on each collection and ensure all required attributes are configured
+3. **Test Permissions:** Try creating a test document through the Appwrite console
+4. **Check Indexes:** Verify that recommended indexes are created for better performance
+
+### Development Testing
+
+Use the built-in test data utility to populate your collections:
+
+1. **Create Test Tasks:** Click "Add Test Tasks" in the Kanban board
+2. **Verify Real-time:** Open multiple browser tabs to see real-time updates
+3. **Test Status Changes:** Modify task statuses through the Appwrite console
+4. **Check Error Handling:** Temporarily disable a collection to test error states
+
+### Production Considerations
+
+#### Security Rules
+- Consider implementing more restrictive permissions based on team membership
+- Add validation rules for task status values
+- Implement rate limiting for task creation
+
+#### Performance Optimization
+- Monitor query performance and add additional indexes as needed
+- Consider implementing pagination for teams with many tasks
+- Set up database backups and monitoring
+
+#### Scaling Considerations
+- Plan for increased real-time connections as team size grows
+- Consider implementing task archiving for completed tasks
+- Monitor database storage usage and plan for growth

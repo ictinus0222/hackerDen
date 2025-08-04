@@ -137,12 +137,41 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 ### KanbanBoard Component (`src/components/KanbanBoard.jsx`)
 
-Placeholder component for the Kanban board functionality (to be implemented in Task 4).
+A fully functional Kanban board with four columns for task management and real-time updates.
 
-#### Current State
-- Displays placeholder content
-- Maintains proper styling and layout structure
-- Ready for Kanban implementation
+#### Features
+- **Four-Column Layout**: To-Do, In Progress, Blocked, Done columns
+- **Real-time Updates**: Live task updates using Appwrite subscriptions
+- **Responsive Design**: Adapts from 1 column (mobile) to 4 columns (desktop)
+- **Task Management**: Display tasks filtered by team with proper status grouping
+- **Error Handling**: Comprehensive error states with setup guidance
+- **Loading States**: Contextual loading messages during data fetch
+
+#### Usage
+```jsx
+import KanbanBoard from '../components/KanbanBoard.jsx';
+
+<KanbanBoard />
+```
+
+#### Dependencies
+- `useTasks` hook for task data management
+- `useTeam` hook for team context
+- `useAuth` hook for user authentication
+- `TaskColumn` component for column rendering
+- `AppwriteSetupGuide` component for setup assistance
+
+#### State Management
+- Fetches tasks automatically when team changes
+- Groups tasks by status (todo, in_progress, blocked, done)
+- Handles real-time task updates via Appwrite subscriptions
+- Manages loading and error states
+
+#### Error States
+- **Collection Missing**: Shows setup guide when tasks collection doesn't exist
+- **Schema Issues**: Provides detailed instructions for missing attributes
+- **Permission Errors**: Clear messaging for access issues
+- **Network Errors**: Graceful handling of connection issues
 
 ---
 
@@ -292,3 +321,246 @@ Placeholder component for the chat functionality (to be implemented in Task 5).
 - Regularly review error boundary effectiveness
 - Update error messages for clarity
 - Monitor error logs for common issues
+---
+
+
+### TaskColumn Component (`src/components/TaskColumn.jsx`)
+
+Individual column component for the Kanban board that displays tasks for a specific status.
+
+#### Features
+- **Status-Based Styling**: Color-coded headers and borders for each status
+- **Task Count Display**: Shows number of tasks in each column
+- **Scrollable Content**: Handles overflow with proper scrolling
+- **Empty State**: User-friendly message when no tasks exist
+- **Responsive Layout**: Adapts to different screen sizes
+
+#### Usage
+```jsx
+import TaskColumn from '../components/TaskColumn.jsx';
+
+<TaskColumn
+  title="To-Do"
+  status="todo"
+  tasks={todoTasks}
+  className="min-h-0"
+/>
+```
+
+#### Props
+- `title` (string): Display name for the column
+- `status` (string): Task status ('todo', 'in_progress', 'blocked', 'done')
+- `tasks` (array): Array of task objects to display
+- `className` (string, optional): Additional CSS classes
+
+#### Color Scheme
+- **To-Do**: Gray theme (`border-gray-300`, `bg-gray-50`)
+- **In Progress**: Blue theme (`border-blue-300`, `bg-blue-50`)
+- **Blocked**: Red theme (`border-red-300`, `bg-red-50`)
+- **Done**: Green theme (`border-green-300`, `bg-green-50`)
+
+---
+
+### TaskCard Component (`src/components/TaskCard.jsx`)
+
+Individual task display component with task information and status indicators.
+
+#### Features
+- **Task Information**: Title, description, and timestamps
+- **Status Badge**: Color-coded status indicator
+- **Responsive Text**: Proper text truncation and line clamping
+- **Hover Effects**: Visual feedback on interaction
+- **Timestamp Display**: Creation and update time formatting
+
+#### Usage
+```jsx
+import TaskCard from '../components/TaskCard.jsx';
+
+<TaskCard task={taskObject} />
+```
+
+#### Props
+- `task` (object): Task object with required fields:
+  - `$id` (string): Unique task identifier
+  - `title` (string): Task title
+  - `description` (string, optional): Task description
+  - `status` (string): Current task status
+  - `$createdAt` (string): ISO timestamp of creation
+  - `$updatedAt` (string): ISO timestamp of last update
+
+#### Status Labels
+- `todo` → "To-Do"
+- `in_progress` → "In Progress"
+- `blocked` → "Blocked"
+- `done` → "Done"
+
+---
+
+### AppwriteSetupGuide Component (`src/components/AppwriteSetupGuide.jsx`)
+
+Helper component that provides step-by-step instructions for setting up the Appwrite tasks collection.
+
+#### Features
+- **Error Detection**: Identifies collection vs. schema issues
+- **Step-by-Step Guide**: Clear instructions for manual setup
+- **Visual Hierarchy**: Well-organized sections with proper styling
+- **External Links**: Direct links to Appwrite Console
+- **Code Examples**: Formatted attribute specifications
+
+#### Usage
+```jsx
+import AppwriteSetupGuide from '../components/AppwriteSetupGuide.jsx';
+
+<AppwriteSetupGuide error={errorMessage} />
+```
+
+#### Props
+- `error` (string): Error message from failed task operations
+
+#### Setup Sections
+1. **Collection Creation**: Instructions for creating the tasks collection
+2. **Attribute Setup**: Required attributes with types and constraints
+3. **Permissions**: Proper permission configuration
+4. **Indexes**: Optional but recommended database indexes
+
+---
+
+## Task Management System
+
+### useTasks Hook (`src/hooks/useTasks.jsx`)
+
+Custom React hook for managing task data and real-time updates.
+
+#### Features
+- **Team-Based Filtering**: Automatically filters tasks by current team
+- **Real-time Subscriptions**: Live updates via Appwrite subscriptions
+- **Status Grouping**: Organizes tasks by status for Kanban display
+- **Error Handling**: Comprehensive error management
+- **Loading States**: Proper loading state management
+
+#### Usage
+```jsx
+import { useTasks } from '../hooks/useTasks.jsx';
+
+const MyComponent = () => {
+  const { tasks, tasksByStatus, loading, error, refetch } = useTasks();
+  
+  // Use the task data...
+};
+```
+
+#### Return Values
+- `tasks` (array): All tasks for the current team
+- `tasksByStatus` (object): Tasks grouped by status
+  - `todo` (array): Tasks with 'todo' status
+  - `in_progress` (array): Tasks with 'in_progress' status
+  - `blocked` (array): Tasks with 'blocked' status
+  - `done` (array): Tasks with 'done' status
+- `loading` (boolean): Loading state indicator
+- `error` (string|null): Error message if any
+- `refetch` (function): Manual refresh function
+
+#### Real-time Events
+- **Create**: New tasks appear automatically
+- **Update**: Task changes reflect immediately
+- **Delete**: Removed tasks disappear from the board
+
+---
+
+### taskService (`src/services/taskService.js`)
+
+Service module for task-related Appwrite operations.
+
+#### Features
+- **CRUD Operations**: Create, read, update task operations
+- **Team Filtering**: Queries tasks by team ID
+- **Real-time Subscriptions**: Manages Appwrite real-time connections
+- **Error Handling**: Detailed error messages and logging
+- **Status Management**: Task status update functionality
+
+#### Methods
+
+##### `createTask(teamId, taskData)`
+Creates a new task for the specified team.
+
+**Parameters:**
+- `teamId` (string): Team identifier
+- `taskData` (object): Task information
+  - `title` (string): Task title
+  - `description` (string, optional): Task description
+  - `assignedTo` (string): User ID of assignee
+  - `createdBy` (string): User ID of creator
+
+**Returns:** Promise resolving to created task object
+
+##### `getTeamTasks(teamId)`
+Retrieves all tasks for a specific team.
+
+**Parameters:**
+- `teamId` (string): Team identifier
+
+**Returns:** Promise resolving to array of task objects
+
+##### `updateTaskStatus(taskId, status)`
+Updates the status of an existing task.
+
+**Parameters:**
+- `taskId` (string): Task identifier
+- `status` (string): New status ('todo', 'in_progress', 'blocked', 'done')
+
+**Returns:** Promise resolving to updated task object
+
+##### `subscribeToTasks(teamId, callback)`
+Sets up real-time subscription for task updates.
+
+**Parameters:**
+- `teamId` (string): Team identifier
+- `callback` (function): Function to handle real-time updates
+
+**Returns:** Unsubscribe function
+
+#### Error Handling
+- **Collection Missing**: Specific error for missing tasks collection
+- **Schema Issues**: Detailed error for missing attributes
+- **Permission Errors**: Clear messaging for access issues
+- **Network Errors**: Graceful handling of connection problems
+
+---
+
+## Development Utilities
+
+### testData (`src/utils/testData.js`)
+
+Development utility for creating sample tasks for testing and development.
+
+#### Features
+- **Sample Task Generation**: Creates realistic test tasks
+- **Status Distribution**: Distributes tasks across different statuses
+- **Team Integration**: Creates tasks for specific teams
+- **Development Aid**: Helps with testing Kanban functionality
+
+#### Methods
+
+##### `createTestTasks(teamId, userId)`
+Creates a set of sample tasks for development and testing.
+
+**Parameters:**
+- `teamId` (string): Team identifier
+- `userId` (string): User identifier for task assignment
+
+**Returns:** Promise resolving to array of created tasks
+
+**Sample Tasks Created:**
+- Project setup task (todo)
+- UI mockup task (in_progress)
+- Authentication task (done)
+- Team management task (todo)
+- Critical bug fix (blocked)
+
+##### `clearTestTasks(teamId)`
+Utility function for clearing test tasks (logging only).
+
+**Parameters:**
+- `teamId` (string): Team identifier
+
+**Returns:** Promise resolving to count of tasks that would be deleted
