@@ -102,7 +102,12 @@
   - Create tasks in "todo" status by default and assign to current user
   - _Requirements: 3.2, 3.6_
 
-- [ ] 4.3 Add drag-and-drop functionality
+- [x] 4.3 Add drag-and-drop functionality
+
+
+
+
+
   - Implement HTML5 drag-and-drop API for moving tasks between columns
   - Create drag event handlers: handleDragStart, handleDragOver, handleDrop
   - Update task status in Appwrite when dropped in new column

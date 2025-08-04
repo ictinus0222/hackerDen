@@ -1,4 +1,4 @@
-const TaskCard = ({ task }) => {
+const TaskCard = ({ task, onDragStart, isDragging = false, onTouchStart, onTouchMove, onTouchEnd }) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -6,6 +6,33 @@ const TaskCard = ({ task }) => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('text/plain', task.$id);
+    e.dataTransfer.effectAllowed = 'move';
+    
+    // Create a custom drag image for better visual feedback
+    const dragImage = e.target.cloneNode(true);
+    dragImage.style.transform = 'rotate(5deg)';
+    dragImage.style.opacity = '0.8';
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    
+    // Clean up the drag image after a short delay
+    setTimeout(() => {
+      document.body.removeChild(dragImage);
+    }, 0);
+    
+    if (onDragStart) {
+      onDragStart(task);
+    }
+  };
+
+  const handleTouchStart = (e) => {
+    if (onTouchStart) {
+      onTouchStart(e, task);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -39,7 +66,16 @@ const TaskCard = ({ task }) => {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+    <div 
+      draggable
+      onDragStart={handleDragStart}
+      onTouchStart={handleTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-move select-none touch-manipulation ${
+        isDragging ? 'dragging' : ''
+      }`}
+    >
       {/* Task Header */}
       <div className="flex items-start justify-between mb-2">
         <h3 className="font-medium text-gray-900 text-sm line-clamp-2">

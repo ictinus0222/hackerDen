@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import TaskCard from './TaskCard';
 
-const TaskColumn = ({ title, status, tasks, className = '' }) => {
+const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, draggingTask, onDragStart, touchHandlers }) => {
+  const [isDragOver, setIsDragOver] = useState(false);
   const getColumnColor = (status) => {
     switch (status) {
       case 'todo':
@@ -31,6 +33,37 @@ const TaskColumn = ({ title, status, tasks, className = '' }) => {
     }
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    // Only set isDragOver to false if we're leaving the column entirely
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const taskId = e.dataTransfer.getData('text/plain');
+    console.log('Drop event in column:', title, 'for task:', taskId);
+    
+    if (taskId && onTaskDrop) {
+      onTaskDrop(taskId, status);
+    }
+  };
+
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Column Header */}
@@ -46,15 +79,34 @@ const TaskColumn = ({ title, status, tasks, className = '' }) => {
       </div>
 
       {/* Column Content */}
-      <div className={`flex-1 p-4 bg-gray-50 rounded-b-lg border-l border-r border-b ${getColumnColor(status)} min-h-0`}>
+      <div 
+        className={`flex-1 p-4 bg-gray-50 rounded-b-lg border-l border-r border-b ${getColumnColor(status)} min-h-0 transition-all ${
+          isDragOver ? 'bg-blue-100 border-blue-400 border-2 border-dashed shadow-lg' : ''
+        }`}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        data-drop-zone={status}
+      >
         <div className="space-y-3 h-full overflow-y-auto">
           {tasks.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
-              No tasks in {title.toLowerCase()}
+            <div className={`flex items-center justify-center h-32 text-gray-400 text-sm transition-all ${
+              isDragOver ? 'text-blue-500 font-medium' : ''
+            }`}>
+              {isDragOver ? `Drop task in ${title}` : `No tasks in ${title.toLowerCase()}`}
             </div>
           ) : (
             tasks.map((task) => (
-              <TaskCard key={task.$id} task={task} />
+              <TaskCard 
+                key={task.$id} 
+                task={task} 
+                isDragging={draggingTask?.$id === task.$id}
+                onDragStart={onDragStart}
+                onTouchStart={touchHandlers?.handleTouchStart}
+                onTouchMove={touchHandlers?.handleTouchMove}
+                onTouchEnd={(e) => touchHandlers?.handleTouchEnd(e, onTaskDrop)}
+              />
             ))
           )}
         </div>

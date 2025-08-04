@@ -17,6 +17,7 @@ A collaborative platform for hackathon teams featuring team management, task tra
 - **Kanban Board**: Four-column task board with real-time updates
 - **Task Creation**: Modal-based task creation with form validation
 - **Task Management**: Create, display, and organize tasks by status
+- **Drag and Drop**: Full drag-and-drop support for moving tasks between columns (desktop and mobile)
 
 ### 🚧 In Development
 - Task editing and deletion functionality
@@ -212,9 +213,19 @@ The application implements smart routing based on user team membership:
 - **Form Validation**: Required field validation for title and description
 - **Auto-Assignment**: New tasks are automatically assigned to the creator
 - **Status Tracking**: Tasks are organized by status (todo, in_progress, blocked, done)
+- **Drag and Drop**: Move tasks between columns using mouse (desktop) or touch (mobile)
+- **Visual Feedback**: Drag operations include visual feedback and hover states
 - **Real-time Sync**: Changes appear instantly across all team member devices
 - **Error Handling**: Comprehensive error management with user-friendly messages
 - **Loading States**: Visual feedback during task operations
+
+### Drag and Drop Features
+- **Desktop Support**: Click and drag tasks between columns with visual feedback
+- **Mobile Support**: Touch and hold to drag tasks on mobile devices
+- **Visual Feedback**: Tasks become semi-transparent during drag, columns highlight on hover
+- **Real-time Updates**: Status changes sync immediately across all team members
+- **Error Handling**: Failed drag operations are handled gracefully
+- **Touch Optimization**: Proper touch event handling prevents scrolling during drag
 
 ## Architecture Components
 
@@ -289,6 +300,8 @@ const {
 - **Appwrite Setup**: `docs/appwrite-setup.md` - Backend configuration guide
 - **Dashboard Components**: `docs/dashboard-components.md` - Detailed component documentation
 - **Development Guide**: `docs/development-guide.md` - Development workflow and best practices
+- **Drag and Drop Implementation**: `docs/drag-drop-implementation.md` - Complete drag and drop technical guide
+- **Drag and Drop Quick Reference**: `docs/drag-drop-quick-reference.md` - Quick usage guide for drag and drop
 
 ## Contributing
 

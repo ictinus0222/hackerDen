@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTasks } from '../hooks/useTasks';
 import { useTeam } from '../hooks/useTeam';
 import { useAuth } from '../hooks/useAuth';
+import { useTouchDragDrop } from '../hooks/useTouchDragDrop';
+import { taskService } from '../services/taskService';
 import TaskColumn from './TaskColumn';
 import TaskModal from './TaskModal';
 import LoadingSpinner from './LoadingSpinner';
@@ -13,6 +15,10 @@ const KanbanBoard = () => {
   const { team } = useTeam();
   const { user } = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [draggingTask, setDraggingTask] = useState(null);
+  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+  
+  const touchDragDrop = useTouchDragDrop();
 
   const handleCreateTestTasks = async () => {
     if (!team?.$id || !user?.$id) return;
@@ -30,6 +36,66 @@ const KanbanBoard = () => {
     // This callback can be used for additional actions if needed
     console.log('New task created:', newTask);
   };
+
+  const handleTaskDrop = async (taskId, newStatus) => {
+    console.log('Dropping task:', taskId, 'to status:', newStatus);
+    
+    // Find the task being moved
+    const allTasks = [
+      ...tasksByStatus.todo,
+      ...tasksByStatus.in_progress,
+      ...tasksByStatus.blocked,
+      ...tasksByStatus.done
+    ];
+    const task = allTasks.find(t => t.$id === taskId);
+    
+    if (!task) {
+      console.error('Task not found:', taskId);
+      return;
+    }
+    
+    if (task.status === newStatus) {
+      console.log('Task already in target status, no change needed');
+      return; // No change needed
+    }
+
+    try {
+      setIsUpdatingTask(true);
+      console.log('Updating task status from', task.status, 'to', newStatus);
+      await taskService.updateTaskStatus(taskId, newStatus);
+      console.log('Task status updated successfully');
+      // The real-time subscription will handle updating the UI
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+      // You could add a toast notification here for better UX
+    } finally {
+      setIsUpdatingTask(false);
+      setDraggingTask(null);
+    }
+  };
+
+  const handleDragStart = (task) => {
+    console.log('Starting drag for task:', task.title);
+    setDraggingTask(task);
+  };
+
+  // Add CSS for touch drag feedback
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .touch-drag-over {
+        background-color: rgb(219 234 254) !important;
+        border-color: rgb(59 130 246) !important;
+        border-width: 2px !important;
+        border-style: dashed !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   const columns = [
     { title: 'To-Do', status: 'todo', tasks: tasksByStatus.todo },
@@ -85,7 +151,9 @@ const KanbanBoard = () => {
       </div>
       
       {/* Kanban Columns */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 min-h-0">
+      <div className={`flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 min-h-0 ${
+        isUpdatingTask ? 'pointer-events-none opacity-75' : ''
+      }`}>
         {columns.map((column) => (
           <TaskColumn
             key={column.status}
@@ -93,6 +161,10 @@ const KanbanBoard = () => {
             status={column.status}
             tasks={column.tasks}
             className="min-h-0"
+            onTaskDrop={handleTaskDrop}
+            draggingTask={draggingTask || touchDragDrop.draggedItem}
+            onDragStart={handleDragStart}
+            touchHandlers={touchDragDrop}
           />
         ))}
       </div>

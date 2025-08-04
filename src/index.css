@@ -1,1 +1,36 @@
 @import 'tailwindcss';
+
+/* Drag and Drop Styles */
+.drag-preview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.8;
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg) scale(1.05);
+}
+
+.drag-over {
+  background-color: rgb(219 234 254) !important;
+  border-color: rgb(59 130 246) !important;
+  border-width: 2px !important;
+  border-style: dashed !important;
+}
+
+/* Touch-specific styles */
+.touch-manipulation {
+  touch-action: none;
+}
+
+/* Prevent text selection during drag */
+.select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

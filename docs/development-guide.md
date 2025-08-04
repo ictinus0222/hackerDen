@@ -178,11 +178,35 @@ const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 />
 ```
 
+#### Drag and Drop Functionality
+The Kanban board includes full drag-and-drop support for both desktop and mobile:
+
+```jsx
+// Drag and drop is automatically enabled on all TaskCard components
+// No additional setup required - works out of the box
+
+// For custom drag behavior, see docs/drag-drop-implementation.md
+```
+
+**Key Features:**
+- Desktop mouse drag and drop with visual feedback
+- Mobile touch drag and drop with custom preview
+- Real-time status updates across all connected clients
+- Visual feedback during drag operations
+- Proper error handling and loading states
+
+**Testing Drag and Drop:**
+- Desktop: Click and drag task cards between columns
+- Mobile: Touch and hold, then drag to move tasks
+- Verify visual feedback appears during drag operations
+- Check that status updates sync in real-time
+
 #### Adding New Task Statuses
 1. Update status arrays in `TaskColumn.jsx` and `TaskCard.jsx`
 2. Add color schemes for new statuses in `getColumnColor()` and `getHeaderColor()`
 3. Update `useTasks.jsx` to handle new status grouping in `tasksByStatus`
 4. Update `taskService.js` validation if needed
+5. Test drag and drop functionality with new statuses
 
 #### Customizing Task Cards
 ```jsx
