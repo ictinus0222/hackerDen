@@ -57,6 +57,11 @@ The drag and drop functionality is automatically enabled on all Kanban task card
 - Check for conflicting styles
 - Verify browser supports CSS transforms
 
+**"Cannot access before initialization" error:**
+- This was a known issue that has been fixed in the current version
+- If you encounter this, ensure you're using the latest code
+- The error was caused by function initialization order in the touch drag hook
+
 ### Debug Information
 
 Enable debug logging by opening browser console. Drag and drop operations will log:
@@ -99,7 +104,9 @@ Enable debug logging by opening browser console. Drag and drop operations will l
 - Drag operations are optimized to prevent excessive API calls
 - Visual feedback uses CSS transforms for smooth animations
 - Touch events properly prevent scrolling during drag operations
-- Memory cleanup is handled automatically
+- Memory cleanup is handled automatically with enhanced error handling
+- DOM manipulation includes safety checks to prevent memory leaks
+- Touch event handlers include comprehensive error boundaries
 
 ## Related Documentation
 
