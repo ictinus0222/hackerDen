@@ -25,7 +25,7 @@ const Chat = () => {
   return (
     <div className="bg-white rounded-lg shadow h-full flex flex-col">
       {/* Chat Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex-shrink-0">
         <h2 className="text-lg font-semibold text-gray-900">Team Chat</h2>
         {error && !error.includes('collection') && !error.includes('schema') && (
           <p className="text-sm text-red-600 mt-1">
@@ -46,7 +46,7 @@ const Chat = () => {
       </div>
 
       {/* Message Input */}
-      <div className="px-6 py-4">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
         <MessageInput
           onSendMessage={handleSendMessage}
           disabled={!user}

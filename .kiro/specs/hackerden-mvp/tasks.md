@@ -140,7 +140,11 @@
   - Display new messages immediately with optimistic updates
   - _Requirements: 4.2, 4.4_
 
-- [ ] 6. Task-Chat Integration
+- [x] 6. Task-Chat Integration
+
+
+
+
   - Implement automated system messages for task activities
   - Create system message when new task is created with task title and creator name
   - Create system message when task status changes, especially when moved to "Done"
@@ -149,7 +153,11 @@
   - _Requirements: 3.4, 3.5_
 
 - [ ] 7. Mobile Responsiveness and Polish
-- [ ] 7.1 Optimize mobile interface
+- [x] 7.1 Optimize mobile interface
+
+
+
+
   - Ensure all components are properly responsive using Tailwind breakpoints
   - Test and fix touch interactions for drag-and-drop on mobile devices
   - Optimize chat input area sizing for mobile keyboards

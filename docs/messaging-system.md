@@ -2,7 +2,7 @@
 
 ## Overview
 
-The HackerDen messaging system provides real-time team chat functionality with optimistic updates, message validation, and comprehensive error handling. The system is built on Appwrite's real-time database and subscription features.
+The HackerDen messaging system provides real-time team chat functionality with optimistic updates, message validation, comprehensive error handling, and automated task-chat integration. The system is built on Appwrite's real-time database and subscription features, with automatic system message generation for task activities.
 
 ## Architecture
 
@@ -27,6 +27,177 @@ User Input → MessageInput → useMessages → messageService → Appwrite
          Optimistic Update
                 ↓
          Real-time Subscription → Message Display
+```
+
+## Task-Chat Integration
+
+### Overview
+The messaging system automatically generates system messages when task-related activities occur, creating a unified activity timeline that keeps all team members informed about project progress.
+
+### System Message Generation
+
+#### Task Creation Messages
+```javascript
+// Automatically triggered when taskService.createTask() is called
+const systemMessage = `📝 ${creatorName || 'Someone'} created a new task: "${task.title}"`;
+await messageService.sendSystemMessage(teamId, systemMessage, 'task_created');
+```
+
+#### Task Status Change Messages
+```javascript
+// Automatically triggered when taskService.updateTaskStatus() is called
+let systemMessage;
+if (status === 'done') {
+  systemMessage = `✅ Task completed: "${taskTitle}"`;
+} else {
+  systemMessage = `🔄 Task "${taskTitle}" moved to ${statusLabels[status]}`;
+}
+await messageService.sendSystemMessage(teamId, systemMessage, 'task_status_changed');
+```
+
+### Message Types and Styling
+
+#### task_created
+- **Theme**: Blue (`bg-blue-50`, `text-blue-700`, `border-blue-200`)
+- **Icon**: 📝 (memo emoji)
+- **Format**: `📝 [Creator Name] created a new task: "[Task Title]"`
+- **Trigger**: When `taskService.createTask()` is called
+
+#### task_status_changed
+- **Theme**: Green (`bg-green-50`, `text-green-700`, `border-green-200`)
+- **Icons**: 🔄 (status change) or ✅ (completion)
+- **Format**: 
+  - Status change: `🔄 Task "[Title]" moved to [Status]`
+  - Completion: `✅ Task completed: "[Title]"`
+- **Trigger**: When `taskService.updateTaskStatus()` is called
+
+#### system (default)
+- **Theme**: Gray (`bg-gray-100`, `text-gray-600`, `border-gray-200`)
+- **Usage**: General system notifications
+
+### Integration Points
+
+#### TaskService Integration
+```javascript
+// In taskService.js
+import { messageService } from './messageService';
+
+export const taskService = {
+  async createTask(teamId, taskData, creatorName) {
+    try {
+      const task = await databases.createDocument(/* ... */);
+      
+      // Send system message about task creation
+      try {
+        const systemMessage = `📝 ${creatorName || 'Someone'} created a new task: "${task.title}"`;
+        await messageService.sendSystemMessage(teamId, systemMessage, 'task_created');
+      } catch (messageError) {
+        console.warn('Failed to send task creation system message:', messageError);
+        // Don't fail the task creation if system message fails
+      }
+      
+      return task;
+    } catch (error) {
+      // Handle task creation error
+    }
+  },
+
+  async updateTaskStatus(taskId, status, taskTitle, teamId) {
+    try {
+      const task = await databases.updateDocument(/* ... */);
+      
+      // Send system message about status change
+      try {
+        let systemMessage;
+        if (status === 'done') {
+          systemMessage = `✅ Task completed: "${taskTitle || task.title}"`;
+        } else {
+          systemMessage = `🔄 Task "${taskTitle || task.title}" moved to ${statusLabels[status]}`;
+        }
+        await messageService.sendSystemMessage(teamId, systemMessage, 'task_status_changed');
+      } catch (messageError) {
+        console.warn('Failed to send task status change system message:', messageError);
+        // Don't fail the task update if system message fails
+      }
+      
+      return task;
+    } catch (error) {
+      // Handle task update error
+    }
+  }
+};
+```
+
+#### MessageItem Component Integration
+```javascript
+// In MessageItem.jsx
+if (isSystemMessage) {
+  // Different styling based on system message type
+  let bgColor = 'bg-gray-100';
+  let textColor = 'text-gray-600';
+  
+  if (message.type === 'task_created') {
+    bgColor = 'bg-blue-50';
+    textColor = 'text-blue-700';
+  } else if (message.type === 'task_status_changed') {
+    bgColor = 'bg-green-50';
+    textColor = 'text-green-700';
+  }
+  
+  return (
+    <div className="flex justify-center my-3">
+      <div className={`${bgColor} ${textColor} text-sm px-4 py-2 rounded-full max-w-md text-center border border-opacity-20 ${
+        message.type === 'task_created' ? 'border-blue-200' : 
+        message.type === 'task_status_changed' ? 'border-green-200' : 
+        'border-gray-200'
+      }`}>
+        {message.content}
+      </div>
+    </div>
+  );
+}
+```
+
+### Error Handling and Resilience
+
+#### Graceful Degradation
+The integration is designed to be non-blocking:
+- Task operations continue even if system message sending fails
+- Errors are logged as warnings but don't interrupt user workflows
+- Fallback values are used if creator names or task titles are missing
+
+#### Error Logging
+```javascript
+try {
+  await messageService.sendSystemMessage(teamId, systemMessage, 'task_created');
+} catch (messageError) {
+  console.warn('Failed to send task creation system message:', messageError);
+  // Task creation continues successfully
+}
+```
+
+### Real-time Synchronization
+System messages leverage the existing real-time infrastructure:
+- Messages appear instantly across all connected team members
+- Uses Appwrite's real-time subscriptions for live updates
+- Integrates seamlessly with the existing chat message flow
+
+### Testing Task-Chat Integration
+
+#### Manual Testing
+1. **Task Creation**: Create a new task and verify blue system message appears
+2. **Status Changes**: Move tasks between columns and verify green system messages
+3. **Task Completion**: Move task to "Done" and verify completion message format
+4. **Real-time Sync**: Test with multiple browser tabs to ensure messages sync
+5. **Visual Styling**: Verify different message types have correct colors and icons
+
+#### Automated Testing
+```javascript
+// Use the demonstration script
+import { demonstrateTaskChatIntegration } from '../utils/taskChatIntegrationDemo.js';
+
+const result = await demonstrateTaskChatIntegration(teamId, userId, userName);
+console.log('Integration test result:', result);
 ```
 
 ## Implementation Details
@@ -270,12 +441,19 @@ Sends a user message with comprehensive validation.
 - Network connectivity issues
 
 ##### sendSystemMessage(teamId, content, type)
-Sends automated system messages for task updates.
+Sends automated system messages for task updates and team activities.
 
 **Use Cases:**
-- Task status changes
+- Task creation notifications
+- Task status change updates
+- Task completion announcements
 - Team member actions
 - System notifications
+
+**Task-Chat Integration Types:**
+- `task_created`: Blue theme with 📝 icon
+- `task_status_changed`: Green theme with 🔄/✅ icons
+- `system`: Default gray theme for general notifications
 
 ##### getTeamMessages(teamId)
 Retrieves team messages with performance optimization.
@@ -321,7 +499,8 @@ Manages real-time message subscriptions.
     type: 'string',
     size: 20,
     required: true,
-    default: 'user'
+    default: 'user',
+    // Supported values: 'user', 'system', 'task_created', 'task_status_changed'
   }
 }
 ```

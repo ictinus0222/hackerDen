@@ -16,9 +16,15 @@ export const useTouchDragDrop = () => {
       preview.style.position = 'fixed';
       preview.style.pointerEvents = 'none';
       preview.style.zIndex = '9999';
-      preview.style.opacity = '0.8';
-      preview.style.transform = 'rotate(5deg) scale(1.05)';
-      preview.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+      preview.style.opacity = '0.9';
+      preview.style.transform = 'rotate(3deg) scale(1.1)';
+      preview.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.4)';
+      preview.style.borderRadius = '8px';
+      preview.style.transition = 'none';
+      
+      // Ensure preview is visible on mobile
+      preview.style.maxWidth = '280px';
+      preview.style.fontSize = '14px';
       
       document.body.appendChild(preview);
       dragPreviewRef.current = preview;
@@ -43,6 +49,11 @@ export const useTouchDragDrop = () => {
 
       // Create drag preview
       createDragPreview(e.currentTarget);
+
+      // Add haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
 
       // Prevent scrolling while dragging
       e.preventDefault();

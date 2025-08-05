@@ -25,6 +25,8 @@
 /* Touch-specific styles */
 .touch-manipulation {
   touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Prevent text selection during drag */
@@ -33,4 +35,40 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Improve touch targets */
+  button, .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better scrolling on mobile */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent zoom on input focus */
+  input[type="text"], input[type="email"], input[type="password"], textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Enhanced drag feedback for mobile */
+.touch-drag-over {
+  background-color: rgb(219 234 254) !important;
+  border-color: rgb(59 130 246) !important;
+  border-width: 2px !important;
+  border-style: dashed !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+/* Improved dragging state */
+.dragging {
+  opacity: 0.6;
+  transform: rotate(2deg) scale(1.05);
+  transition: none;
 }

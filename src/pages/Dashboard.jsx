@@ -17,19 +17,19 @@ const Dashboard = () => {
           <LoadingSpinner message="Loading your team..." />
         ) : hasTeam ? (
           // User has a team - show team dashboard with responsive layout
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Team Info Header */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 truncate">
                     Team: {team.name}
                   </h2>
-                  <p className="text-gray-600">
-                    Join Code: <span className="font-mono font-bold text-blue-600">{team.joinCode}</span>
+                  <p className="text-sm sm:text-base text-gray-600">
+                    Join Code: <span className="font-mono font-bold text-blue-600 select-all">{team.joinCode}</span>
                   </p>
                 </div>
-                <div className="mt-4 sm:mt-0">
+                <div className="mt-3 sm:mt-0 sm:ml-4 flex-shrink-0">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     Active Team
                   </span>
@@ -38,7 +38,7 @@ const Dashboard = () => {
             </div>
 
             {/* Desktop Layout - Side by Side */}
-            <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-[600px]">
+            <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-[calc(100vh-280px)] min-h-[600px]">
               <div className="h-full">
                 <KanbanBoard />
               </div>
@@ -48,7 +48,7 @@ const Dashboard = () => {
             </div>
 
             {/* Mobile Layout - Tab Switcher */}
-            <div className="lg:hidden h-[600px]">
+            <div className="lg:hidden h-[calc(100vh-220px)] min-h-[500px]">
               <MobileTabSwitcher>
                 <KanbanBoard />
                 <Chat />

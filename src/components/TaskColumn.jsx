@@ -67,12 +67,12 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Column Header */}
-      <div className={`${getHeaderColor(status)} px-4 py-3 rounded-t-lg border-b border-gray-200`}>
+      <div className={`${getHeaderColor(status)} px-3 sm:px-4 py-3 rounded-t-lg border-b border-gray-200`}>
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm">
+          <h3 className="font-semibold text-sm sm:text-base truncate">
             {title}
           </h3>
-          <span className="bg-white bg-opacity-70 text-xs font-medium px-2 py-1 rounded-full">
+          <span className="bg-white bg-opacity-70 text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 min-w-[24px] text-center">
             {tasks.length}
           </span>
         </div>
@@ -80,7 +80,7 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
 
       {/* Column Content */}
       <div 
-        className={`flex-1 p-4 bg-gray-50 rounded-b-lg border-l border-r border-b ${getColumnColor(status)} min-h-0 transition-all ${
+        className={`flex-1 p-3 sm:p-4 bg-gray-50 rounded-b-lg border-l border-r border-b ${getColumnColor(status)} min-h-0 transition-all ${
           isDragOver ? 'bg-blue-100 border-blue-400 border-2 border-dashed shadow-lg' : ''
         }`}
         onDragOver={handleDragOver}
@@ -89,9 +89,9 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
         onDrop={handleDrop}
         data-drop-zone={status}
       >
-        <div className="space-y-3 h-full overflow-y-auto">
+        <div className="space-y-2 sm:space-y-3 h-full overflow-y-auto">
           {tasks.length === 0 ? (
-            <div className={`flex items-center justify-center h-32 text-gray-400 text-sm transition-all ${
+            <div className={`flex items-center justify-center h-24 sm:h-32 text-gray-400 text-xs sm:text-sm text-center transition-all ${
               isDragOver ? 'text-blue-500 font-medium' : ''
             }`}>
               {isDragOver ? `Drop task in ${title}` : `No tasks in ${title.toLowerCase()}`}

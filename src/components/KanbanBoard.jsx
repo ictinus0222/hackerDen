@@ -62,7 +62,7 @@ const KanbanBoard = () => {
     try {
       setIsUpdatingTask(true);
       console.log('Updating task status from', task.status, 'to', newStatus);
-      await taskService.updateTaskStatus(taskId, newStatus);
+      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id);
       console.log('Task status updated successfully');
       // The real-time subscription will handle updating the UI
     } catch (error) {
@@ -127,31 +127,33 @@ const KanbanBoard = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6 h-full flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-0">
         <h2 className="text-lg font-semibold text-gray-900">Kanban Board</h2>
         
         <div className="flex items-center space-x-2">
           {/* Create Task Button */}
           <button
             onClick={() => setIsTaskModalOpen(true)}
-            className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors min-h-[44px] touch-manipulation"
           >
-            Create Task
+            <span className="sm:hidden">+ Task</span>
+            <span className="hidden sm:inline">Create Task</span>
           </button>
           
           {/* Temporary test button - will be removed in later tasks */}
           <button
             onClick={handleCreateTestTasks}
-            className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+            className="px-3 py-2 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 active:bg-gray-800 transition-colors min-h-[44px] touch-manipulation"
           >
-            Add Test Tasks
+            <span className="sm:hidden">Test</span>
+            <span className="hidden sm:inline">Add Test Tasks</span>
           </button>
         </div>
       </div>
       
       {/* Kanban Columns */}
-      <div className={`flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 min-h-0 ${
+      <div className={`flex-1 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 min-h-0 ${
         isUpdatingTask ? 'pointer-events-none opacity-75' : ''
       }`}>
         {columns.map((column) => (

@@ -20,6 +20,7 @@ A collaborative platform for hackathon teams featuring team management, task tra
 - **Drag and Drop**: Full drag-and-drop support for moving tasks between columns (desktop and mobile)
 - **Real-time Chat**: Team chat with message display, input form, and live updates
 - **Message Management**: Send and receive messages with timestamps and user identification
+- **Task-Chat Integration**: Automated system messages for task activities with visual distinction
 - **Chat Setup Guide**: Automated setup assistance for Appwrite messages collection
 
 ### 🚧 In Development
@@ -272,13 +273,28 @@ The application implements smart routing based on user team membership:
 4. **Real-time Confirmation**: Server message received via subscription
 5. **Duplicate Prevention**: Optimistic message removed when real message arrives
 
+### Task-Chat Integration
+The chat system automatically generates system messages for task activities:
+
+- **Task Creation**: "📝 [Creator] created a new task: '[Title]'" (Blue theme)
+- **Status Changes**: "🔄 Task '[Title]' moved to [Status]" (Green theme)
+- **Task Completion**: "✅ Task completed: '[Title]'" (Green theme)
+
+**Integration Features:**
+- **Automatic Generation**: System messages appear without manual intervention
+- **Visual Distinction**: Different colors and icons for different message types
+- **Real-time Sync**: Messages appear instantly across all team members
+- **Graceful Degradation**: Task operations continue even if messaging fails
+- **Activity Timeline**: Creates a unified activity feed in chat
+
 ### Chat Flow
 1. **Access**: Chat is available in the dashboard alongside the Kanban board
 2. **Message Display**: All team messages are displayed in chronological order
 3. **Send Message**: Type message and press Enter or click Send button
 4. **Real-time Updates**: New messages appear instantly for all team members
 5. **Auto-scroll**: Chat automatically scrolls to show latest messages
-6. **Error Recovery**: Setup guide appears for collection configuration issues
+6. **System Messages**: Task activities automatically generate system messages
+7. **Error Recovery**: Setup guide appears for collection configuration issues
 
 ## Architecture Components
 
@@ -348,7 +364,7 @@ const {
 - `teamId` (string): Reference to team
 - `userId` (string): Reference to user (null for system messages)
 - `content` (string): Message content
-- `type` (string): Message type ('user' or 'system')
+- `type` (string): Message type ('user', 'system', 'task_created', 'task_status_changed')
 - `createdAt` (datetime): Creation timestamp
 - `updatedAt` (datetime): Last update timestamp
 

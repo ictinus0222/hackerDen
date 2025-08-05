@@ -372,6 +372,29 @@ if (error) {
 }
 ```
 
+#### Task-Chat Integration
+The chat system automatically generates system messages for task activities:
+
+```jsx
+// System messages are automatically generated for:
+// 1. Task creation: "📝 [Creator] created a new task: '[Title]'"
+// 2. Status changes: "🔄 Task '[Title]' moved to [Status]"
+// 3. Task completion: "✅ Task completed: '[Title]'"
+
+// No additional setup required - works automatically with task operations
+```
+
+**System Message Types:**
+- `task_created`: Blue theme with 📝 icon
+- `task_status_changed`: Green theme with 🔄/✅ icons
+- `system`: Default gray theme for other system messages
+
+**Integration Points:**
+- Task creation in `TaskModal` triggers system messages
+- Task status changes in `KanbanBoard` trigger system messages
+- Messages appear in real-time across all team members
+- Graceful error handling - task operations continue even if messaging fails
+
 #### Testing Chat Functionality
 - **Message Sending**: Type message and press Enter or click Send
 - **Real-time Updates**: Open multiple browser tabs to test live updates
@@ -382,6 +405,8 @@ if (error) {
 - **Message Validation**: Try sending empty messages (should be prevented)
 - **Optimistic Updates**: Verify messages appear immediately when sent
 - **Loading Indicators**: Check send button shows spinner during transmission
+- **System Messages**: Create/move tasks and verify system messages appear
+- **Message Styling**: Verify system messages have correct colors and icons
 
 ### Working with Task Modal
 

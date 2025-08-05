@@ -391,12 +391,18 @@ import MessageItem from '../components/MessageItem.jsx';
 #### Message Types
 - **User Messages**: Regular chat messages from team members
 - **Other Messages**: Messages from other team members
-- **System Messages**: Automated notifications (centered, gray styling)
+- **System Messages**: Automated notifications with type-specific styling
+  - `task_created`: Blue theme with 📝 icon
+  - `task_status_changed`: Green theme with 🔄/✅ icons
+  - `system`: Default gray theme for general notifications
 
 #### Styling Patterns
 - **Own Messages**: Right-aligned, blue background
 - **Other Messages**: Left-aligned, gray background
-- **System Messages**: Centered, pill-shaped, gray background
+- **System Messages**: Centered, pill-shaped with type-specific styling:
+  - Task creation: Blue background (`bg-blue-50`, `text-blue-700`, `border-blue-200`)
+  - Status changes: Green background (`bg-green-50`, `text-green-700`, `border-green-200`)
+  - General system: Gray background (`bg-gray-100`, `text-gray-600`, `border-gray-200`)
 
 ---
 
@@ -665,6 +671,101 @@ import AppwriteSetupGuide from '../components/AppwriteSetupGuide.jsx';
 2. **Attribute Setup**: Required attributes with types and constraints
 3. **Permissions**: Proper permission configuration
 4. **Indexes**: Optional but recommended database indexes
+
+---
+
+## Task-Chat Integration
+
+### Overview
+The dashboard implements automatic integration between task management and chat systems, generating system messages when task activities occur. This creates a unified activity timeline that keeps all team members informed about project progress.
+
+### Integration Features
+
+#### Automatic System Messages
+- **Task Creation**: When a new task is created via TaskModal
+- **Status Changes**: When tasks are moved between Kanban columns
+- **Task Completion**: Special messaging when tasks are marked as done
+
+#### Message Types and Styling
+- **task_created**: Blue theme with 📝 icon for task creation notifications
+- **task_status_changed**: Green theme with 🔄/✅ icons for status updates
+- **system**: Default gray theme for general system notifications
+
+#### Integration Points
+
+##### TaskModal Integration
+```jsx
+// In TaskModal.jsx - Task creation triggers system message
+const newTask = await taskService.createTask(team.$id, taskData, user.name);
+// System message: "📝 [User Name] created a new task: '[Task Title]'"
+```
+
+##### KanbanBoard Integration
+```jsx
+// In KanbanBoard.jsx - Status changes trigger system messages
+await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id);
+// System message: "🔄 Task '[Title]' moved to [Status]" or "✅ Task completed: '[Title]'"
+```
+
+##### MessageItem Integration
+```jsx
+// In MessageItem.jsx - System messages have type-specific styling
+if (message.type === 'task_created') {
+  bgColor = 'bg-blue-50';
+  textColor = 'text-blue-700';
+} else if (message.type === 'task_status_changed') {
+  bgColor = 'bg-green-50';
+  textColor = 'text-green-700';
+}
+```
+
+#### Real-time Synchronization
+- System messages appear instantly across all team members
+- Leverages existing Appwrite real-time infrastructure
+- Integrates seamlessly with the existing chat message flow
+
+#### Error Resilience
+- Task operations continue even if system message sending fails
+- Graceful degradation ensures core functionality remains intact
+- Error logging for debugging without user disruption
+
+### Usage Examples
+
+#### Task Creation Flow
+1. User clicks "Create Task" in KanbanBoard
+2. TaskModal opens with form validation
+3. Task is created and assigned to user
+4. System message appears: "📝 John Doe created a new task: 'Setup authentication'"
+5. Task appears in To-Do column via real-time updates
+
+#### Task Status Change Flow
+1. User drags task from To-Do to In Progress
+2. KanbanBoard handles drag and drop
+3. Task status is updated in database
+4. System message appears: "🔄 Task 'Setup authentication' moved to In Progress"
+5. Task appears in new column via real-time updates
+
+#### Task Completion Flow
+1. User drags task to Done column
+2. Special completion message is generated
+3. System message appears: "✅ Task completed: 'Setup authentication'"
+4. Task appears in Done column with completion styling
+
+### Testing Integration
+
+#### Manual Testing
+1. Create a new task and verify blue system message appears in chat
+2. Move task between columns and verify green status change messages
+3. Complete a task and verify special completion message format
+4. Test with multiple browser tabs to ensure real-time synchronization
+5. Verify system messages have correct colors and icons
+
+#### Visual Verification
+- System messages are centered and pill-shaped
+- Task creation messages have blue theme with 📝 icon
+- Status change messages have green theme with 🔄 icon
+- Completion messages have green theme with ✅ icon
+- Messages appear in chronological order with user messages
 
 ---
 
