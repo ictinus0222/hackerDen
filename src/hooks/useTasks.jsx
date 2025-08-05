@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { taskService } from '../services/taskService';
+import { realtimeService } from '../services/realtimeService';
 import { useTeam } from './useTeam';
 
 export const useTasks = () => {
@@ -7,6 +8,8 @@ export const useTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [subscriptionError, setSubscriptionError] = useState(null);
+  const [lastSyncTime, setLastSyncTime] = useState(null);
 
   // Fetch tasks for the current team
   const fetchTasks = useCallback(async () => {
@@ -33,6 +36,12 @@ export const useTasks = () => {
   const handleTaskUpdate = useCallback((response) => {
     const { events, payload } = response;
     
+    // Update last sync time for monitoring
+    setLastSyncTime(new Date());
+    
+    // Clear any subscription errors on successful update
+    setSubscriptionError(null);
+    
     if (events.includes('databases.*.collections.*.documents.*.create')) {
       // New task created
       setTasks(prev => [payload, ...prev]);
@@ -47,18 +56,29 @@ export const useTasks = () => {
     }
   }, []);
 
-  // Set up real-time subscription
+  // Set up real-time subscription with enhanced error handling
   useEffect(() => {
     if (!team?.$id) return;
 
-    const unsubscribe = taskService.subscribeToTasks(team.$id, handleTaskUpdate);
-    
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
+    const unsubscribe = realtimeService.subscribeToTasks(
+      team.$id, 
+      handleTaskUpdate,
+      {
+        onError: (error, retryCount) => {
+          console.error(`Task subscription error (attempt ${retryCount}):`, error);
+          setSubscriptionError(`Connection issue (attempt ${retryCount}): ${error.message}`);
+        },
+        onReconnect: (retryCount) => {
+          console.log(`Task subscription reconnected after ${retryCount} attempts`);
+          setSubscriptionError(null);
+          // Refetch tasks to ensure we have the latest data
+          fetchTasks();
+        }
       }
-    };
-  }, [team?.$id, handleTaskUpdate]);
+    );
+    
+    return unsubscribe;
+  }, [team?.$id, handleTaskUpdate, fetchTasks]);
 
   // Initial fetch
   useEffect(() => {
@@ -78,6 +98,8 @@ export const useTasks = () => {
     tasksByStatus,
     loading,
     error,
+    subscriptionError,
+    lastSyncTime,
     refetch: fetchTasks
   };
 };

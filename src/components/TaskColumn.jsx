@@ -21,15 +21,30 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
   const getHeaderColor = (status) => {
     switch (status) {
       case 'todo':
-        return 'bg-gray-50 text-gray-700';
+        return 'bg-dark-tertiary text-dark-secondary border-b border-gray-600/20';
       case 'in_progress':
-        return 'bg-blue-50 text-blue-700';
+        return 'bg-dark-tertiary text-blue-400 border-b border-blue-500/20';
       case 'blocked':
-        return 'bg-red-50 text-red-700';
+        return 'bg-dark-tertiary text-red-400 border-b border-red-500/20';
       case 'done':
-        return 'bg-green-50 text-green-700';
+        return 'bg-dark-tertiary text-green-400 border-b border-green-500/20';
       default:
-        return 'bg-gray-50 text-gray-700';
+        return 'bg-dark-tertiary text-dark-secondary border-b border-gray-600/20';
+    }
+  };
+
+  const getStatusDot = (status) => {
+    switch (status) {
+      case 'todo':
+        return 'bg-gray-500';
+      case 'in_progress':
+        return 'bg-blue-500 animate-pulse-slow';
+      case 'blocked':
+        return 'bg-red-500 animate-pulse';
+      case 'done':
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-500';
     }
   };
 
@@ -65,48 +80,81 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
   };
 
   return (
-    <div className={`flex flex-col h-full ${className}`}>
-      {/* Column Header */}
-      <div className={`${getHeaderColor(status)} px-3 sm:px-4 py-3 rounded-t-lg border-b border-gray-200`}>
+    <div className={`flex flex-col h-full ${className} animate-fade-in`} role="region" aria-label={`${title} tasks`}>
+      {/* Professional Column Header */}
+      <header className={`${getHeaderColor(status)} px-4 py-4 rounded-t-2xl`}>
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm sm:text-base truncate">
-            {title}
-          </h3>
-          <span className="bg-white bg-opacity-70 text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 min-w-[24px] text-center">
-            {tasks.length}
-          </span>
+          <div className="flex items-center space-x-3">
+            <div className={`w-2 h-2 rounded-full ${getStatusDot(status)}`}></div>
+            <h3 className="font-semibold text-sm uppercase tracking-wider truncate" id={`column-${status}`}>
+              {title}
+            </h3>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span 
+              className="bg-dark-elevated text-xs font-mono font-bold px-2.5 py-1 rounded-lg flex-shrink-0 min-w-[28px] text-center border border-dark-primary text-dark-secondary"
+              aria-label={`${tasks.length} tasks in ${title}`}
+            >
+              {tasks.length}
+            </span>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Column Content */}
       <div 
-        className={`flex-1 p-3 sm:p-4 bg-gray-50 rounded-b-lg border-l border-r border-b ${getColumnColor(status)} min-h-0 transition-all ${
-          isDragOver ? 'bg-blue-100 border-blue-400 border-2 border-dashed shadow-lg' : ''
+        className={`flex-1 p-4 bg-dark-secondary rounded-b-2xl border-l border-r border-b border-dark-primary min-h-0 transition-all duration-300 ${
+          isDragOver ? 'bg-blue-500/10 border-blue-500 border-2 border-dashed shadow-xl' : ''
         }`}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         data-drop-zone={status}
+        role="list"
+        aria-labelledby={`column-${status}`}
+        aria-live="polite"
+        aria-atomic="false"
       >
-        <div className="space-y-2 sm:space-y-3 h-full overflow-y-auto">
+        <div className="space-y-3 sm:space-y-4 h-full overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
           {tasks.length === 0 ? (
-            <div className={`flex items-center justify-center h-24 sm:h-32 text-gray-400 text-xs sm:text-sm text-center transition-all ${
-              isDragOver ? 'text-blue-500 font-medium' : ''
-            }`}>
-              {isDragOver ? `Drop task in ${title}` : `No tasks in ${title.toLowerCase()}`}
+            <div 
+              className={`flex flex-col items-center justify-center h-32 sm:h-40 text-dark-muted text-sm text-center transition-all duration-300 rounded-xl border-2 border-dashed border-dark-primary ${
+                isDragOver ? 'text-blue-400 font-medium border-blue-500 bg-blue-500/5' : ''
+              }`}
+              role="status"
+              aria-live="polite"
+            >
+              {isDragOver ? (
+                <>
+                  <svg className="w-8 h-8 mb-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                  </svg>
+                  <span className="font-medium">Drop task here</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-6 h-6 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                  <span className="font-mono text-xs opacity-75">No tasks</span>
+                </>
+              )}
             </div>
           ) : (
-            tasks.map((task) => (
-              <TaskCard 
-                key={task.$id} 
-                task={task} 
-                isDragging={draggingTask?.$id === task.$id}
-                onDragStart={onDragStart}
-                onTouchStart={touchHandlers?.handleTouchStart}
-                onTouchMove={touchHandlers?.handleTouchMove}
-                onTouchEnd={(e) => touchHandlers?.handleTouchEnd(e, onTaskDrop)}
-              />
+            tasks.map((task, index) => (
+              <div key={task.$id} role="listitem" style={{ animationDelay: `${index * 0.1}s` }}>
+                <TaskCard 
+                  task={task} 
+                  isDragging={draggingTask?.$id === task.$id}
+                  onDragStart={onDragStart}
+                  onTouchStart={touchHandlers?.handleTouchStart}
+                  onTouchMove={touchHandlers?.handleTouchMove}
+                  onTouchEnd={(e) => touchHandlers?.handleTouchEnd(e, onTaskDrop)}
+                  aria-posinset={index + 1}
+                  aria-setsize={tasks.length}
+                />
+              </div>
             ))
           )}
         </div>

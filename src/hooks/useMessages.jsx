@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { messageService } from '../services/messageService';
+import { realtimeService } from '../services/realtimeService';
 import { useAuth } from './useAuth';
 import { useTeam } from './useTeam';
 
@@ -8,6 +9,8 @@ export const useMessages = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sending, setSending] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState(null);
+  const [lastSyncTime, setLastSyncTime] = useState(null);
   
   const { user } = useAuth();
   const { team } = useTeam();
@@ -80,46 +83,67 @@ export const useMessages = () => {
     }
   }, [team?.$id, user?.$id, user?.name, sending]);
 
-  // Set up real-time subscription
+  // Set up real-time subscription with enhanced error handling
   useEffect(() => {
     if (!team?.$id) return;
 
-    const unsubscribe = messageService.subscribeToMessages(team.$id, (response) => {
-      const { events, payload } = response;
-      
-      if (events.includes('databases.*.collections.*.documents.*.create')) {
-        // New message created
-        setMessages(prev => {
-          // Avoid duplicates - check both real and optimistic messages
-          const exists = prev.some(msg => 
-            msg.$id === payload.$id || 
-            (msg.isOptimistic && msg.content === payload.content && msg.userId === payload.userId)
+    const unsubscribe = realtimeService.subscribeToMessages(
+      team.$id, 
+      (response) => {
+        const { events, payload } = response;
+        
+        // Update last sync time for monitoring
+        setLastSyncTime(new Date());
+        
+        // Clear any subscription errors on successful update
+        setSubscriptionError(null);
+        
+        if (events.includes('databases.*.collections.*.documents.*.create')) {
+          // New message created
+          setMessages(prev => {
+            // Avoid duplicates - check both real and optimistic messages
+            const exists = prev.some(msg => 
+              msg.$id === payload.$id || 
+              (msg.isOptimistic && msg.content === payload.content && msg.userId === payload.userId)
+            );
+            if (exists) return prev;
+            
+            // Add user name for display (this should come from user lookup in real app)
+            const messageWithUser = {
+              ...payload,
+              userName: payload.userId ? 'Team Member' : null // Simplified for MVP
+            };
+            
+            return [...prev, messageWithUser];
+          });
+        } else if (events.includes('databases.*.collections.*.documents.*.update')) {
+          // Message updated
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.$id === payload.$id ? { ...msg, ...payload } : msg
+            )
           );
-          if (exists) return prev;
-          
-          // Add user name for display (this should come from user lookup in real app)
-          const messageWithUser = {
-            ...payload,
-            userName: payload.userId ? 'Team Member' : null // Simplified for MVP
-          };
-          
-          return [...prev, messageWithUser];
-        });
-      } else if (events.includes('databases.*.collections.*.documents.*.update')) {
-        // Message updated
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.$id === payload.$id ? { ...msg, ...payload } : msg
-          )
-        );
-      } else if (events.includes('databases.*.collections.*.documents.*.delete')) {
-        // Message deleted
-        setMessages(prev => prev.filter(msg => msg.$id !== payload.$id));
+        } else if (events.includes('databases.*.collections.*.documents.*.delete')) {
+          // Message deleted
+          setMessages(prev => prev.filter(msg => msg.$id !== payload.$id));
+        }
+      },
+      {
+        onError: (error, retryCount) => {
+          console.error(`Message subscription error (attempt ${retryCount}):`, error);
+          setSubscriptionError(`Connection issue (attempt ${retryCount}): ${error.message}`);
+        },
+        onReconnect: (retryCount) => {
+          console.log(`Message subscription reconnected after ${retryCount} attempts`);
+          setSubscriptionError(null);
+          // Refetch messages to ensure we have the latest data
+          loadMessages();
+        }
       }
-    });
+    );
 
     return unsubscribe;
-  }, [team?.$id]);
+  }, [team?.$id, loadMessages]);
 
   // Load messages when team changes
   useEffect(() => {
@@ -131,6 +155,8 @@ export const useMessages = () => {
     loading,
     error,
     sending,
+    subscriptionError,
+    lastSyncTime,
     sendMessage,
     refetch: loadMessages
   };

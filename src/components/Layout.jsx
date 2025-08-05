@@ -12,32 +12,56 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-primary">
+      {/* Skip Link for Screen Readers */}
+      <a href="#main-content" className="skip-link focus-visible">
+        Skip to main content
+      </a>
+
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-dark-secondary border-b border-dark-primary shadow-lg" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4 sm:py-6">
             <div className="flex items-center">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">HackerDen</h1>
+              <div className="flex items-center space-x-2">
+                <div className="w-5 h-5 rounded bg-gradient-to-br from-blue-500 to-orange-500 flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">H</span>
+                </div>
+                <h1 className="text-lg font-semibold gradient-text">
+                  HackerDen
+                </h1>
+              </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <span className="text-xs sm:text-sm text-gray-700 hidden sm:block">
-                Welcome, {user?.name}!
+            
+            <nav className="flex items-center space-x-2 sm:space-x-4" role="navigation" aria-label="User navigation">
+              <span 
+                className="text-xs sm:text-sm text-dark-secondary hidden sm:block"
+                aria-label={`Logged in as ${user?.name}`}
+              >
+                Welcome, <span className="font-medium text-dark-primary">{user?.name}</span>!
               </span>
+              
               <button
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
+                className="text-white px-4 py-2 sm:px-5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 min-h-[44px] min-w-[44px] touch-manipulation btn-danger"
+                aria-label="Sign out of your account"
+                type="button"
               >
-                <span className="sm:hidden">Exit</span>
-                <span className="hidden sm:inline">Logout</span>
+                <span className="sm:hidden" aria-hidden="true">Exit</span>
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
-            </div>
+            </nav>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-4 sm:py-6 sm:px-6 lg:px-8">
+      <main 
+        id="main-content"
+        className="max-w-7xl mx-auto py-4 sm:py-6 sm:px-6 lg:px-8"
+        role="main"
+        tabIndex="-1"
+      >
         <div className="px-4 py-4 sm:py-6 sm:px-0">
           {children}
         </div>

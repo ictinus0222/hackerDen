@@ -271,3 +271,51 @@ interface Task {
 - **Keyboard Navigation**: Tab order and focus management testing
 - **Color Contrast**: WCAG compliance for visual accessibility
 - **Touch Targets**: Mobile accessibility guidelines compliance
+
+## Development Workflow and Styling Preservation
+
+### Code Modification Strategy
+
+#### Compare-and-Merge Workflow
+The development process implements a safety-first approach to code modifications that separates logic fixes from styling preservation:
+
+1. **Pre-modification Backup**: Always create `.backup` copies of files before applying automated fixes
+2. **Isolated Fix Generation**: Generate fixes in separate `.autofix` files to enable side-by-side comparison
+3. **Manual Merge Process**: Use diff tools to selectively merge only logic improvements while preserving styling
+4. **Styling Protection**: Maintain all Tailwind classes, wrapper divs, and layout-critical JSX structure
+
+#### Critical Styling Elements to Preserve
+- **Layout Containers**: Wrapper divs with flex, grid, or positioning classes
+- **Responsive Design**: Tailwind breakpoint classes (sm:, md:, lg:, xl:)
+- **Visual Styling**: Background colors, borders, shadows, and spacing classes
+- **Interactive States**: Hover, focus, and active state classes
+- **Component Structure**: JSX hierarchy that affects CSS cascade and layout
+
+#### Safe Merge Guidelines
+```javascript
+// DO merge: Logic improvements
+- Function corrections (async/await, error handling)
+- Variable name fixes and type corrections
+- Import statement updates and dependency fixes
+- Event handler logic improvements
+
+// DON'T merge: Structural changes that affect styling
+- Removed wrapper divs with CSS classes
+- Altered JSX hierarchy or component nesting
+- Changed className attributes or Tailwind classes
+- Modified component props that affect styling
+```
+
+### Component Styling Architecture
+
+#### Styling Consistency Patterns
+- **Atomic Design**: Use consistent Tailwind utility patterns across similar components
+- **Responsive Breakpoints**: Standardized mobile-first responsive design approach
+- **Color Palette**: Consistent color scheme using Tailwind's semantic color classes
+- **Spacing System**: Uniform padding, margin, and gap classes throughout the application
+
+#### Layout Protection Strategies
+- **Container Preservation**: Maintain layout containers even if they seem "unnecessary" for logic
+- **Class Retention**: Keep all Tailwind classes unless explicitly removing for design reasons
+- **Structure Integrity**: Preserve JSX hierarchy that supports CSS layout and responsive behavior
+- **Component Boundaries**: Maintain clear separation between logic and presentation concerns
