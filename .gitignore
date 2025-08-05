@@ -25,3 +25,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Compare-and-merge workflow temporary files
+*.backup
+*.autofix
+*.diff
+.workflow-temp/
+
+# Backup utility temporary files
+scripts/temp/
+.backup-logs/

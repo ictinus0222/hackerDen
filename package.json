@@ -9,7 +9,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "backup": "node scripts/backup-utility.js",
+    "backup:restore": "node scripts/backup-utility.js --restore",
+    "backup:cleanup": "node scripts/backup-utility.js --cleanup",
+    "backup:cleanup-confirm": "node scripts/backup-utility.js --cleanup --confirm"
   },
   "dependencies": {
     "appwrite": "^18.2.0",
