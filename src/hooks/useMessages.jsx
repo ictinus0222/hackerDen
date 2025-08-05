@@ -35,16 +35,19 @@ export const useMessages = () => {
       return;
     }
 
+    const trimmedContent = content.trim();
+    const optimisticId = `temp-${Date.now()}-${Math.random()}`;
+
     try {
       setSending(true);
       setError(null);
       
       // Optimistically add message to UI
       const optimisticMessage = {
-        $id: `temp-${Date.now()}`,
+        $id: optimisticId,
         teamId: team.$id,
         userId: user.$id,
-        content: content.trim(),
+        content: trimmedContent,
         type: 'user',
         $createdAt: new Date().toISOString(),
         userName: user.name, // Add user name for display
@@ -54,17 +57,24 @@ export const useMessages = () => {
       setMessages(prev => [...prev, optimisticMessage]);
 
       // Send to server
-      await messageService.sendMessage(team.$id, user.$id, content);
+      await messageService.sendMessage(team.$id, user.$id, trimmedContent);
       
-      // Remove optimistic message - real message will come via subscription
-      setMessages(prev => prev.filter(msg => msg.$id !== optimisticMessage.$id));
+      // Remove optimistic message after a short delay to ensure real message arrives
+      setTimeout(() => {
+        setMessages(prev => prev.filter(msg => msg.$id !== optimisticId));
+      }, 1000);
       
     } catch (err) {
       setError(err.message);
       console.error('Failed to send message:', err);
       
       // Remove optimistic message on error
-      setMessages(prev => prev.filter(msg => !msg.isOptimistic));
+      setMessages(prev => prev.filter(msg => msg.$id !== optimisticId));
+      
+      // Show error feedback to user
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
     } finally {
       setSending(false);
     }
@@ -80,8 +90,11 @@ export const useMessages = () => {
       if (events.includes('databases.*.collections.*.documents.*.create')) {
         // New message created
         setMessages(prev => {
-          // Avoid duplicates
-          const exists = prev.some(msg => msg.$id === payload.$id);
+          // Avoid duplicates - check both real and optimistic messages
+          const exists = prev.some(msg => 
+            msg.$id === payload.$id || 
+            (msg.isOptimistic && msg.content === payload.content && msg.userId === payload.userId)
+          );
           if (exists) return prev;
           
           // Add user name for display (this should come from user lookup in real app)

@@ -242,24 +242,35 @@ The application implements smart routing based on user team membership:
 - **Team-Based Messaging**: Messages are filtered and displayed by team
 - **Real-time Updates**: Live message synchronization using Appwrite subscriptions
 - **Message Display**: Shows user names, timestamps, and message content
-- **Message Input**: Form-based message sending with validation
+- **Message Input**: Form-based message sending with validation and keyboard support
 - **Auto-scroll**: Automatically scrolls to latest messages
 - **Optimistic Updates**: Messages appear immediately with server confirmation
+- **Message Validation**: Client and server-side validation prevents empty messages
+- **Loading Indicators**: Visual feedback during message transmission
 
 ### Chat Components
 - **Chat**: Main chat interface with message list and input form
-- **MessageList**: Scrollable message display with loading states
-- **MessageInput**: Message input form with keyboard support
-- **MessageItem**: Individual message display with user info and timestamps
+- **MessageList**: Scrollable message display with loading states and empty state handling
+- **MessageInput**: Message input form with Enter key support and loading spinner
+- **MessageItem**: Individual message display with user info, timestamps, and message types
 - **MessagesSetupGuide**: Setup assistance for Appwrite messages collection
 
 ### Message Management Features
-- **Form Validation**: Prevents empty message submission
-- **User Identification**: Shows "You" for current user's messages
+- **Form Validation**: Prevents empty and whitespace-only message submission
+- **User Identification**: Shows "You" for current user's messages vs. "Team Member" for others
 - **Timestamp Formatting**: Human-readable time display using date-fns
 - **Message Types**: Support for user messages and system notifications
-- **Error Handling**: Comprehensive error management with setup guidance
-- **Loading States**: Visual feedback during message operations
+- **Error Handling**: Comprehensive error management with setup guidance and recovery
+- **Loading States**: Visual feedback during message operations with spinner animations
+- **Keyboard Support**: Enter key to send, proper focus management
+- **Responsive Design**: Adapts to mobile and desktop layouts
+
+### Message Sending Process
+1. **Input Validation**: Client-side validation prevents empty messages
+2. **Optimistic Update**: Message appears immediately in chat
+3. **Server Transmission**: Message sent to Appwrite with error handling
+4. **Real-time Confirmation**: Server message received via subscription
+5. **Duplicate Prevention**: Optimistic message removed when real message arrives
 
 ### Chat Flow
 1. **Access**: Chat is available in the dashboard alongside the Kanban board
@@ -267,6 +278,7 @@ The application implements smart routing based on user team membership:
 3. **Send Message**: Type message and press Enter or click Send button
 4. **Real-time Updates**: New messages appear instantly for all team members
 5. **Auto-scroll**: Chat automatically scrolls to show latest messages
+6. **Error Recovery**: Setup guide appears for collection configuration issues
 
 ## Architecture Components
 
@@ -346,6 +358,7 @@ const {
 - **Appwrite Setup**: `docs/appwrite-setup.md` - Backend configuration guide
 - **Dashboard Components**: `docs/dashboard-components.md` - Detailed component documentation
 - **Development Guide**: `docs/development-guide.md` - Development workflow and best practices
+- **Messaging System**: `docs/messaging-system.md` - Complete messaging system documentation
 - **Drag and Drop Implementation**: `docs/drag-drop-implementation.md` - Complete drag and drop technical guide
 - **Drag and Drop Quick Reference**: `docs/drag-drop-quick-reference.md` - Quick usage guide for drag and drop
 

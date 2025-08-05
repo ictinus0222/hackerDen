@@ -49,7 +49,8 @@ const Chat = () => {
       <div className="px-6 py-4">
         <MessageInput
           onSendMessage={handleSendMessage}
-          disabled={sending || !user}
+          disabled={!user}
+          sending={sending}
         />
       </div>
     </div>

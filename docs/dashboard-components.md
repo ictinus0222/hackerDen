@@ -314,14 +314,15 @@ import MessageList from '../components/MessageList.jsx';
 
 ### MessageInput Component (`src/components/MessageInput.jsx`)
 
-Message input form with validation and keyboard support.
+Message input form with validation, keyboard support, and loading states.
 
 #### Features
-- **Form Validation**: Prevents empty message submission
-- **Keyboard Support**: Enter key to send, Shift+Enter for new line
-- **Loading States**: Disabled during message sending
+- **Form Validation**: Prevents empty and whitespace-only message submission
+- **Keyboard Support**: Enter key to send (fixed deprecated onKeyPress)
+- **Loading States**: Disabled during message sending with spinner animation
 - **Auto-clear**: Clears input after successful send
 - **Responsive Design**: Adapts to different screen sizes
+- **Visual Feedback**: Loading spinner in send button during transmission
 
 #### Usage
 ```jsx
@@ -329,13 +330,15 @@ import MessageInput from '../components/MessageInput.jsx';
 
 <MessageInput
   onSendMessage={handleSendMessage}
-  disabled={sending || !user}
+  disabled={!user}
+  sending={sending}
 />
 ```
 
 #### Props
 - `onSendMessage` (function): Callback when message should be sent
 - `disabled` (boolean, optional): Disables input and send button
+- `sending` (boolean, optional): Shows loading state during message transmission
 
 #### Keyboard Shortcuts
 - **Enter**: Send message (if not empty)
@@ -344,6 +347,13 @@ import MessageInput from '../components/MessageInput.jsx';
 #### Validation Rules
 - Message must not be empty or whitespace-only
 - Real-time validation with visual feedback
+- Button disabled state reflects validation status
+
+#### Visual States
+- **Normal**: Blue send button, enabled input
+- **Disabled**: Gray send button, disabled input  
+- **Sending**: Spinner animation in button, disabled controls
+- **Empty**: Disabled send button until valid content entered
 
 ---
 

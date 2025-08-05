@@ -4,6 +4,17 @@ import client from '../lib/appwrite';
 export const messageService = {
   // Send a user message
   async sendMessage(teamId, userId, content) {
+    // Validate input parameters
+    if (!teamId) {
+      throw new Error('Team ID is required to send a message');
+    }
+    if (!userId) {
+      throw new Error('User ID is required to send a message');
+    }
+    if (!content || !content.trim()) {
+      throw new Error('Message content cannot be empty');
+    }
+
     try {
       const messageData = {
         teamId,
@@ -21,7 +32,18 @@ export const messageService = {
 
       return message;
     } catch (error) {
-      throw new Error(error.message || 'Failed to send message');
+      console.error('Error sending message:', error);
+      
+      // Handle specific error cases
+      if (error.code === 401) {
+        throw new Error('Unauthorized: Please check your permissions to send messages');
+      } else if (error.message.includes('Collection with the requested ID could not be found')) {
+        throw new Error('Messages collection not found. Please create the "messages" collection in your Appwrite database.');
+      } else if (error.message.includes('Attribute not found in schema')) {
+        throw new Error('Messages collection schema is incomplete. Please add the required attributes to the messages collection.');
+      } else {
+        throw new Error(error.message || 'Failed to send message');
+      }
     }
   },
 

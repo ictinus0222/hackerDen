@@ -1,25 +1,31 @@
 import { useState } from 'react';
 
-const MessageInput = ({ onSendMessage, disabled = false }) => {
+const MessageInput = ({ onSendMessage, disabled = false, sending = false }) => {
   const [message, setMessage] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!message.trim() || disabled) {
+    // Validate message content
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage || disabled || sending) {
       return;
     }
 
-    onSendMessage(message);
+    // Send message and clear input
+    onSendMessage(trimmedMessage);
     setMessage('');
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
+
+  // Check if send button should be disabled
+  const isSendDisabled = !message.trim() || disabled || sending;
 
   return (
     <form onSubmit={handleSubmit} className="border-t border-gray-200 pt-4">
@@ -28,17 +34,23 @@ const MessageInput = ({ onSendMessage, disabled = false }) => {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          disabled={disabled}
+          disabled={disabled || sending}
           className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
         <button
           type="submit"
-          disabled={!message.trim() || disabled}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          disabled={isSendDisabled}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors min-w-[60px]"
         >
-          Send
+          {sending ? (
+            <div className="flex items-center justify-center">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            'Send'
+          )}
         </button>
       </div>
     </form>

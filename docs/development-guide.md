@@ -379,6 +379,9 @@ if (error) {
 - **Error States**: Test with missing messages collection
 - **Loading States**: Check loading spinner during message fetch
 - **Responsive Design**: Test on mobile and desktop layouts
+- **Message Validation**: Try sending empty messages (should be prevented)
+- **Optimistic Updates**: Verify messages appear immediately when sent
+- **Loading Indicators**: Check send button shows spinner during transmission
 
 ### Working with Task Modal
 

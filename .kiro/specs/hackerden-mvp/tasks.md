@@ -128,7 +128,12 @@
   - Create message display with user names, timestamps, and content
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 5.2 Implement message sending
+- [x] 5.2 Implement message sending
+
+
+
+
+
   - Build message input form with send button and enter key support
   - Implement message service functions for creating messages in Appwrite
   - Add message validation to prevent empty messages
