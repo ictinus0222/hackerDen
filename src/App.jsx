@@ -5,6 +5,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
+import ProjectPage from './pages/ProjectPage';
+import DemoPage from './pages/DemoPage';
 import TeamCreationPage from './pages/TeamCreationPage';
 import TeamJoinPage from './pages/TeamJoinPage';
 
@@ -41,6 +43,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <TeamJoinPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/project/:projectId?" 
+                element={
+                  <ProtectedRoute>
+                    <ProjectPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/demo" 
+                element={
+                  <ProtectedRoute>
+                    <DemoPage />
                   </ProtectedRoute>
                 } 
               />

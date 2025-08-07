@@ -116,8 +116,8 @@ const LoginPage = () => {
                   required
                   aria-invalid={errors.email ? 'true' : 'false'}
                   aria-describedby={errors.email ? 'email-error' : undefined}
-                  className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
+                  className={`input mt-1 ${
+                    errors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
                   } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200`}
                   placeholder="Email address"
                   value={formData.email}

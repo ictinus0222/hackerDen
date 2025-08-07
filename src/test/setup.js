@@ -18,3 +18,6 @@ global.localStorage = localStorageMock;
 global.window.addEventListener = vi.fn();
 global.window.removeEventListener = vi.fn();
 global.window.dispatchEvent = vi.fn();
+
+// Mock scrollIntoView for MessageList component
+Element.prototype.scrollIntoView = vi.fn();

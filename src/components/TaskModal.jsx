@@ -8,8 +8,12 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
   const { team } = useTeam();
   const [formData, setFormData] = useState({
     title: '',
-    description: ''
+    description: '',
+    priority: 'medium',
+    labels: []
   });
+
+  const [newLabel, setNewLabel] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,7 +23,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -29,24 +33,41 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
     }
   };
 
+  const addLabel = () => {
+    if (newLabel.trim() && !formData.labels.includes(newLabel.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        labels: [...prev.labels, newLabel.trim()]
+      }));
+      setNewLabel('');
+    }
+  };
+
+  const removeLabel = (labelToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      labels: prev.labels.filter(label => label !== labelToRemove)
+    }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.title.trim()) {
       newErrors.title = 'Task title is required';
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = 'Task description is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -57,26 +78,29 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const taskData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
         assignedTo: user.$id,
-        createdBy: user.$id
+        createdBy: user.$id,
+        priority: formData.priority,
+        labels: formData.labels
       };
 
       const newTask = await taskService.createTask(team.$id, taskData, user.name);
-      
+
       // Reset form
-      setFormData({ title: '', description: '' });
+      setFormData({ title: '', description: '', priority: 'medium', labels: [] });
+      setNewLabel('');
       setErrors({});
-      
+
       // Notify parent component
       if (onTaskCreated) {
         onTaskCreated(newTask);
       }
-      
+
       // Close modal
       onClose();
     } catch (error) {
@@ -98,7 +122,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       role="dialog"
       aria-modal="true"
@@ -164,9 +188,8 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
               required
               aria-invalid={errors.title ? 'true' : 'false'}
               aria-describedby={errors.title ? 'title-error' : undefined}
-              className={`w-full px-4 py-3 text-base rounded-xl shadow-sm input-enhanced disabled:bg-gray-50 disabled:text-gray-500 ${
-                errors.title ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
-              }`}
+              className={`w-full px-4 py-3 text-base rounded-xl shadow-sm input-enhanced disabled:bg-gray-50 disabled:text-gray-500 ${errors.title ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
+                }`}
               placeholder="Enter task title"
               style={{ fontSize: '16px' }} // Prevents zoom on iOS
               maxLength={100}
@@ -180,7 +203,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           </div>
 
           {/* Description Field */}
-          <div className="mb-6">
+          <div className="mb-4">
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
               Task Description <span className="text-red-500" aria-label="required">*</span>
             </label>
@@ -194,9 +217,8 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
               rows={4}
               aria-invalid={errors.description ? 'true' : 'false'}
               aria-describedby={errors.description ? 'description-error' : undefined}
-              className={`w-full px-4 py-3 text-base rounded-xl shadow-sm input-enhanced disabled:bg-gray-50 disabled:text-gray-500 resize-none ${
-                errors.description ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
-              }`}
+              className={`w-full px-4 py-3 text-base rounded-xl shadow-sm input-enhanced disabled:bg-gray-50 disabled:text-gray-500 resize-none ${errors.description ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
+                }`}
               placeholder="Enter task description"
               style={{ fontSize: '16px' }} // Prevents zoom on iOS
               maxLength={500}
@@ -206,6 +228,97 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
                 <span className="sr-only">Error: </span>
                 {errors.description}
               </p>
+            )}
+          </div>
+
+          {/* Priority Field */}
+          <div className="mb-4">
+            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+              Priority
+            </label>
+            <select
+              id="priority"
+              name="priority"
+              value={formData.priority}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              className="w-full px-4 py-3 text-base rounded-xl shadow-sm input-enhanced disabled:bg-gray-50 disabled:text-gray-500"
+              style={{ fontSize: '16px' }}
+            >
+              <option value="low">🟢 Low Priority</option>
+              <option value="medium">🟡 Medium Priority</option>
+              <option value="high">🔴 High Priority</option>
+            </select>
+          </div>
+
+          {/* Assignee Field */}
+          <div className="mb-4">
+            <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 mb-2">
+              Assign To
+            </label>
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <span className="text-sm font-bold text-white">
+                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">{user?.name || 'Unknown User'}</p>
+                <p className="text-xs text-gray-500">Assigned to you</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Labels Field */}
+          <div className="mb-6">
+            <label htmlFor="labels" className="block text-sm font-medium text-gray-700 mb-2">
+              Labels
+            </label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addLabel();
+                  }
+                }}
+                disabled={isSubmitting}
+                className="flex-1 px-3 py-2 text-sm rounded-lg shadow-sm input-enhanced disabled:bg-gray-50"
+                placeholder="Add label (e.g., bug, feature, urgent)"
+                maxLength={20}
+              />
+              <button
+                type="button"
+                onClick={addLabel}
+                disabled={isSubmitting || !newLabel.trim()}
+                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add
+              </button>
+            </div>
+            {formData.labels.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {formData.labels.map((label, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {label}
+                    <button
+                      type="button"
+                      onClick={() => removeLabel(label)}
+                      disabled={isSubmitting}
+                      className="ml-2 text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                      aria-label={`Remove ${label} label`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
             )}
           </div>
 

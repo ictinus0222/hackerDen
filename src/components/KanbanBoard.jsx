@@ -18,6 +18,11 @@ const KanbanBoard = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [draggingTask, setDraggingTask] = useState(null);
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+  const [filters, setFilters] = useState({
+    priority: 'all',
+    label: 'all',
+    search: ''
+  });
   
   const touchDragDrop = useTouchDragDrop();
 
@@ -32,10 +37,73 @@ const KanbanBoard = () => {
     }
   };
 
+  const handleTaskDelete = async (taskId) => {
+    if (!confirm('Are you sure you want to delete this task?')) {
+      return;
+    }
+
+    try {
+      setIsUpdatingTask(true);
+      await taskService.deleteTask(taskId);
+      refetch(); // Refresh the tasks after deletion
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      alert('Failed to delete task. Please try again.');
+    } finally {
+      setIsUpdatingTask(false);
+    }
+  };
+
+  const handleUpdateExistingTasks = async () => {
+    if (!confirm('This will add default priority (medium) and empty labels to all existing tasks. Continue?')) {
+      return;
+    }
+
+    try {
+      setIsUpdatingTask(true);
+      
+      // Get all tasks
+      const allTasks = [
+        ...tasksByStatus.todo,
+        ...tasksByStatus.in_progress,
+        ...tasksByStatus.blocked,
+        ...tasksByStatus.done
+      ];
+
+      // Update tasks that don't have priority or labels
+      const updatePromises = allTasks
+        .filter(task => !task.priority || !task.labels)
+        .map(task => 
+          taskService.updateTaskFields(task.$id, {
+            priority: task.priority || 'medium',
+            labels: task.labels || []
+          })
+        );
+
+      await Promise.all(updatePromises);
+      
+      alert(`Updated ${updatePromises.length} tasks with priority and labels!`);
+      refetch(); // Refresh the tasks
+    } catch (error) {
+      console.error('Failed to update existing tasks:', error);
+      alert('Failed to update tasks. Please try again.');
+    } finally {
+      setIsUpdatingTask(false);
+    }
+  };
+
   const handleTaskCreated = (newTask) => {
     // The real-time subscription in useTasks will handle adding the new task
     // This callback can be used for additional actions if needed
     console.log('New task created:', newTask);
+  };
+
+  // WIP Limits configuration
+  const WIP_LIMITS = {
+    todo: null, // No limit for backlog
+    in_progress: 3,
+    blocked: 2,
+    done: null // No limit for completed tasks
   };
 
   const handleTaskDrop = async (taskId, newStatus) => {
@@ -60,6 +128,13 @@ const KanbanBoard = () => {
       return; // No change needed
     }
 
+    // Check WIP limits before moving
+    const wipLimit = WIP_LIMITS[newStatus];
+    if (wipLimit && tasksByStatus[newStatus].length >= wipLimit) {
+      alert(`Cannot move task: ${newStatus.replace('_', ' ')} column has reached its WIP limit of ${wipLimit} tasks.`);
+      return;
+    }
+
     try {
       setIsUpdatingTask(true);
       console.log('Updating task status from', task.status, 'to', newStatus);
@@ -68,7 +143,7 @@ const KanbanBoard = () => {
       // The real-time subscription will handle updating the UI
     } catch (error) {
       console.error('Failed to update task status:', error);
-      // You could add a toast notification here for better UX
+      alert('Failed to update task status. Please try again.');
     } finally {
       setIsUpdatingTask(false);
       setDraggingTask(null);
@@ -98,28 +173,57 @@ const KanbanBoard = () => {
     };
   }, []);
 
+  // Filter tasks based on current filters
+  const filterTasks = (tasks) => {
+    return tasks.filter(task => {
+      const priorityMatch = filters.priority === 'all' || task.priority === filters.priority;
+      const labelMatch = filters.label === 'all' || (task.labels && task.labels.includes(filters.label));
+      const searchMatch = !filters.search || 
+        task.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        task.description.toLowerCase().includes(filters.search.toLowerCase());
+      return priorityMatch && labelMatch && searchMatch;
+    });
+  };
+
+  // Get all unique labels for filter dropdown
+  const getAllLabels = () => {
+    const allTasks = [
+      ...tasksByStatus.todo,
+      ...tasksByStatus.in_progress,
+      ...tasksByStatus.blocked,
+      ...tasksByStatus.done
+    ];
+    const labels = new Set();
+    allTasks.forEach(task => {
+      if (task.labels) {
+        task.labels.forEach(label => labels.add(label));
+      }
+    });
+    return Array.from(labels);
+  };
+
   const columns = [
-    { title: 'To-Do', status: 'todo', tasks: tasksByStatus.todo },
-    { title: 'In Progress', status: 'in_progress', tasks: tasksByStatus.in_progress },
-    { title: 'Blocked', status: 'blocked', tasks: tasksByStatus.blocked },
-    { title: 'Done', status: 'done', tasks: tasksByStatus.done }
+    { title: 'To-Do', status: 'todo', tasks: filterTasks(tasksByStatus.todo) },
+    { title: 'In Progress', status: 'in_progress', tasks: filterTasks(tasksByStatus.in_progress) },
+    { title: 'Blocked', status: 'blocked', tasks: filterTasks(tasksByStatus.blocked) },
+    { title: 'Done', status: 'done', tasks: filterTasks(tasksByStatus.done) }
   ];
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-gray-200 p-6 sm:p-8 h-full flex flex-col card-enhanced animate-fade-in">
+      <div className="card p-6 h-full flex flex-col fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg loading-skeleton"></div>
-            <div className="h-8 w-48 loading-skeleton rounded-lg"></div>
+            <div className="w-8 h-8 rounded-lg bg-gray-200 animate-pulse"></div>
+            <div className="h-8 w-48 bg-gray-200 animate-pulse rounded-lg"></div>
           </div>
           <div className="flex items-center space-x-3">
-            <div className="h-10 w-32 loading-skeleton rounded-xl"></div>
-            <div className="h-10 w-24 loading-skeleton rounded-xl"></div>
+            <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-lg"></div>
+            <div className="h-10 w-24 bg-gray-200 animate-pulse rounded-lg"></div>
           </div>
         </div>
         
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 min-h-0">
+        <div className="flex-1 grid grid-cols-4 gap-6 min-h-0 overflow-y-auto">
           <KanbanColumnSkeleton />
           <KanbanColumnSkeleton />
           <KanbanColumnSkeleton />
@@ -131,7 +235,7 @@ const KanbanBoard = () => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
+      <div className="card p-6 h-full">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Kanban Board</h2>
         <div className="h-96 overflow-y-auto">
           <AppwriteSetupGuide error={error} />
@@ -142,17 +246,17 @@ const KanbanBoard = () => {
 
   return (
     <section 
-      className="rounded-2xl p-6 sm:p-8 h-full flex flex-col card-enhanced animate-fade-in"
+      className="bg-gray-900/20 backdrop-blur-sm rounded-xl border border-gray-700/30 p-6 h-full flex flex-col fade-in"
       aria-label="Kanban task board"
     >
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0">
-        <div className="flex items-center space-x-2">
-          <div className="w-5 h-5 rounded bg-gradient-to-br from-blue-500 to-orange-500 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v10z" />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold gradient-text">Kanban Board</h2>
+          <h2 className="text-lg font-semibold text-gray-100">Kanban Board</h2>
         </div>
         
         <div className="flex items-center space-x-3" role="toolbar" aria-label="Board actions">
@@ -177,7 +281,55 @@ const KanbanBoard = () => {
               </span>
             </div>
           </div>
+
+          {/* Search and Filters */}
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={filters.search}
+              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              className="px-3 py-1.5 text-xs bg-gray-700/50 text-gray-300 rounded-md border border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-32"
+            />
+            
+            <select
+              value={filters.priority}
+              onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
+              className="px-3 py-1.5 text-xs bg-gray-700/50 text-gray-300 rounded-md border border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Priorities</option>
+              <option value="high">🔴 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+            
+            <select
+              value={filters.label}
+              onChange={(e) => setFilters(prev => ({ ...prev, label: e.target.value }))}
+              className="px-3 py-1.5 text-xs bg-gray-700/50 text-gray-300 rounded-md border border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Labels</option>
+              {getAllLabels().map(label => (
+                <option key={label} value={label}>{label}</option>
+              ))}
+            </select>
+          </div>
           
+          {/* Update Existing Tasks Button (Development) */}
+          {process.env.NODE_ENV === 'development' && (
+            <button
+              onClick={handleUpdateExistingTasks}
+              className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 min-h-[44px] touch-manipulation bg-orange-600 text-white hover:bg-orange-700"
+              aria-label="Update existing tasks with priority"
+              type="button"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="hidden sm:inline text-xs">Fix Tasks</span>
+            </button>
+          )}
+
           {/* Professional Create Task Button */}
           <button
             onClick={() => setIsTaskModalOpen(true)}
@@ -210,7 +362,7 @@ const KanbanBoard = () => {
       
       {/* Kanban Columns */}
       <div 
-        className={`flex-1 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 min-h-0 ${
+        className={`flex-1 grid grid-cols-4 gap-6 min-h-0 overflow-y-auto ${
           isUpdatingTask ? 'pointer-events-none opacity-75' : ''
         }`}
         role="application"
@@ -229,6 +381,8 @@ const KanbanBoard = () => {
             draggingTask={draggingTask || touchDragDrop.draggedItem}
             onDragStart={handleDragStart}
             touchHandlers={touchDragDrop}
+            onTaskDelete={handleTaskDelete}
+            wipLimit={WIP_LIMITS[column.status]}
           />
         ))}
       </div>

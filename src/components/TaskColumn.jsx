@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import TaskCard from './TaskCard';
 
-const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, draggingTask, onDragStart, touchHandlers }) => {
+const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, draggingTask, onDragStart, touchHandlers, onTaskDelete, wipLimit }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const getColumnColor = (status) => {
     switch (status) {
@@ -80,22 +80,26 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
   };
 
   return (
-    <div className={`flex flex-col h-full ${className} animate-fade-in`} role="region" aria-label={`${title} tasks`}>
-      {/* Professional Column Header */}
-      <header className={`${getHeaderColor(status)} px-4 py-4 rounded-t-2xl`}>
+    <div className={`kanban-column flex flex-col h-full ${className} animate-fade-in`} role="region" aria-label={`${title} tasks`}>
+      {/* Modern Column Header */}
+      <header className={`kanban-column-header px-4 py-3`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className={`w-2 h-2 rounded-full ${getStatusDot(status)}`}></div>
-            <h3 className="font-semibold text-sm uppercase tracking-wider truncate" id={`column-${status}`}>
+            <h3 className="font-medium text-gray-200 text-sm truncate" id={`column-${status}`}>
               {title}
             </h3>
           </div>
           <div className="flex items-center space-x-2">
             <span 
-              className="bg-dark-elevated text-xs font-mono font-bold px-2.5 py-1 rounded-lg flex-shrink-0 min-w-[28px] text-center border border-dark-primary text-dark-secondary"
-              aria-label={`${tasks.length} tasks in ${title}`}
+              className={`text-xs font-medium px-2 py-1 rounded-md flex-shrink-0 min-w-[24px] text-center ${
+                wipLimit && tasks.length >= wipLimit 
+                  ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
+                  : 'bg-gray-700/50 text-gray-300'
+              }`}
+              aria-label={`${tasks.length} tasks in ${title}${wipLimit ? ` (limit: ${wipLimit})` : ''}`}
             >
-              {tasks.length}
+              {wipLimit ? `${tasks.length}/${wipLimit}` : tasks.length}
             </span>
           </div>
         </div>
@@ -103,8 +107,8 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
 
       {/* Column Content */}
       <div 
-        className={`flex-1 p-4 bg-dark-secondary rounded-b-2xl border-l border-r border-b border-dark-primary min-h-0 transition-all duration-300 ${
-          isDragOver ? 'bg-blue-500/10 border-blue-500 border-2 border-dashed shadow-xl' : ''
+        className={`flex-1 p-3 bg-gray-900/30 backdrop-blur-sm rounded-b-xl min-h-0 transition-all duration-300 ${
+          isDragOver ? 'bg-blue-500/10 border-blue-500/50 border-2 border-dashed shadow-xl' : ''
         }`}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
@@ -116,11 +120,11 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
         aria-live="polite"
         aria-atomic="false"
       >
-        <div className="space-y-3 sm:space-y-4 h-full overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="space-y-4 h-full" style={{ WebkitOverflowScrolling: 'touch' }}>
           {tasks.length === 0 ? (
             <div 
-              className={`flex flex-col items-center justify-center h-32 sm:h-40 text-dark-muted text-sm text-center transition-all duration-300 rounded-xl border-2 border-dashed border-dark-primary ${
-                isDragOver ? 'text-blue-400 font-medium border-blue-500 bg-blue-500/5' : ''
+              className={`flex flex-col items-center justify-center h-32 sm:h-40 text-gray-500 text-sm text-center transition-all duration-300 rounded-xl border-2 border-dashed border-gray-700/50 ${
+                isDragOver ? 'text-blue-400 font-medium border-blue-500/50 bg-blue-500/5' : ''
               }`}
               role="status"
               aria-live="polite"
@@ -151,6 +155,7 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
                   onTouchStart={touchHandlers?.handleTouchStart}
                   onTouchMove={touchHandlers?.handleTouchMove}
                   onTouchEnd={(e) => touchHandlers?.handleTouchEnd(e, onTaskDrop)}
+                  onDelete={onTaskDelete}
                   aria-posinset={index + 1}
                   aria-setsize={tasks.length}
                 />

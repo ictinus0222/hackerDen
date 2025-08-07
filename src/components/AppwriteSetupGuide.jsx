@@ -34,6 +34,8 @@ const AppwriteSetupGuide = ({ error }) => {
             <div><code className="bg-gray-100 px-1 rounded">status</code> - String, Required</div>
             <div><code className="bg-gray-100 px-1 rounded">assignedTo</code> - String, Required</div>
             <div><code className="bg-gray-100 px-1 rounded">createdBy</code> - String, Required</div>
+            <div><code className="bg-gray-100 px-1 rounded">priority</code> - String, Optional (default: "medium")</div>
+            <div><code className="bg-gray-100 px-1 rounded">labels</code> - Array, Optional (default: [])</div>
           </div>
         </div>
 

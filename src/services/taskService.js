@@ -16,7 +16,9 @@ export const taskService = {
           description: taskData.description || '',
           status: 'todo',
           assignedTo: taskData.assignedTo,
-          createdBy: taskData.createdBy
+          createdBy: taskData.createdBy,
+          priority: taskData.priority || 'medium',
+          labels: taskData.labels || []
         }
       );
 
@@ -113,6 +115,39 @@ export const taskService = {
     } catch (error) {
       console.error('Error updating task status:', error);
       throw new Error('Failed to update task status');
+    }
+  },
+
+  // Delete a task
+  async deleteTask(taskId) {
+    try {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      throw new Error('Failed to delete task');
+    }
+  },
+
+  // Update task with priority and labels (for existing tasks)
+  async updateTaskFields(taskId, updates) {
+    try {
+      const task = await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId,
+        updates
+      );
+
+      return task;
+    } catch (error) {
+      console.error('Error updating task fields:', error);
+      throw new Error('Failed to update task fields');
     }
   },
 
