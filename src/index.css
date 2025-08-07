@@ -11,7 +11,7 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #7c3aed 100%);
+  background: #122021;
   color: #f8fafc;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -43,20 +43,23 @@ body {
 
   /* Modern Dark Card System */
   .card {
-    @apply bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700/50;
+    @apply backdrop-blur-sm rounded-xl shadow-lg;
+    background: transparent;
   }
 
   .card-hover {
-    @apply hover:shadow-xl hover:border-gray-600/50 hover:bg-gray-800/95 transition-all duration-300;
+    @apply hover:shadow-xl transition-all duration-300;
   }
 
   /* Kanban Column Styling */
   .kanban-column {
-    @apply bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-700/30;
+    @apply backdrop-blur-sm rounded-xl;
+    background: transparent;
   }
 
   .kanban-column-header {
-    @apply bg-gray-800/60 backdrop-blur-sm rounded-t-xl border-b border-gray-700/30;
+    @apply backdrop-blur-sm rounded-t-xl border-b border-slate-700/20;
+    background: transparent;
   }
 
   /* Clean Input System */

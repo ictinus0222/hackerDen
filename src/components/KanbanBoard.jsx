@@ -54,43 +54,7 @@ const KanbanBoard = () => {
     }
   };
 
-  const handleUpdateExistingTasks = async () => {
-    if (!confirm('This will add default priority (medium) and empty labels to all existing tasks. Continue?')) {
-      return;
-    }
 
-    try {
-      setIsUpdatingTask(true);
-      
-      // Get all tasks
-      const allTasks = [
-        ...tasksByStatus.todo,
-        ...tasksByStatus.in_progress,
-        ...tasksByStatus.blocked,
-        ...tasksByStatus.done
-      ];
-
-      // Update tasks that don't have priority or labels
-      const updatePromises = allTasks
-        .filter(task => !task.priority || !task.labels)
-        .map(task => 
-          taskService.updateTaskFields(task.$id, {
-            priority: task.priority || 'medium',
-            labels: task.labels || []
-          })
-        );
-
-      await Promise.all(updatePromises);
-      
-      alert(`Updated ${updatePromises.length} tasks with priority and labels!`);
-      refetch(); // Refresh the tasks
-    } catch (error) {
-      console.error('Failed to update existing tasks:', error);
-      alert('Failed to update tasks. Please try again.');
-    } finally {
-      setIsUpdatingTask(false);
-    }
-  };
 
   const handleTaskCreated = (newTask) => {
     // The real-time subscription in useTasks will handle adding the new task
@@ -177,7 +141,7 @@ const KanbanBoard = () => {
   const filterTasks = (tasks) => {
     return tasks.filter(task => {
       const priorityMatch = filters.priority === 'all' || task.priority === filters.priority;
-      const labelMatch = filters.label === 'all' || (task.labels && task.labels.includes(filters.label));
+      const labelMatch = filters.label === 'all' || (task.labels && Array.isArray(task.labels) && task.labels.includes(filters.label));
       const searchMatch = !filters.search || 
         task.title.toLowerCase().includes(filters.search.toLowerCase()) ||
         task.description.toLowerCase().includes(filters.search.toLowerCase());
@@ -195,7 +159,7 @@ const KanbanBoard = () => {
     ];
     const labels = new Set();
     allTasks.forEach(task => {
-      if (task.labels) {
+      if (task.labels && Array.isArray(task.labels)) {
         task.labels.forEach(label => labels.add(label));
       }
     });
@@ -246,38 +210,39 @@ const KanbanBoard = () => {
 
   return (
     <section 
-      className="bg-gray-900/20 backdrop-blur-sm rounded-xl border border-gray-700/30 p-6 h-full flex flex-col fade-in"
+      className="backdrop-blur-sm rounded-xl shadow-2xl p-6 h-full flex flex-col fade-in"
+      style={{ background: 'transparent' }}
       aria-label="Kanban task board"
     >
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v10z" />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold text-gray-100">Kanban Board</h2>
+          <h2 className="text-lg font-semibold text-slate-100">Kanban Board</h2>
         </div>
         
         <div className="flex items-center space-x-3" role="toolbar" aria-label="Board actions">
           {/* Professional Stats */}
           <div className="hidden sm:flex items-center space-x-6 text-sm">
             <div className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-              <span className="text-dark-secondary font-mono text-xs">
-                {tasksByStatus.in_progress?.length || 0} <span className="text-dark-tertiary">active</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="text-slate-300 font-mono text-xs">
+                {tasksByStatus.in_progress?.length || 0} <span className="text-slate-400">active</span>
               </span>
             </div>
             <div className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-              <span className="text-dark-secondary font-mono text-xs">
-                {tasksByStatus.done?.length || 0} <span className="text-dark-tertiary">done</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+              <span className="text-slate-300 font-mono text-xs">
+                {tasksByStatus.done?.length || 0} <span className="text-slate-400">done</span>
               </span>
             </div>
             <div className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-500"></div>
-              <span className="text-dark-secondary font-mono text-xs">
-                {(tasksByStatus.todo?.length || 0) + (tasksByStatus.blocked?.length || 0)} <span className="text-dark-tertiary">pending</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
+              <span className="text-slate-300 font-mono text-xs">
+                {(tasksByStatus.todo?.length || 0) + (tasksByStatus.blocked?.length || 0)} <span className="text-slate-400">pending</span>
               </span>
             </div>
           </div>
@@ -289,13 +254,13 @@ const KanbanBoard = () => {
               placeholder="Search tasks..."
               value={filters.search}
               onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-gray-700/50 text-gray-300 rounded-md border border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-32"
+              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500 w-32 placeholder-slate-400"
             />
             
             <select
               value={filters.priority}
               onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-gray-700/50 text-gray-300 rounded-md border border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="all">All Priorities</option>
               <option value="high">🔴 High</option>
@@ -306,7 +271,7 @@ const KanbanBoard = () => {
             <select
               value={filters.label}
               onChange={(e) => setFilters(prev => ({ ...prev, label: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-gray-700/50 text-gray-300 rounded-md border border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="all">All Labels</option>
               {getAllLabels().map(label => (
@@ -315,25 +280,12 @@ const KanbanBoard = () => {
             </select>
           </div>
           
-          {/* Update Existing Tasks Button (Development) */}
-          {process.env.NODE_ENV === 'development' && (
-            <button
-              onClick={handleUpdateExistingTasks}
-              className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 min-h-[44px] touch-manipulation bg-orange-600 text-white hover:bg-orange-700"
-              aria-label="Update existing tasks with priority"
-              type="button"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span className="hidden sm:inline text-xs">Fix Tasks</span>
-            </button>
-          )}
+
 
           {/* Professional Create Task Button */}
           <button
             onClick={() => setIsTaskModalOpen(true)}
-            className="flex items-center space-x-2 px-5 py-2.5 text-sm font-medium text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-h-[44px] touch-manipulation btn-primary"
+            className="flex items-center space-x-2 px-5 py-2.5 text-sm font-medium text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 min-h-[44px] touch-manipulation bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200"
             aria-label="Create a new task"
             type="button"
           >
@@ -347,7 +299,7 @@ const KanbanBoard = () => {
           {/* Developer Tools Button */}
           <button
             onClick={handleCreateTestTasks}
-            className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 min-h-[44px] touch-manipulation btn-secondary"
+            className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 min-h-[44px] touch-manipulation bg-slate-700/60 text-slate-300 hover:bg-slate-600/60 transition-all duration-200"
             aria-label="Add sample test tasks"
             type="button"
           >

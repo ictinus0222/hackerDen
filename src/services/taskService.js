@@ -18,7 +18,10 @@ export const taskService = {
           assignedTo: taskData.assignedTo,
           createdBy: taskData.createdBy,
           priority: taskData.priority || 'medium',
-          labels: taskData.labels || []
+          // Store labels as array (now that we have string array attribute)
+          labels: taskData.labels && Array.isArray(taskData.labels) ? 
+            taskData.labels : 
+            []
         }
       );
 
@@ -34,7 +37,29 @@ export const taskService = {
       return task;
     } catch (error) {
       console.error('Error creating task:', error);
-      throw new Error('Failed to create task');
+      console.error('Task data being sent:', {
+        teamId,
+        title: taskData.title,
+        description: taskData.description || '',
+        status: 'todo',
+        assignedTo: taskData.assignedTo,
+        createdBy: taskData.createdBy,
+        priority: taskData.priority || 'medium',
+        labels: taskData.labels || []
+      });
+      
+      // Provide more specific error messages
+      if (error.code === 400) {
+        throw new Error(`Database validation error: ${error.message}`);
+      } else if (error.code === 401) {
+        throw new Error('Permission denied. Check your Appwrite permissions.');
+      } else if (error.code === 404) {
+        throw new Error('Tasks collection not found. Please check your database setup.');
+      } else if (error.message.includes('Attribute not found')) {
+        throw new Error(`Missing database attribute: ${error.message}`);
+      } else {
+        throw new Error(`Failed to create task: ${error.message || 'Unknown error'}`);
+      }
     }
   },
 

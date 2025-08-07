@@ -63,15 +63,15 @@ const TaskCard = ({
   const getAccentColor = (status) => {
     switch (status) {
       case 'todo':
-        return 'border-l-gray-400/50 bg-gradient-to-r from-gray-500/5 to-transparent';
+        return 'border-l-slate-400/60 bg-gradient-to-r from-slate-500/10 to-transparent';
       case 'in_progress':
-        return 'border-l-blue-400/50 bg-gradient-to-r from-blue-500/5 to-transparent';
+        return 'border-l-green-400/80 bg-gradient-to-r from-green-500/15 to-transparent';
       case 'blocked':
-        return 'border-l-red-400/50 bg-gradient-to-r from-red-500/5 to-transparent';
+        return 'border-l-red-400/70 bg-gradient-to-r from-red-500/12 to-transparent';
       case 'done':
-        return 'border-l-emerald-400/50 bg-gradient-to-r from-emerald-500/5 to-transparent';
+        return 'border-l-emerald-400/80 bg-gradient-to-r from-emerald-500/15 to-transparent';
       default:
-        return 'border-l-gray-400/50 bg-gradient-to-r from-gray-500/5 to-transparent';
+        return 'border-l-slate-400/60 bg-gradient-to-r from-slate-500/10 to-transparent';
     }
   };
 
@@ -82,8 +82,9 @@ const TaskCard = ({
       onTouchStart={handleTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      className={`card card-hover group p-4 cursor-move select-none min-h-[120px] slide-up border-l-4 ${getAccentColor(task.status)} ${isDragging ? 'dragging' : ''
+      className={`backdrop-blur-sm border border-slate-700/50 rounded-xl hover:border-slate-600/60 transition-all duration-300 group p-4 cursor-move select-none min-h-[120px] slide-up border-l-4 ${getAccentColor(task.status)} ${isDragging ? 'dragging opacity-50 scale-95' : ''
         }`}
+      style={{ background: 'transparent' }}
       tabIndex="0"
       role="button"
       aria-label={`Task: ${task.title}. Status: ${getStatusLabel(task.status)}. ${task.description ? `Description: ${task.description}` : ''}`}
@@ -100,7 +101,7 @@ const TaskCard = ({
       {/* Task Header */}
       <header className="mb-3">
         <div className="flex items-start justify-between mb-2">
-          <h4 className="font-medium text-gray-100 text-sm leading-relaxed flex-1 pr-2">
+          <h4 className="font-semibold text-slate-100 text-sm leading-relaxed flex-1 pr-2">
             {task.title}
           </h4>
           <button
@@ -110,7 +111,7 @@ const TaskCard = ({
                 onDelete(task.$id);
               }
             }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 rounded-md hover:bg-red-500/20 text-gray-400 hover:text-red-400 flex-shrink-0"
+            className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 rounded-md hover:bg-red-500/20 text-slate-400 hover:text-red-400 hover:scale-110 flex-shrink-0"
             aria-label={`Delete task: ${task.title}`}
             title="Delete task"
           >
@@ -121,13 +122,13 @@ const TaskCard = ({
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-400 font-mono">
+            <span className="text-xs text-slate-400 font-mono bg-slate-700/50 px-2 py-0.5 rounded">
               #{task.$id.slice(-4)}
             </span>
             <span className={`text-xs px-1.5 py-0.5 rounded ${(task.priority === 'high') ? 'bg-red-500/20 text-red-300' :
-                (task.priority === 'medium') ? 'bg-yellow-500/20 text-yellow-300' :
-                  (task.priority === 'low') ? 'bg-green-500/20 text-green-300' :
-                    'bg-yellow-500/20 text-yellow-300' // Default to medium if no priority
+              (task.priority === 'medium') ? 'bg-yellow-500/20 text-yellow-300' :
+                (task.priority === 'low') ? 'bg-green-500/20 text-green-300' :
+                  'bg-yellow-500/20 text-yellow-300' // Default to medium if no priority
               }`}>
               {(task.priority === 'high') ? '🔴' :
                 (task.priority === 'medium') ? '🟡' :
@@ -135,7 +136,7 @@ const TaskCard = ({
             </span>
           </div>
           <div className="flex items-center space-x-1">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
               <span className="text-xs font-bold text-white">
                 {task.title.charAt(0).toUpperCase()}
               </span>
@@ -147,26 +148,26 @@ const TaskCard = ({
       {/* Task Description */}
       {task.description && (
         <div className="mb-4">
-          <p className="text-gray-300 text-xs leading-relaxed line-clamp-2">
+          <p className="text-slate-300 text-xs leading-relaxed line-clamp-2">
             {task.description}
           </p>
         </div>
       )}
 
       {/* Labels */}
-      {task.labels && task.labels.length > 0 && (
+      {task.labels && Array.isArray(task.labels) && task.labels.length > 0 && (
         <div className="mb-3">
           <div className="flex flex-wrap gap-1">
             {task.labels.slice(0, 3).map((label, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30"
               >
                 {label}
               </span>
             ))}
             {task.labels.length > 3 && (
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-500/20 text-gray-400">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-500/20 text-slate-400">
                 +{task.labels.length - 3}
               </span>
             )}
@@ -178,18 +179,18 @@ const TaskCard = ({
       <div className="mb-3">
         <div className="flex items-center justify-between text-xs mb-2">
           <div className="flex items-center space-x-2">
-            <span className="text-gray-400">Progress</span>
-            <span className="text-gray-300 font-medium">
+            <span className="text-slate-400">Progress</span>
+            <span className="text-slate-200 font-medium font-mono">
               {task.status === 'done' ? '100%' : task.status === 'in_progress' ? '50%' : '0%'}
             </span>
           </div>
         </div>
-        <div className="w-full bg-gray-700 rounded-full h-1.5">
+        <div className="w-full bg-slate-700/60 rounded-full h-1.5">
           <div
-            className={`h-1.5 rounded-full transition-all duration-500 ${task.status === 'done' ? 'bg-emerald-500 w-full' :
-              task.status === 'in_progress' ? 'bg-blue-500 w-1/2' :
-                task.status === 'blocked' ? 'bg-red-500 w-1/4' :
-                  'bg-gray-600 w-0'
+            className={`h-1.5 rounded-full transition-all duration-500 ${task.status === 'done' ? 'bg-gradient-to-r from-emerald-500 to-green-500 w-full' :
+              task.status === 'in_progress' ? 'bg-gradient-to-r from-green-500 to-emerald-500 w-1/2' :
+                task.status === 'blocked' ? 'bg-gradient-to-r from-red-500 to-orange-500 w-1/4' :
+                  'bg-slate-600 w-0'
               }`}
           ></div>
         </div>
@@ -198,24 +199,24 @@ const TaskCard = ({
       {/* Professional Task Footer */}
       <footer
         id={`task-${task.$id}-details`}
-        className="flex items-center justify-between text-xs border-t border-gray-700/50 pt-3"
+        className="flex items-center justify-between text-xs border-t border-slate-700/50 pt-3"
       >
         <time
           dateTime={task.$createdAt}
-          className="text-gray-400 text-xs"
+          className="text-slate-400 text-xs font-mono"
           title={`Created on ${new Date(task.$createdAt).toLocaleString()}`}
         >
           {formatDate(task.$createdAt)}
         </time>
         <div className="flex items-center space-x-2">
           {task.$updatedAt !== task.$createdAt && (
-            <div className="w-1.5 h-1.5 bg-orange-400 rounded-full" title="Recently updated"></div>
+            <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Recently updated"></div>
           )}
           <div className="flex items-center space-x-1">
-            <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <span className="text-gray-500">2</span>
+            <span className="text-slate-500 font-mono">2</span>
           </div>
         </div>
       </footer>

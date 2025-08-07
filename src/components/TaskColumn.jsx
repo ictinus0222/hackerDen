@@ -107,9 +107,10 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
 
       {/* Column Content */}
       <div 
-        className={`flex-1 p-3 bg-gray-900/30 backdrop-blur-sm rounded-b-xl min-h-0 transition-all duration-300 ${
+        className={`flex-1 p-3 backdrop-blur-sm rounded-b-xl min-h-0 transition-all duration-300 ${
           isDragOver ? 'bg-blue-500/10 border-blue-500/50 border-2 border-dashed shadow-xl' : ''
         }`}
+        style={{ background: 'transparent' }}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
