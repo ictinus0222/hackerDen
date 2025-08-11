@@ -10,10 +10,12 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #122021;
-  color: #f8fafc;
-  line-height: 1.6;
+  font-family: 'Inter', sans-serif;
+  background: #121C1B;
+  color: #B0B8B6;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
@@ -26,11 +28,37 @@ body {
   }
 
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+    background-color: #00C853;
+    color: #FFFFFF;
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    @apply focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+  }
+
+  .btn-primary:hover {
+    background-color: #00B24A;
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500;
+    background-color: #1E2B29;
+    color: #B0B8B6;
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 1px solid #2a3a37;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    @apply focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary:hover {
+    background-color: #22312F;
+    color: #FFFFFF;
+    border-color: #3a4a47;
   }
 
   .btn-success {
@@ -48,8 +76,11 @@ body {
   }
 
   .card-enhanced {
-    @apply backdrop-blur-sm border border-slate-700/20 shadow-lg;
-    background: rgba(30, 41, 59, 0.4);
+    background-color: #1E2B29;
+    border-radius: 8px;
+    box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    color: #FFFFFF;
   }
 
   .card-hover {
