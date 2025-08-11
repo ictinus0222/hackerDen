@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTeam } from '../hooks/useTeam.jsx';
+import Logo from '../components/Logo.jsx';
 
 const TeamJoinPage = () => {
   const [formData, setFormData] = useState({
@@ -72,6 +73,9 @@ const TeamJoinPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
+          <div className="flex justify-center mb-6">
+            <Logo size="xl" showText={false} />
+          </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Join a Team
           </h2>

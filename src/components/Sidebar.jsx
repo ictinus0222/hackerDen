@@ -1,5 +1,6 @@
-import { useState } from 'react';
+
 import { Link, useLocation } from 'react-router-dom';
+import Logo from './Logo.jsx';
 import { useAuth } from '../hooks/useAuth';
 import { useTeam } from '../hooks/useTeam';
 
@@ -66,9 +67,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-700">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">H</span>
-              </div>
+              <Logo size="sm" showText={false} />
               <div>
                 <h1 className="text-h1 font-bold text-text-primary">HackerDen</h1>
                 {team && (
