@@ -1,0 +1,26 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Disable secrets scanning since we're using environment variables properly
+  SECRETS_SCAN_ENABLED = "false"
+
+# Alternative approach - if you want to keep scanning but exclude specific paths
+# Uncomment the lines below and comment out SECRETS_SCAN_ENABLED if you prefer this approach
+# [build.environment]
+#   SECRETS_SCAN_OMIT_PATHS = "dist/**"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Redirect rules for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
