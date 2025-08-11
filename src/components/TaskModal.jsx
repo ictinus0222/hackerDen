@@ -93,7 +93,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
       console.log('Team ID:', team.$id);
       console.log('User:', user);
 
-      const newTask = await taskService.createTask(team.$id, taskData, user.name);
+      const newTask = await taskService.createTask(team.$id, taskData, user.name, user.name);
 
       // Reset form
       setFormData({ title: '', description: '', priority: 'medium', labels: [] });

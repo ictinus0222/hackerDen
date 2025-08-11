@@ -16,6 +16,18 @@ export const authService = {
   // Login user
   async login(email, password) {
     try {
+      // First, try to clear any existing session
+      try {
+        await account.deleteSession('current');
+      } catch {
+        // Ignore errors if no session exists
+      }
+      
+      // Clear local storage to ensure clean state
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Create new session
       const session = await account.createEmailPasswordSession(email, password);
       return session;
     } catch (error) {
@@ -26,8 +38,20 @@ export const authService = {
   // Logout user
   async logout() {
     try {
-      await account.deleteSession('current');
+      // Delete all sessions to ensure complete logout
+      await this.deleteAllSessions();
+      
+      // Clear any local storage or session storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Force reload to clear any cached state
+      window.location.reload();
     } catch (error) {
+      // Even if logout fails, clear local data and reload
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.reload();
       throw new Error(error.message || 'Logout failed');
     }
   },
@@ -48,6 +72,15 @@ export const authService = {
       return true;
     } catch {
       return false;
+    }
+  },
+
+  // Delete all sessions (for complete logout)
+  async deleteAllSessions() {
+    try {
+      await account.deleteSessions();
+    } catch (error) {
+      console.warn('Failed to delete all sessions:', error);
     }
   }
 };

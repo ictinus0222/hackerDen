@@ -39,7 +39,7 @@ const TeamProvider = ({ children }) => {
     try {
       setError(null);
       setLoading(true);
-      const result = await teamService.createTeam(name, user.$id);
+      const result = await teamService.createTeam(name, user.$id, user.name);
       setTeam({ ...result.team, userRole: 'owner' });
       return result;
     } catch (createError) {
@@ -54,7 +54,7 @@ const TeamProvider = ({ children }) => {
     try {
       setError(null);
       setLoading(true);
-      const joinedTeam = await teamService.joinTeam(joinCode, user.$id);
+      const joinedTeam = await teamService.joinTeam(joinCode, user.$id, user.name);
       setTeam({ ...joinedTeam, userRole: 'member' });
       return joinedTeam;
     } catch (joinError) {

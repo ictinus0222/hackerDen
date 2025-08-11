@@ -13,7 +13,7 @@ export const teamService = {
   },
 
   // Create a new team with the current user as owner
-  async createTeam(name, userId) {
+  async createTeam(name, userId, userName = null) {
     try {
       // Generate unique join code
       let joinCode;
@@ -69,6 +69,7 @@ export const teamService = {
         {
           teamId: team.$id,
           userId,
+          userName: userName || 'Team Owner', // Store user name
           role: 'owner',
           joinedAt: new Date().toISOString()
         }
@@ -116,7 +117,7 @@ export const teamService = {
   },
 
   // Join a team using join code
-  async joinTeam(joinCode, userId) {
+  async joinTeam(joinCode, userId, userName = null) {
     try {
       // Find team by join code
       const teams = await databases.listDocuments(
@@ -157,6 +158,7 @@ export const teamService = {
         {
           teamId: team.$id,
           userId,
+          userName: userName || 'Team Member', // Store user name
           role: 'member',
           joinedAt: new Date().toISOString()
         }

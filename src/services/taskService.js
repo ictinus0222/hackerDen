@@ -4,8 +4,18 @@ import { messageService } from './messageService';
 
 export const taskService = {
   // Create a new task
-  async createTask(teamId, taskData, creatorName) {
+  async createTask(teamId, taskData, creatorName, assignedToName) {
     try {
+      // Store user names in the userNameService cache when creating tasks
+      if (taskData.assignedTo && (assignedToName || creatorName)) {
+        const { userNameService } = await import('./userNameService');
+        userNameService.setUserName(taskData.assignedTo, assignedToName || creatorName);
+      }
+      if (taskData.createdBy && creatorName) {
+        const { userNameService } = await import('./userNameService');
+        userNameService.setUserName(taskData.createdBy, creatorName);
+      }
+
       const task = await databases.createDocument(
         DATABASE_ID,
         COLLECTIONS.TASKS,
@@ -15,8 +25,10 @@ export const taskService = {
           title: taskData.title,
           description: taskData.description || '',
           status: 'todo',
-          assignedTo: taskData.assignedTo,
-          createdBy: taskData.createdBy,
+          assignedTo: taskData.assignedTo, // User ID
+          assigned_to: assignedToName || creatorName, // User name for display
+          createdBy: taskData.createdBy, // User ID
+          created_by: creatorName, // User name for display
           priority: taskData.priority || 'medium',
           // Store labels as array (now that we have string array attribute)
           labels: taskData.labels && Array.isArray(taskData.labels) ? 
@@ -34,6 +46,7 @@ export const taskService = {
         // Don't fail the task creation if system message fails
       }
 
+
       return task;
     } catch (error) {
       console.error('Error creating task:', error);
@@ -43,7 +56,9 @@ export const taskService = {
         description: taskData.description || '',
         status: 'todo',
         assignedTo: taskData.assignedTo,
+        assigned_to: assignedToName || creatorName,
         createdBy: taskData.createdBy,
+        created_by: creatorName,
         priority: taskData.priority || 'medium',
         labels: taskData.labels || []
       });

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { useTeam } from '../hooks/useTeam.jsx';
 import { useTasks } from '../hooks/useTasks.jsx';
+import { useTeamMembers } from '../hooks/useTeamMembers.jsx';
 import Layout from '../components/Layout.jsx';
 import TeamSelector from '../components/TeamSelector.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
@@ -10,10 +11,12 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import ConnectionStatus from '../components/ConnectionStatus.jsx';
 import RealtimeDebugPanel from '../components/RealtimeDebugPanel.jsx';
 
+
 const Dashboard = () => {
   const { user } = useAuth();
   const { team, loading: teamLoading, hasTeam } = useTeam();
   const { tasks, tasksByStatus, loading: tasksLoading } = useTasks();
+  const { members: teamMembers, loading: membersLoading } = useTeamMembers();
   const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   // Get user's tasks
@@ -73,58 +76,7 @@ const Dashboard = () => {
 
   const teamActivity = generateTeamActivity();
 
-  // Generate real team members from task assignments and current user
-  const generateTeamMembers = () => {
-    const members = new Map();
-    
-    // Add current user first
-    if (user?.name) {
-      members.set(user.$id || 'current-user', {
-        id: user.$id || 'current-user',
-        name: user.name,
-        avatar: user.name.charAt(0).toUpperCase(),
-        online: true, // Current user is always online
-        isCurrentUser: true
-      });
-    }
-
-    // Add team members from task assignments
-    tasks.forEach(task => {
-      const assignedTo = task.assigned_to || task.assignedTo;
-      const createdBy = task.createdBy;
-      
-      // Add assigned user
-      if (assignedTo && assignedTo !== user?.name && assignedTo !== user?.$id) {
-        const memberId = typeof assignedTo === 'string' ? assignedTo : assignedTo;
-        if (!members.has(memberId)) {
-          members.set(memberId, {
-            id: memberId,
-            name: assignedTo,
-            avatar: assignedTo.charAt(0).toUpperCase(),
-            online: Math.random() > 0.3, // Random online status for now
-            isCurrentUser: false
-          });
-        }
-      }
-
-      // Add creator if different from assigned user and current user
-      if (createdBy && createdBy !== user?.name && createdBy !== user?.$id && createdBy !== assignedTo) {
-        if (!members.has(createdBy)) {
-          members.set(createdBy, {
-            id: createdBy,
-            name: createdBy,
-            avatar: createdBy.charAt(0).toUpperCase(),
-            online: Math.random() > 0.3, // Random online status for now
-            isCurrentUser: false
-          });
-        }
-      }
-    });
-
-    return Array.from(members.values());
-  };
-
-  const teamMembers = generateTeamMembers();
+  // Team members are now fetched via useTeamMembers hook
 
   const formatTimeAgo = (date) => {
     const now = new Date();
@@ -380,12 +332,21 @@ const Dashboard = () => {
               <div className="card-enhanced rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-dark-primary">Team Members</h3>
-                  <span className="text-sm text-dark-tertiary">
-                    {teamMembers.length} {teamMembers.length === 1 ? 'member' : 'members'}
-                  </span>
+                  {membersLoading ? (
+                    <div className="w-4 h-4 border-2 border-dark-tertiary border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <span className="text-sm text-dark-tertiary">
+                      {teamMembers.length} {teamMembers.length === 1 ? 'member' : 'members'}
+                    </span>
+                  )}
                 </div>
                 <div className="space-y-2 flex-1 overflow-hidden">
-                  {teamMembers.length > 0 ? (
+                  {membersLoading ? (
+                    <div className="text-center py-4">
+                      <div className="w-6 h-6 border-2 border-dark-tertiary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                      <p className="text-sm text-dark-tertiary">Loading team members...</p>
+                    </div>
+                  ) : teamMembers.length > 0 ? (
                     teamMembers.map((member) => (
                       <div key={member.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-dark-elevated/20 transition-colors">
                         <div className="relative">
@@ -406,9 +367,16 @@ const Dashboard = () => {
                           <p className="text-sm font-medium text-dark-primary truncate">
                             {member.name} {member.isCurrentUser ? '(You)' : ''}
                           </p>
-                          <p className="text-xs text-dark-tertiary">
-                            {member.online ? 'Online' : 'Offline'}
-                          </p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-xs text-dark-tertiary">
+                              {member.online ? 'Online' : 'Offline'}
+                            </p>
+                            {member.role === 'owner' && (
+                              <span className="text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">
+                                Owner
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))
@@ -417,9 +385,9 @@ const Dashboard = () => {
                       <svg className="w-10 h-10 text-dark-tertiary mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
-                      <p className="text-sm text-dark-tertiary mb-2">No team members yet</p>
+                      <p className="text-sm text-dark-tertiary mb-2">No team members found</p>
                       <p className="text-xs text-dark-muted">
-                        Team members will appear here as they join and create tasks
+                        Invite team members using your join code
                       </p>
                     </div>
                   )}
