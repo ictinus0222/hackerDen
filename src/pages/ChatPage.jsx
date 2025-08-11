@@ -1,0 +1,62 @@
+import Layout from '../components/Layout.jsx';
+import Chat from '../components/Chat.jsx';
+import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import { useTeam } from '../hooks/useTeam.jsx';
+
+const ChatPage = () => {
+  const { team, hasTeam } = useTeam();
+
+  if (!hasTeam) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <svg className="w-16 h-16 text-dark-tertiary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <h3 className="text-lg font-semibold text-dark-primary mb-2">No Team Found</h3>
+            <p className="text-dark-tertiary mb-4">You need to join or create a team to access team chat.</p>
+            <div className="space-x-3">
+              <a href="/create-team" className="btn-primary">
+                Create Team
+              </a>
+              <a href="/join-team" className="btn-secondary">
+                Join Team
+              </a>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <ErrorBoundary>
+        <div className="h-full flex flex-col">
+          {/* Page Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-dark-primary">Team Chat</h1>
+              <p className="text-dark-tertiary">
+                Communicate with your team in real-time
+              </p>
+            </div>
+            
+            <div className="flex items-center space-x-2 text-sm text-dark-tertiary">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <span>Connected</span>
+            </div>
+          </div>
+
+          {/* Full-Screen Chat */}
+          <div className="flex-1 min-h-0">
+            <Chat />
+          </div>
+        </div>
+      </ErrorBoundary>
+    </Layout>
+  );
+};
+
+export default ChatPage;

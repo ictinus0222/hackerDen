@@ -15,25 +15,22 @@ const ProjectPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Load project data once when component mounts and dependencies are ready
   useEffect(() => {
-    // Simulate loading project data
     const loadProjectData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Add a timeout to prevent infinite loading
-        const timeoutId = setTimeout(() => {
-          setError('Loading timeout - please try again');
-          setLoading(false);
-        }, 8000);
+        // Wait for team and tasks to be loaded
+        if (teamLoading || tasksLoading) {
+          return;
+        }
         
-        // Reduced loading time for better UX
+        // Simulate loading time
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        clearTimeout(timeoutId);
-        
-        // Mock project data based on current team and tasks
+        // Generate project data
         const allTasks = tasksByStatus ? Object.values(tasksByStatus).flat() : [];
         const recentCommits = allTasks.length > 0 ? allTasks.slice(0, 5).map((task, index) => ({
           id: `${task.$id?.slice(0, 7) || Math.random().toString(36).slice(2, 9)}`,
@@ -106,14 +103,35 @@ const ProjectPage = () => {
       }
     };
 
-    // Load project data immediately if team/tasks are ready, otherwise wait briefly
-    const delay = (teamLoading || tasksLoading) ? 1000 : 200;
-    const timer = setTimeout(() => {
-      loadProjectData();
-    }, delay);
+    loadProjectData();
+  }, [projectId, team?.$id, hasTeam]);
 
-    return () => clearTimeout(timer);
-  }, [projectId, team, tasksByStatus, hasTeam, teamLoading, tasksLoading]);
+  // Update project stats when tasks change (without reloading everything)
+  useEffect(() => {
+    if (tasksByStatus && !loading) {
+      const allTasks = Object.values(tasksByStatus).flat();
+      setProjectData(prev => {
+        if (!prev) return prev;
+        
+        const newStats = {
+          totalTasks: allTasks.length,
+          completedTasks: tasksByStatus?.done?.length || 0,
+          activeTasks: (tasksByStatus?.todo?.length || 0) + (tasksByStatus?.in_progress?.length || 0),
+          blockedTasks: tasksByStatus?.blocked?.length || 0
+        };
+        
+        // Only update if stats actually changed to prevent unnecessary re-renders
+        if (JSON.stringify(prev.stats) === JSON.stringify(newStats)) {
+          return prev;
+        }
+        
+        return {
+          ...prev,
+          stats: newStats
+        };
+      });
+    }
+  }, [tasksByStatus, loading]);
 
   if (loading) {
     return (

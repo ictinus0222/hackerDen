@@ -48,11 +48,11 @@ export const messageService = {
   },
 
   // Send a system message (for task updates)
-  async sendSystemMessage(teamId, content, type = 'system') {
+  async sendSystemMessage(teamId, content, type = 'system', userId = 'system') {
     try {
       const messageData = {
         teamId,
-        userId: null, // System messages don't have a user
+        userId: userId, // Use provided userId or 'system' as default
         content: content.trim(),
         type
       };

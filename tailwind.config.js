@@ -29,12 +29,12 @@ export default {
         'border-primary': '#E5E7EB',  // gray-200 - main borders
         'border-secondary': '#D1D5DB', // gray-300 - secondary borders
         
-        // Legacy dark theme colors (for backward compatibility)
-        'dark-primary': '#111827',    // gray-900
-        'dark-secondary': '#6B7280',  // gray-500  
-        'dark-tertiary': '#9CA3AF',   // gray-400
-        'dark-muted': '#9CA3AF',      // gray-400
-        'dark-elevated': '#F3F4F6',   // gray-100 - elevated surfaces
+        // Dark theme colors (properly defined for dark background)
+        'dark-primary': '#F8FAFC',    // slate-50 - primary text on dark bg
+        'dark-secondary': '#CBD5E1',  // slate-300 - secondary text on dark bg
+        'dark-tertiary': '#94A3B8',   // slate-400 - tertiary text on dark bg
+        'dark-muted': '#64748B',      // slate-500 - muted text on dark bg
+        'dark-elevated': '#1E293B',   // slate-800 - elevated surfaces on dark bg
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

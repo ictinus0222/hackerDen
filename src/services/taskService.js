@@ -28,7 +28,7 @@ export const taskService = {
       // Send system message about task creation
       try {
         const systemMessage = `📝 ${creatorName || 'Someone'} created a new task: "${task.title}"`;
-        await messageService.sendSystemMessage(teamId, systemMessage, 'task_created');
+        await messageService.sendSystemMessage(teamId, systemMessage, 'task_created', taskData.createdBy);
       } catch (messageError) {
         console.warn('Failed to send task creation system message:', messageError);
         // Don't fail the task creation if system message fails
@@ -103,7 +103,7 @@ export const taskService = {
   },
 
   // Update task status
-  async updateTaskStatus(taskId, status, taskTitle, teamId) {
+  async updateTaskStatus(taskId, status, taskTitle, teamId, userId = 'system') {
     try {
       const task = await databases.updateDocument(
         DATABASE_ID,
@@ -130,7 +130,7 @@ export const taskService = {
           systemMessage = `🔄 Task "${taskTitle || task.title}" moved to ${statusLabels[status] || status}`;
         }
 
-        await messageService.sendSystemMessage(teamId, systemMessage, 'task_status_changed');
+        await messageService.sendSystemMessage(teamId, systemMessage, 'task_status_changed', userId);
       } catch (messageError) {
         console.warn('Failed to send task status change system message:', messageError);
         // Don't fail the task update if system message fails

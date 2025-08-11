@@ -47,6 +47,11 @@ body {
     background: transparent;
   }
 
+  .card-enhanced {
+    @apply backdrop-blur-sm border border-slate-700/20 shadow-lg;
+    background: rgba(30, 41, 59, 0.4);
+  }
+
   .card-hover {
     @apply hover:shadow-xl transition-all duration-300;
   }
@@ -110,6 +115,14 @@ body {
   animation: slideUp 0.4s ease-out;
 }
 
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
 @keyframes fadeIn {
   from { 
     opacity: 0;
@@ -147,6 +160,25 @@ body {
 
 .drag-over {
   @apply bg-blue-50 border-blue-300 border-2 border-dashed;
+}
+
+/* Sidebar Transitions */
+.sidebar-enter {
+  transform: translateX(-100%);
+}
+
+.sidebar-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-in-out;
+}
+
+.sidebar-exit {
+  transform: translateX(0);
+}
+
+.sidebar-exit-active {
+  transform: translateX(-100%);
+  transition: transform 300ms ease-in-out;
 }
 
 /* Mobile Optimizations */

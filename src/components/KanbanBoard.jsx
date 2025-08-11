@@ -102,7 +102,7 @@ const KanbanBoard = () => {
     try {
       setIsUpdatingTask(true);
       console.log('Updating task status from', task.status, 'to', newStatus);
-      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id);
+      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id, user?.$id);
       console.log('Task status updated successfully');
       // The real-time subscription will handle updating the UI
     } catch (error) {

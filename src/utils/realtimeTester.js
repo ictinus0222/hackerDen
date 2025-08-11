@@ -60,7 +60,8 @@ class RealtimeTester {
         newTask.$id, 
         'in_progress', 
         newTask.title, 
-        teamId
+        teamId,
+        'test-user'
       );
 
       const updateEndTime = Date.now();
@@ -83,7 +84,8 @@ class RealtimeTester {
       await messageService.sendSystemMessage(
         teamId,
         '🧪 Real-time sync test completed',
-        'test'
+        'test',
+        'test-user'
       );
 
       const messageEndTime = Date.now();

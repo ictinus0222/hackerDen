@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import ProjectPage from './pages/ProjectPage';
+import TasksPage from './pages/TasksPage';
+import ChatPage from './pages/ChatPage';
 import DemoPage from './pages/DemoPage';
 import TeamCreationPage from './pages/TeamCreationPage';
 import TeamJoinPage from './pages/TeamJoinPage';
@@ -43,6 +45,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <TeamJoinPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/tasks" 
+                element={
+                  <ProtectedRoute>
+                    <TasksPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/chat" 
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
                   </ProtectedRoute>
                 } 
               />
