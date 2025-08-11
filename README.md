@@ -58,12 +58,19 @@ npm install
 ```
 
 3. Set up environment variables:
-Create a `.env` file in the root directory:
+Copy the example environment file and add your credentials:
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local` with your actual Appwrite credentials:
 ```env
 VITE_APPWRITE_ENDPOINT=https://your-appwrite-endpoint
 VITE_APPWRITE_PROJECT_ID=your-project-id
 VITE_APPWRITE_DATABASE_ID=your-database-id
 ```
+
+**Important**: Never commit `.env.local` to version control. It's automatically ignored by git.
 
 4. Set up Appwrite:
 Follow the setup guide in `docs/appwrite-setup.md` to configure your Appwrite instance.
