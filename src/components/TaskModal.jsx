@@ -1,8 +1,86 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTeam } from '../hooks/useTeam';
 import { useTeamMembers } from '../hooks/useTeamMembers';
 import { taskService } from '../services/taskService';
+
+// Custom Dropdown Component
+const CustomDropdown = ({ 
+  label, 
+  value, 
+  onChange, 
+  options, 
+  disabled = false, 
+  placeholder = "Select an option",
+  required = false 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(option => option.value === value);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <label className="block text-sm font-medium text-dark-secondary mb-2">
+        {label} {required && <span className="text-red-400" aria-label="required">*</span>}
+      </label>
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full px-4 py-3 text-base rounded-xl bg-background-sidebar border border-dark-primary/30 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 hover:border-green-500/50 transition-all duration-200 flex items-center justify-between ${
+          isOpen ? 'ring-2 ring-green-500 border-green-500' : ''
+        }`}
+        style={{ fontSize: '16px' }}
+      >
+        <span className={selectedOption ? 'text-white' : 'text-dark-tertiary'}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <svg 
+          className={`w-5 h-5 text-dark-tertiary transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-background-sidebar border border-dark-primary/30 rounded-xl shadow-lg max-h-60 overflow-auto">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`w-full px-4 py-3 text-left text-base hover:bg-sidebar-hover transition-colors duration-200 first:rounded-t-xl last:rounded-b-xl ${
+                value === option.value 
+                  ? 'bg-green-500/20 text-green-300 border-l-2 border-green-500' 
+                  : 'text-white hover:text-green-300'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = null }) => {
   const { user } = useAuth();
@@ -179,7 +257,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -189,23 +267,32 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
         }
       }}
     >
-      <div className="card-enhanced rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-bounce-in">
+      <div 
+        className="w-full max-w-lg max-h-[90vh] overflow-hidden animate-slide-up rounded-2xl shadow-card border border-dark-primary/10"
+        style={{ backgroundColor: '#1E2B29' }}
+      >
         {/* Modal Header */}
-        <header className="flex items-center justify-between p-6 border-b border-dark-primary/20 sticky top-0 backdrop-blur-sm rounded-t-2xl" style={{ background: 'rgba(30, 41, 59, 0.6)' }}>
+        <header className="flex items-center justify-between p-6 border-b border-dark-primary/20">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+              {editTask ? (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              )}
             </div>
-            <h2 id="modal-title" className="text-xl font-bold text-dark-primary">
+            <h2 id="modal-title" className="text-xl font-bold text-white">
               {editTask ? 'Edit Task' : 'Create New Task'}
             </h2>
           </div>
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="text-dark-tertiary hover:text-dark-secondary active:text-dark-primary focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 p-2 -m-2 min-h-[44px] min-w-[44px] touch-manipulation rounded-md"
+            className="text-dark-tertiary hover:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 p-2 rounded-lg hover:bg-dark-primary/20"
             aria-label="Close dialog"
             type="button"
           >
@@ -216,220 +303,253 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
         </header>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="p-6" style={{ background: 'rgba(30, 41, 59, 0.4)' }} noValidate>
-          {/* General Error */}
-          {errors.general && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md" role="alert">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <p className="text-sm text-red-600">{errors.general}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Title Field */}
-          <div className="mb-4">
-            <label htmlFor="title" className="block text-sm font-medium text-dark-secondary mb-2">
-              Task Title <span className="text-red-400" aria-label="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              disabled={isSubmitting}
-              required
-              aria-invalid={errors.title ? 'true' : 'false'}
-              aria-describedby={errors.title ? 'title-error' : undefined}
-              className={`w-full px-4 py-3 text-base rounded-xl shadow-sm backdrop-blur-sm text-dark-primary border border-dark-primary/20 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:text-dark-tertiary placeholder-dark-tertiary ${errors.title ? 'border-red-400 focus:ring-red-500 focus:border-red-400' : ''
-                }`}
-              style={{ background: 'rgba(30, 41, 59, 0.3)', fontSize: '16px' }} // Prevents zoom on iOS
-              placeholder="Enter task title"
-              maxLength={100}
-            />
-            {errors.title && (
-              <p id="title-error" className="mt-1 text-sm text-red-600" role="alert">
-                <span className="sr-only">Error: </span>
-                {errors.title}
-              </p>
-            )}
-          </div>
-
-          {/* Description Field */}
-          <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-medium text-dark-secondary mb-2">
-              Task Description <span className="text-red-400" aria-label="required">*</span>
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              disabled={isSubmitting}
-              required
-              rows={4}
-              aria-invalid={errors.description ? 'true' : 'false'}
-              aria-describedby={errors.description ? 'description-error' : undefined}
-              className={`w-full px-4 py-3 text-base rounded-xl shadow-sm backdrop-blur-sm text-dark-primary border border-dark-primary/20 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:text-dark-tertiary placeholder-dark-tertiary resize-none ${errors.description ? 'border-red-400 focus:ring-red-500 focus:border-red-400' : ''
-                }`}
-              style={{ background: 'rgba(30, 41, 59, 0.3)', fontSize: '16px' }} // Prevents zoom on iOS
-              placeholder="Enter task description"
-              maxLength={500}
-            />
-            {errors.description && (
-              <p id="description-error" className="mt-1 text-sm text-red-600" role="alert">
-                <span className="sr-only">Error: </span>
-                {errors.description}
-              </p>
-            )}
-          </div>
-
-          {/* Priority Field */}
-          <div className="mb-4">
-            <label htmlFor="priority" className="block text-sm font-medium text-dark-secondary mb-2">
-              Priority
-            </label>
-            <select
-              id="priority"
-              name="priority"
-              value={formData.priority}
-              onChange={handleInputChange}
-              disabled={isSubmitting}
-              className="w-full px-4 py-3 text-base rounded-xl shadow-sm backdrop-blur-sm text-dark-primary border border-dark-primary/20 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:text-dark-tertiary"
-              style={{ background: 'rgba(30, 41, 59, 0.3)', fontSize: '16px' }}
-            >
-              <option value="low">🟢 Low Priority</option>
-              <option value="medium">🟡 Medium Priority</option>
-              <option value="high">🔴 High Priority</option>
-            </select>
-          </div>
-
-          {/* Assignee Field */}
-          <div className="mb-4">
-            <label htmlFor="assignedTo" className="block text-sm font-medium text-dark-secondary mb-2">
-              Assign To
-            </label>
-            {team?.userRole === 'owner' ? (
-              // Team Leader can assign to any member
-              <select
-                id="assignedTo"
-                name="assignedTo"
-                value={formData.assignedTo}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                className="w-full px-4 py-3 text-base rounded-xl shadow-sm backdrop-blur-sm text-dark-primary border border-dark-primary/20 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:text-dark-tertiary"
-                style={{ background: 'rgba(30, 41, 59, 0.3)', fontSize: '16px' }}
-              >
-                {members.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.name} {member.role === 'owner' ? '(Team Leader)' : '(Member)'}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              // Regular members can only assign to themselves
-              <div className="flex items-center space-x-3 p-3 backdrop-blur-sm rounded-xl border border-dark-primary/20" style={{ background: 'rgba(30, 41, 59, 0.3)' }}>
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
-                  <span className="text-sm font-bold text-white">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </span>
+        <div className="max-h-[calc(90vh-140px)] overflow-y-auto">
+          <form id="task-form" onSubmit={handleSubmit} className="p-6" noValidate>
+            {/* General Error */}
+            {errors.general && (
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl" role="alert">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-red-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm text-red-300">{errors.general}</p>
                 </div>
+              </div>
+            )}
+
+            {/* Main Content Section */}
+            <div className="space-y-5">
+              {/* Title Field - Full Width */}
+              <div>
+                <label htmlFor="title" className="block text-sm font-semibold text-white mb-3 flex items-center">
+                  <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  Task Title <span className="text-red-400 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  required
+                  aria-invalid={errors.title ? 'true' : 'false'}
+                  aria-describedby={errors.title ? 'title-error' : undefined}
+                  className={`w-full px-4 py-3 text-base rounded-xl border text-white placeholder-dark-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 transition-all duration-200 ${
+                    errors.title 
+                      ? 'bg-red-500/5 border-red-400 focus:ring-red-500 focus:border-red-400' 
+                      : 'bg-background-sidebar border-dark-primary/30 hover:border-green-500/50'
+                  }`}
+                  style={{ fontSize: '16px' }}
+                  placeholder="What needs to be done?"
+                  maxLength={100}
+                />
+                {errors.title && (
+                  <p id="title-error" className="mt-2 text-sm text-red-400 flex items-center" role="alert">
+                    <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.title}
+                  </p>
+                )}
+              </div>
+
+              {/* Description Field - Full Width */}
+              <div>
+                <label htmlFor="description" className="block text-sm font-semibold text-white mb-3 flex items-center">
+                  <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                  Description <span className="text-red-400 ml-1">*</span>
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  required
+                  rows={3}
+                  aria-invalid={errors.description ? 'true' : 'false'}
+                  aria-describedby={errors.description ? 'description-error' : undefined}
+                  className={`w-full px-4 py-3 text-base rounded-xl border text-white placeholder-dark-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 resize-none transition-all duration-200 ${
+                    errors.description 
+                      ? 'bg-red-500/5 border-red-400 focus:ring-red-500 focus:border-red-400' 
+                      : 'bg-background-sidebar border-dark-primary/30 hover:border-green-500/50'
+                  }`}
+                  style={{ fontSize: '16px' }}
+                  placeholder="Describe the task details..."
+                  maxLength={500}
+                />
+                {errors.description && (
+                  <p id="description-error" className="mt-2 text-sm text-red-400 flex items-center" role="alert">
+                    <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Two Column Layout for Priority and Assignment */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Priority Field */}
                 <div>
-                  <p className="text-sm font-medium text-dark-primary">{user?.name || 'Unknown User'}</p>
-                  <p className="text-xs text-dark-tertiary">Assigned to you</p>
+                  <label className="block text-sm font-semibold text-white mb-3 flex items-center">
+                    <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Priority
+                  </label>
+                  <CustomDropdown
+                    label=""
+                    value={formData.priority}
+                    onChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
+                    options={[
+                      { value: 'low', label: '🟢 Low Priority' },
+                      { value: 'medium', label: '🟡 Medium Priority' },
+                      { value: 'high', label: '🔴 High Priority' }
+                    ]}
+                    disabled={isSubmitting}
+                    placeholder="Select priority"
+                  />
+                </div>
+
+                {/* Assignee Field */}
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-3 flex items-center">
+                    <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Assign To
+                  </label>
+                  {team?.userRole === 'owner' ? (
+                    <CustomDropdown
+                      label=""
+                      value={formData.assignedTo}
+                      onChange={(value) => setFormData(prev => ({ ...prev, assignedTo: value }))}
+                      options={members.map((member) => ({
+                        value: member.id,
+                        label: `${member.name} ${member.role === 'owner' ? '(Leader)' : ''}`
+                      }))}
+                      disabled={isSubmitting}
+                      placeholder="Select member"
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-3 p-3 bg-background-sidebar rounded-xl border border-dark-primary/30">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <span className="text-xs font-bold text-white">
+                          {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-white">{user?.name || 'You'}</p>
+                        <p className="text-xs text-dark-tertiary">Self-assigned</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Labels Field */}
-          <div className="mb-6">
-            <label htmlFor="labels" className="block text-sm font-medium text-dark-secondary mb-2">
-              Labels
-            </label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addLabel();
-                  }
-                }}
-                disabled={isSubmitting}
-                className="flex-1 px-3 py-2 text-sm rounded-lg shadow-sm backdrop-blur-sm text-dark-primary border border-dark-primary/20 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 placeholder-dark-tertiary"
-                style={{ background: 'rgba(30, 41, 59, 0.3)' }}
-                placeholder="Add label (e.g., bug, feature, urgent)"
-                maxLength={20}
-              />
-              <button
-                type="button"
-                onClick={addLabel}
-                disabled={isSubmitting || !newLabel.trim()}
-                className="px-4 py-2 text-sm font-medium text-green-300 bg-green-500/20 rounded-lg hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed border border-green-500/30"
-              >
-                Add
-              </button>
-            </div>
-            {formData.labels.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {formData.labels.map((label, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30"
+              {/* Labels Section */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-3 flex items-center">
+                  <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  Labels
+                </label>
+                
+                {/* Label Input */}
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addLabel();
+                      }
+                    }}
+                    disabled={isSubmitting}
+                    className="flex-1 px-3 py-2 text-sm rounded-lg bg-background-sidebar border border-dark-primary/30 text-white placeholder-dark-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 hover:border-green-500/50 transition-all duration-200"
+                    placeholder="Add a label..."
+                    maxLength={20}
+                  />
+                  <button
+                    type="button"
+                    onClick={addLabel}
+                    disabled={isSubmitting || !newLabel.trim()}
+                    className="px-4 py-2 text-sm font-medium text-green-300 bg-green-500/20 rounded-lg hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed border border-green-500/30 transition-all duration-200 flex items-center"
                   >
-                    {label}
-                    <button
-                      type="button"
-                      onClick={() => removeLabel(label)}
-                      disabled={isSubmitting}
-                      className="ml-2 text-green-300 hover:text-green-200 disabled:opacity-50"
-                      aria-label={`Remove ${label} label`}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add
+                  </button>
+                </div>
 
-          {/* Modal Footer */}
-          <footer className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:space-x-3 sm:gap-0 p-6 rounded-b-2xl border-t border-dark-primary/20 backdrop-blur-sm" style={{ background: 'rgba(30, 41, 59, 0.6)' }}>
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={isSubmitting}
-              className="px-6 py-3 text-sm font-semibold text-dark-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] touch-manipulation backdrop-blur-sm hover:backdrop-blur-md transition-all duration-200 border border-dark-primary/20"
-              style={{ background: 'rgba(30, 41, 59, 0.4)' }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-3 text-sm font-semibold text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] touch-manipulation bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200"
-              aria-describedby={isSubmitting ? "submit-status" : undefined}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="flex items-center">
-                    <div className="spinner w-4 h-4 mr-2 text-white" aria-hidden="true"></div>
-                    {editTask ? 'Updating...' : 'Creating...'}
-                  </span>
-                  <span id="submit-status" className="sr-only">{editTask ? 'Updating task, please wait' : 'Creating task, please wait'}</span>
-                </>
-              ) : (
-                editTask ? 'Update Task' : 'Create Task'
-              )}
-            </button>
-          </footer>
-        </form>
+                {/* Label Display */}
+                {formData.labels.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.labels.map((label, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-colors duration-200"
+                      >
+                        {label}
+                        <button
+                          type="button"
+                          onClick={() => removeLabel(label)}
+                          disabled={isSubmitting}
+                          className="ml-2 text-green-300 hover:text-green-100 disabled:opacity-50 transition-colors duration-200"
+                          aria-label={`Remove ${label} label`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        {/* Modal Footer */}
+        <footer className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:space-x-3 sm:gap-0 p-6 border-t border-dark-primary/20">
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={isSubmitting}
+            className="px-6 py-3 text-sm font-semibold text-dark-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] touch-manipulation bg-background-sidebar border border-dark-primary/20 hover:bg-sidebar-hover hover:text-white transition-all duration-200"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="task-form"
+            disabled={isSubmitting}
+            className="px-6 py-3 text-sm font-semibold text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] touch-manipulation bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-200"
+            aria-describedby={isSubmitting ? "submit-status" : undefined}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="flex items-center justify-center">
+                  <div className="spinner w-4 h-4 mr-2 text-white" aria-hidden="true"></div>
+                  {editTask ? 'Updating...' : 'Creating...'}
+                </span>
+                <span id="submit-status" className="sr-only">{editTask ? 'Updating task, please wait' : 'Creating task, please wait'}</span>
+              </>
+            ) : (
+              editTask ? 'Update Task' : 'Create Task'
+            )}
+          </button>
+        </footer>
       </div>
     </div>
   );

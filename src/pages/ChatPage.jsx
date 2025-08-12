@@ -33,9 +33,9 @@ const ChatPage = () => {
   return (
     <Layout>
       <ErrorBoundary>
-        <div className="h-full flex flex-col">
+        <div className="flex flex-col chat-container">
           {/* Page Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4 flex-shrink-0">
             <div>
               <h1 className="text-2xl font-bold text-dark-primary">Team Chat</h1>
               <p className="text-dark-tertiary">

@@ -225,6 +225,30 @@ body {
   @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
 }
 
+/* Chat Layout */
+.chat-container {
+  height: calc(100vh - 8rem); /* Account for layout padding and header */
+  min-height: 400px;
+}
+
+@media (max-width: 1024px) {
+  .chat-container {
+    height: calc(100vh - 10rem); /* Account for mobile header */
+  }
+}
+
+/* Hide Scrollbar */
+.hide-scrollbar {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
 /* Focus Styles */
 .focus-visible:focus-visible {
   @apply outline-none ring-2 ring-blue-500 ring-offset-2;

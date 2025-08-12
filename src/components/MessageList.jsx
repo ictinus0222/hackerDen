@@ -44,7 +44,7 @@ const MessageList = ({ messages, loading, currentUserId }) => {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-2 space-y-2 overscroll-behavior-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-2 space-y-2 overscroll-behavior-y-contain max-h-full hide-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
       {messages.map((message) => (
         <MessageItem
           key={message.$id}

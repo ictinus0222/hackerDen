@@ -1,12 +1,15 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo.jsx';
+import ProgressBar from './ProgressBar.jsx';
 import { useAuth } from '../hooks/useAuth';
 import { useTeam } from '../hooks/useTeam';
+import { useTasks } from '../hooks/useTasks';
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const { user, logout } = useAuth();
   const { team } = useTeam();
+  const { tasksByStatus } = useTasks();
 
   const handleLogout = async () => {
     try {
@@ -49,6 +52,12 @@ const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
+  // Calculate task progress (excluding blocked tasks)
+  const totalTasks = (tasksByStatus?.todo?.length || 0) + 
+                    (tasksByStatus?.in_progress?.length || 0) + 
+                    (tasksByStatus?.done?.length || 0);
+  const completedTasks = tasksByStatus?.done?.length || 0;
+
   return (
     <>
       {/* Mobile overlay */}
@@ -60,18 +69,18 @@ const Sidebar = ({ isOpen, onToggle }) => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+      <div className={`fixed inset-y-0 left-0 z-[100] w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="flex flex-col h-full w-sidebar border-r border-gray-700" style={{ background: '#1A2423' }}>
+        <div className="flex flex-col h-screen w-sidebar border-r border-gray-700 overflow-hidden" style={{ background: '#1A2423' }}>
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
-            <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-between p-6 border-b border-gray-700 flex-shrink-0">
+            <div className="flex items-center space-x-4">
               <Logo size="sm" showText={false} />
-              <div>
-                <h1 className="text-h1 font-bold text-text-primary">HackerDen</h1>
+              <div className="space-y-1">
+                <h1 className="text-h1 font-bold text-text-primary leading-none">HackerDen</h1>
                 {team && (
-                  <p className="text-xs text-text-secondary">{team.name}</p>
+                  <p className="text-xs text-text-secondary leading-none">{team.name}</p>
                 )}
               </div>
             </div>
@@ -79,7 +88,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             {/* Close button for mobile */}
             <button
               onClick={onToggle}
-              className="lg:hidden text-text-secondary hover:text-text-primary p-2 -m-2 rounded-md"
+              className="lg:hidden text-text-secondary hover:text-text-primary p-3 -m-3 rounded-lg transition-colors duration-200"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -88,7 +97,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-base space-y-1">
+          <nav className="flex-1 px-6 py-6 space-y-2 overflow-hidden">
             {navigationItems.map((item) => {
               const isActive = currentPath === item.href || 
                 (item.href === '/dashboard' && currentPath === '/') ||
@@ -98,13 +107,12 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-3 rounded-button transition-all duration-200 group ${
+                  className={`flex items-center space-x-4 px-5 py-4 rounded-button transition-all duration-200 group ${
                     isActive
                       ? 'text-text-primary'
                       : 'text-text-secondary hover:text-text-primary'
                   }`}
-                  style={{ 
-                    padding: '12px 16px',
+                  style={{
                     backgroundColor: isActive ? '#22312F' : 'transparent'
                   }}
                   onMouseEnter={(e) => {
@@ -128,25 +136,38 @@ const Sidebar = ({ isOpen, onToggle }) => {
             })}
           </nav>
 
+          {/* Progress Bar Section */}
+          {totalTasks > 0 && (
+            <div className="px-6 py-4 border-t border-gray-700/50 flex-shrink-0">
+              <ProgressBar
+                completedTasks={completedTasks}
+                totalTasks={totalTasks}
+                size="md"
+                showLabel={true}
+                showPercentage={true}
+              />
+            </div>
+          )}
+
           {/* User Profile Section */}
-          <div className="p-4 border-t border-gray-700">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
+          <div className="p-6 border-t border-gray-700 flex-shrink-0">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-base">
                   {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                 </span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-body font-medium text-text-primary truncate">
+              <div className="flex-1 min-w-0 space-y-1">
+                <p className="text-body font-semibold text-text-primary truncate leading-none">
                   {user?.name || 'Unknown User'}
                 </p>
-                <p className="text-xs text-text-secondary">Team Member</p>
+                <p className="text-xs text-text-secondary leading-none">Team Member</p>
               </div>
             </div>
             
             <button
               onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 text-body font-medium text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-button transition-all duration-200 border border-red-800/30 hover:border-red-700/50"
+              className="w-full flex items-center space-x-4 px-5 py-4 text-body font-medium text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-button transition-all duration-200 border border-red-800/30 hover:border-red-700/50"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

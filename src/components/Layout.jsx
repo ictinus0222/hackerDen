@@ -19,7 +19,7 @@ const Layout = ({ children }) => {
       <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
         {/* Mobile Header */}
         <header className="lg:hidden border-b border-gray-700 px-4 py-3 h-14 flex items-center justify-between" style={{ background: '#121C1B' }}>
             <button

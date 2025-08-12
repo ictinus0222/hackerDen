@@ -121,7 +121,7 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
         aria-live="polite"
         aria-atomic="false"
       >
-        <div className="space-y-4 h-full" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="space-y-4 h-full overflow-y-auto hide-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
           {tasks.length === 0 ? (
             <div 
               className={`flex flex-col items-center justify-center h-32 sm:h-40 text-gray-500 text-sm text-center transition-all duration-300 rounded-xl border-2 border-dashed border-gray-700/50 ${

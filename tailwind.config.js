@@ -26,6 +26,7 @@ export default {
         'dark-tertiary': '#9ca3af',      // tertiary text
         'dark-muted': '#6b7280',         // muted text
         'dark-elevated': '#1E2B29',      // elevated surfaces (cards)
+        'dark-surface': '#1E2B29',       // modal and surface backgrounds
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
@@ -43,7 +44,7 @@ export default {
       },
       borderRadius: {
         'card': '8px',
-        'button': '6px',
+        'button': '12px',
       },
       boxShadow: {
         'card': '0px 1px 4px rgba(0, 0, 0, 0.2)',
