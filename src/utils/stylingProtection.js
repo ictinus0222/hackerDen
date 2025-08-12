@@ -243,8 +243,15 @@ export const generateStylingReport = (container, components = []) => {
   // Check for presence of critical classes across all categories
   Object.entries(CRITICAL_CLASSES).forEach(([category, classes]) => {
     const foundClasses = classes.filter(className => {
-      const escapedClassName = className.replace(/[[\]]/g, '\\$&');
-      return container.querySelector(`.${escapedClassName}`) !== null;
+      try {
+        // Escape special CSS characters for querySelector
+        const escapedClassName = className.replace(/[[\]()]/g, '\\$&').replace(/:/g, '\\:');
+        return container.querySelector(`.${escapedClassName}`) !== null;
+      } catch (error) {
+        // If selector is invalid, skip this class
+        console.warn(`Invalid CSS selector for class: ${className}`, error);
+        return false;
+      }
     });
     
     report.criticalClassesFound[category] = {

@@ -410,10 +410,11 @@ The chat system automatically generates system messages for task activities:
 
 ### Working with Task Modal
 
-#### Modal State Management
+#### Modal State Management (Create and Edit)
 ```jsx
 // In parent component (e.g., KanbanBoard)
 const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+const [editingTask, setEditingTask] = useState(null);
 
 const handleTaskCreated = (newTask) => {
   // Optional callback for additional actions
@@ -421,11 +422,29 @@ const handleTaskCreated = (newTask) => {
   // Real-time subscription handles UI updates automatically
 };
 
-// Modal integration
+const handleTaskUpdated = (updatedTask) => {
+  // Optional callback for additional actions
+  console.log('Task updated:', updatedTask);
+  setEditingTask(null);
+};
+
+const handleTaskEdit = (task) => {
+  setEditingTask(task);
+  setIsTaskModalOpen(true);
+};
+
+const handleModalClose = () => {
+  setIsTaskModalOpen(false);
+  setEditingTask(null);
+};
+
+// Modal integration for both create and edit
 <TaskModal
   isOpen={isTaskModalOpen}
-  onClose={() => setIsTaskModalOpen(false)}
+  onClose={handleModalClose}
   onTaskCreated={handleTaskCreated}
+  onTaskUpdated={handleTaskUpdated}
+  editTask={editingTask}
 />
 ```
 
@@ -448,11 +467,53 @@ const validateForm = () => {
 };
 ```
 
+#### Task Editing Integration
+```jsx
+// In TaskCard component - add edit functionality
+const TaskCard = ({ task, onEdit, onDelete, ...otherProps }) => {
+  return (
+    <div className="task-card">
+      {/* Task content */}
+      <div className="task-actions">
+        <button onClick={() => onEdit(task)}>Edit</button>
+        <button onClick={() => onDelete(task.$id)}>Delete</button>
+      </div>
+    </div>
+  );
+};
+
+// In TaskColumn component - pass edit handler
+<TaskCard 
+  task={task}
+  onEdit={onTaskEdit}
+  onDelete={onTaskDelete}
+  // ... other props
+/>
+```
+
+#### Role-Based Assignment
+```jsx
+// TaskModal automatically handles role-based assignment
+// Team leaders see dropdown with all members
+// Regular members see static assignment to themselves
+
+// Check user role in components
+const { team } = useTeam();
+const isTeamLeader = team?.userRole === 'owner';
+
+if (isTeamLeader) {
+  // Show assignment dropdown
+} else {
+  // Show static assignment display
+}
+```
+
 #### Modal Accessibility
 - **Focus Management**: Modal traps focus and returns to trigger element
 - **Keyboard Navigation**: Escape key closes modal, tab navigation works
 - **Screen Reader Support**: Proper ARIA labels and semantic HTML
 - **Visual Indicators**: Clear loading and error states
+- **Edit Mode**: Modal title and buttons change based on create/edit mode
 
 ### Adding a New Tab to Mobile Switcher
 

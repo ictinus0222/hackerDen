@@ -78,7 +78,7 @@
   - Create loading states and error boundaries for dashboard components
   - _Requirements: 2.1, 2.2, 2.3, 6.1, 6.2_
 
-- [ ] 4. Kanban Board Implementation
+- [x] 4. Kanban Board Implementation
 - [x] 4.1 Build basic Kanban board structure
 
 
@@ -189,7 +189,7 @@
   - Add error handling for failed real-time subscriptions with retry logic
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 9. Development Workflow and Styling Preservation
+- [x] 9. Development Workflow and Styling Preservation
 - [x] 9.1 Implement compare-and-merge workflow utilities
 
 

@@ -20,7 +20,7 @@ const Dashboard = () => {
   const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   // Get user's tasks
-  const myTasks = tasks.filter(task => task.assigned_to === user?.name || task.assignedTo === user?.$id);
+  const myTasks = (tasks || []).filter(task => task.assigned_to === user?.name || task.assignedTo === user?.$id);
   const myTopTasks = myTasks.slice(0, 5);
 
   // Generate real-time team activity from tasks
@@ -127,7 +127,7 @@ const Dashboard = () => {
                     Organize your team's work with our Kanban board
                   </p>
                   <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-dark-secondary">
-                    <span>{tasks.length} total tasks</span>
+                    <span>{(tasks || []).length} total tasks</span>
                     <span>•</span>
                     <span>{tasksByStatus?.done?.length || 0} completed</span>
                   </div>
@@ -373,7 +373,7 @@ const Dashboard = () => {
                             </p>
                             {member.role === 'owner' && (
                               <span className="text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">
-                                Owner
+                                Team Leader
                               </span>
                             )}
                           </div>

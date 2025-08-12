@@ -6,46 +6,53 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Main theme colors
-        background: '#F8FAFC',
-        card: '#FFFFFF',
-        border: '#E5E7EB',
-        heading: '#1E293B',
-        body: '#334155',
-        muted: '#94A3B8',
-        
-        // Accent colors
-        accentBlue: '#60A5FA',
-        accentPurple: '#A78BFA',
-        accentOrange: '#FDBA74',
-        
-        // Consistent text colors
-        'text-primary': '#111827',    // gray-900 - main text
-        'text-secondary': '#6B7280',  // gray-500 - secondary text
-        'text-tertiary': '#9CA3AF',   // gray-400 - tertiary text
-        'text-muted': '#9CA3AF',      // gray-400 - muted text
-        
-        // Consistent border colors
-        'border-primary': '#E5E7EB',  // gray-200 - main borders
-        'border-secondary': '#D1D5DB', // gray-300 - secondary borders
-        
-        // Dark theme colors (properly defined for dark background)
-        'dark-primary': '#F8FAFC',    // slate-50 - primary text on dark bg
-        'dark-secondary': '#CBD5E1',  // slate-300 - secondary text on dark bg
-        'dark-tertiary': '#94A3B8',   // slate-400 - tertiary text on dark bg
-        'dark-muted': '#64748B',      // slate-500 - muted text on dark bg
-        'dark-elevated': '#1E293B',   // slate-800 - elevated surfaces on dark bg
+        // Dark green theme colors from JSON
+        'primary': '#00C853',
+        'primary-hover': '#00B24A',
+        'background-dark': '#121C1B',
+        'background-sidebar': '#1A2423',
+        'background-card': '#1E2B29',
+        'text-primary': '#FFFFFF',
+        'text-secondary': '#B0B8B6',
+        'accent-graph': '#00C853',
+
+        // Sidebar specific colors
+        'sidebar-hover': '#1E2B29',
+        'sidebar-active': '#22312F',
+
+        // Legacy support (mapped to new system)
+        'dark-primary': '#FFFFFF',        // text primary
+        'dark-secondary': '#B0B8B6',     // text secondary
+        'dark-tertiary': '#9ca3af',      // tertiary text
+        'dark-muted': '#6b7280',         // muted text
+        'dark-elevated': '#1E2B29',      // elevated surfaces (cards)
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
+      fontSize: {
+        'h1': ['20px', { fontWeight: '700', lineHeight: '1.2' }],
+        'h2': ['16px', { fontWeight: '600', lineHeight: '1.3' }],
+        'body': ['14px', { fontWeight: '400', lineHeight: '1.5' }],
+      },
+      spacing: {
+        'base': '16px',
+        'card': '16px',
+        'sidebar': '240px',
+        'nav': '12px',
+      },
       borderRadius: {
-        '2xl': '2rem',
-        'xl': '1.25rem',
-        'full': '9999px',
+        'card': '8px',
+        'button': '6px',
       },
       boxShadow: {
-        'cluely': '0 8px 32px 0 rgba(30, 41, 59, 0.08)',
+        'card': '0px 1px 4px rgba(0, 0, 0, 0.2)',
+      },
+      height: {
+        'navbar': '56px',
+      },
+      width: {
+        'sidebar': '240px',
       },
     },
   },

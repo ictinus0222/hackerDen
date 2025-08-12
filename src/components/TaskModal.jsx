@@ -1,21 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTeam } from '../hooks/useTeam';
+import { useTeamMembers } from '../hooks/useTeamMembers';
 import { taskService } from '../services/taskService';
 
-const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
+const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = null }) => {
   const { user } = useAuth();
   const { team } = useTeam();
+  const { members } = useTeamMembers();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'medium',
-    labels: []
+    labels: [],
+    assignedTo: user?.$id || ''
   });
 
   const [newLabel, setNewLabel] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize form data when modal opens or when editing a task
+  useEffect(() => {
+    if (isOpen) {
+      if (editTask) {
+        // Populate form with existing task data
+        setFormData({
+          title: editTask.title || '',
+          description: editTask.description || '',
+          priority: editTask.priority || 'medium',
+          labels: editTask.labels || [],
+          assignedTo: editTask.assignedTo || user?.$id || ''
+        });
+      } else {
+        // Reset form for new task
+        setFormData({
+          title: '',
+          description: '',
+          priority: 'medium',
+          labels: [],
+          assignedTo: user?.$id || ''
+        });
+      }
+      setErrors({});
+      setNewLabel('');
+    }
+  }, [isOpen, editTask, user?.$id]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -80,36 +110,58 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
     setIsSubmitting(true);
 
     try {
-      const taskData = {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        assignedTo: user.$id,
-        createdBy: user.$id,
-        priority: formData.priority,
-        labels: formData.labels
-      };
+      // Find the assigned member to get their name
+      const assignedMember = members.find(member => member.id === formData.assignedTo);
+      const assignedName = assignedMember?.name || user.name;
 
-      console.log('Creating task with data:', taskData);
-      console.log('Team ID:', team.$id);
-      console.log('User:', user);
+      if (editTask) {
+        // Update existing task
+        const updates = {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          assignedTo: formData.assignedTo,
+          assigned_to: assignedName, // Update display name
+          priority: formData.priority,
+          labels: formData.labels
+        };
 
-      const newTask = await taskService.createTask(team.$id, taskData, user.name, user.name);
+        console.log('Updating task with data:', updates);
+        const updatedTask = await taskService.updateTaskFields(editTask.$id, updates);
+
+        // Notify parent component
+        if (onTaskUpdated) {
+          onTaskUpdated(updatedTask);
+        }
+      } else {
+        // Create new task
+        const taskData = {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          assignedTo: formData.assignedTo,
+          createdBy: user.$id,
+          priority: formData.priority,
+          labels: formData.labels
+        };
+
+        console.log('Creating task with data:', taskData);
+        const newTask = await taskService.createTask(team.$id, taskData, user.name, assignedName);
+
+        // Notify parent component
+        if (onTaskCreated) {
+          onTaskCreated(newTask);
+        }
+      }
 
       // Reset form
-      setFormData({ title: '', description: '', priority: 'medium', labels: [] });
+      setFormData({ title: '', description: '', priority: 'medium', labels: [], assignedTo: user?.$id || '' });
       setNewLabel('');
       setErrors({});
-
-      // Notify parent component
-      if (onTaskCreated) {
-        onTaskCreated(newTask);
-      }
 
       // Close modal
       onClose();
     } catch (error) {
-      console.error('Error creating task:', error);
-      setErrors({ general: error.message || 'Failed to create task' });
+      console.error(`Error ${editTask ? 'updating' : 'creating'} task:`, error);
+      setErrors({ general: error.message || `Failed to ${editTask ? 'update' : 'create'} task` });
     } finally {
       setIsSubmitting(false);
     }
@@ -117,7 +169,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setFormData({ title: '', description: '' });
+      setFormData({ title: '', description: '', priority: 'medium', labels: [], assignedTo: user?.$id || '' });
       setErrors({});
       onClose();
     }
@@ -147,7 +199,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
               </svg>
             </div>
             <h2 id="modal-title" className="text-xl font-bold text-dark-primary">
-              Create New Task
+              {editTask ? 'Edit Task' : 'Create New Task'}
             </h2>
           </div>
           <button
@@ -260,17 +312,37 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
             <label htmlFor="assignedTo" className="block text-sm font-medium text-dark-secondary mb-2">
               Assign To
             </label>
-            <div className="flex items-center space-x-3 p-3 backdrop-blur-sm rounded-xl border border-dark-primary/20" style={{ background: 'rgba(30, 41, 59, 0.3)' }}>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
-                <span className="text-sm font-bold text-white">
-                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                </span>
+            {team?.userRole === 'owner' ? (
+              // Team Leader can assign to any member
+              <select
+                id="assignedTo"
+                name="assignedTo"
+                value={formData.assignedTo}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 text-base rounded-xl shadow-sm backdrop-blur-sm text-dark-primary border border-dark-primary/20 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:text-dark-tertiary"
+                style={{ background: 'rgba(30, 41, 59, 0.3)', fontSize: '16px' }}
+              >
+                {members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name} {member.role === 'owner' ? '(Team Leader)' : '(Member)'}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              // Regular members can only assign to themselves
+              <div className="flex items-center space-x-3 p-3 backdrop-blur-sm rounded-xl border border-dark-primary/20" style={{ background: 'rgba(30, 41, 59, 0.3)' }}>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
+                  <span className="text-sm font-bold text-white">
+                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-dark-primary">{user?.name || 'Unknown User'}</p>
+                  <p className="text-xs text-dark-tertiary">Assigned to you</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-dark-primary">{user?.name || 'Unknown User'}</p>
-                <p className="text-xs text-dark-tertiary">Assigned to you</p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Labels Field */}
@@ -348,12 +420,12 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated }) => {
                 <>
                   <span className="flex items-center">
                     <div className="spinner w-4 h-4 mr-2 text-white" aria-hidden="true"></div>
-                    Creating...
+                    {editTask ? 'Updating...' : 'Creating...'}
                   </span>
-                  <span id="submit-status" className="sr-only">Creating task, please wait</span>
+                  <span id="submit-status" className="sr-only">{editTask ? 'Updating task, please wait' : 'Creating task, please wait'}</span>
                 </>
               ) : (
-                'Create Task'
+                editTask ? 'Update Task' : 'Create Task'
               )}
             </button>
           </footer>

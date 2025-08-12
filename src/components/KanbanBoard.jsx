@@ -16,6 +16,7 @@ const KanbanBoard = () => {
   const { team } = useTeam();
   const { user } = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const [draggingTask, setDraggingTask] = useState(null);
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [filters, setFilters] = useState({
@@ -60,6 +61,23 @@ const KanbanBoard = () => {
     // The real-time subscription in useTasks will handle adding the new task
     // This callback can be used for additional actions if needed
     console.log('New task created:', newTask);
+  };
+
+  const handleTaskEdit = (task) => {
+    setEditingTask(task);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleTaskUpdated = (updatedTask) => {
+    // The real-time subscription in useTasks will handle updating the task
+    // This callback can be used for additional actions if needed
+    console.log('Task updated:', updatedTask);
+    setEditingTask(null);
+  };
+
+  const handleModalClose = () => {
+    setIsTaskModalOpen(false);
+    setEditingTask(null);
   };
 
   // WIP Limits configuration
@@ -334,6 +352,7 @@ const KanbanBoard = () => {
             onDragStart={handleDragStart}
             touchHandlers={touchDragDrop}
             onTaskDelete={handleTaskDelete}
+            onTaskEdit={handleTaskEdit}
             wipLimit={WIP_LIMITS[column.status]}
           />
         ))}
@@ -355,8 +374,10 @@ const KanbanBoard = () => {
       {/* Task Creation Modal */}
       <TaskModal
         isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
+        onClose={handleModalClose}
         onTaskCreated={handleTaskCreated}
+        onTaskUpdated={handleTaskUpdated}
+        editTask={editingTask}
       />
 
       {/* Floating Action Button */}

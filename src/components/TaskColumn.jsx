@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import TaskCard from './TaskCard';
 
-const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, draggingTask, onDragStart, touchHandlers, onTaskDelete, wipLimit }) => {
+const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, draggingTask, onDragStart, touchHandlers, onTaskDelete, onTaskEdit, wipLimit }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const getColumnColor = (status) => {
     switch (status) {
@@ -157,6 +157,7 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
                   onTouchMove={touchHandlers?.handleTouchMove}
                   onTouchEnd={(e) => touchHandlers?.handleTouchEnd(e, onTaskDrop)}
                   onDelete={onTaskDelete}
+                  onEdit={onTaskEdit}
                   aria-posinset={index + 1}
                   aria-setsize={tasks.length}
                 />

@@ -15,8 +15,10 @@ A collaborative platform for hackathon teams featuring team management, task tra
 - **Error Boundaries**: Graceful error handling with recovery options
 - **Loading States**: Enhanced loading experience with contextual messages
 - **Kanban Board**: Four-column task board with real-time updates
-- **Task Creation**: Modal-based task creation with form validation
-- **Task Management**: Create, display, and organize tasks by status
+- **Task Creation**: Modal-based task creation with form validation and team member assignment
+- **Task Editing**: Full task editing functionality with role-based assignment permissions
+- **Task Management**: Create, edit, delete, and organize tasks by status with priority and labels
+- **Team Leader Assignment**: Team leaders can assign tasks to any team member
 - **Drag and Drop**: Full drag-and-drop support for moving tasks between columns (desktop and mobile)
 - **Real-time Chat**: Team chat with message display, input form, and live updates
 - **Message Management**: Send and receive messages with timestamps and user identification
@@ -24,10 +26,10 @@ A collaborative platform for hackathon teams featuring team management, task tra
 - **Chat Setup Guide**: Automated setup assistance for Appwrite messages collection
 
 ### 🚧 In Development
-- Task editing and deletion functionality
-- Team member management
-- Advanced task features (assignments, due dates, priorities)
+- Team member management (invite/remove members)
+- Advanced task features (due dates, task dependencies)
 - Enhanced chat features (message reactions, file sharing)
+- Task filtering and search functionality
 
 ## Tech Stack
 
@@ -95,7 +97,7 @@ src/
 │   ├── AppwriteSetupGuide.jsx   # Appwrite setup instructions
 │   ├── Chat.jsx                 # Real-time team chat interface
 │   ├── ErrorBoundary.jsx        # Error boundary for crash protection
-│   ├── KanbanBoard.jsx          # Kanban board with task management
+│   ├── KanbanBoard.jsx          # Kanban board with full task management
 │   ├── Layout.jsx               # Main layout with header and navigation
 │   ├── LoadingSpinner.jsx       # Loading state component
 │   ├── MessageInput.jsx         # Message input form component
@@ -104,9 +106,9 @@ src/
 │   ├── MessagesSetupGuide.jsx   # Messages collection setup guide
 │   ├── MobileTabSwitcher.jsx    # Mobile tab navigation component
 │   ├── ProtectedRoute.jsx       # Route protection component
-│   ├── TaskCard.jsx             # Individual task display component
-│   ├── TaskColumn.jsx           # Kanban column component
-│   ├── TaskModal.jsx            # Task creation modal component
+│   ├── TaskCard.jsx             # Individual task display with edit/delete actions
+│   ├── TaskColumn.jsx           # Kanban column component with task operations
+│   ├── TaskModal.jsx            # Task creation and editing modal component
 │   └── TeamSelector.jsx         # Team creation/join selector
 ├── contexts/           # React contexts
 │   ├── AuthContext.jsx
@@ -209,6 +211,14 @@ The application implements smart routing based on user team membership:
 - **Copy-to-Clipboard**: Join code sharing with visual feedback
 - **Membership Management**: Automatic team membership creation and validation
 
+### Team Leadership Features
+- **Role-Based Access**: Team creators automatically become team leaders
+- **Task Assignment**: Team leaders can assign tasks to any team member
+- **Member Overview**: Visual distinction between team leaders and regular members
+- **Assignment Control**: Regular members can only assign tasks to themselves
+- **Leadership Indicators**: Clear visual indicators for team leader status
+- **Permission Management**: Role-based UI elements and functionality
+
 ## Task Management System
 
 ### Kanban Board Features
@@ -221,20 +231,32 @@ The application implements smart routing based on user team membership:
 
 ### Task Creation Flow
 1. **Access**: Click "Create Task" button on the Kanban board
-2. **Form**: Fill out task title and description (both required)
-3. **Validation**: Real-time form validation with error feedback
-4. **Creation**: Task is created with 'todo' status and assigned to current user
-5. **Real-time Update**: New task appears immediately for all team members
+2. **Form**: Fill out task title, description, priority, and labels
+3. **Assignment**: Team leaders can assign to any member, regular members assign to themselves
+4. **Validation**: Real-time form validation with error feedback
+5. **Creation**: Task is created with 'todo' status and specified assignment
+6. **Real-time Update**: New task appears immediately for all team members
+
+### Task Editing Flow
+1. **Access**: Hover over any task card and click the blue edit icon
+2. **Modal**: Edit task modal opens with pre-populated form data
+3. **Modify**: Update title, description, priority, labels, and assignment (team leaders only)
+4. **Validation**: Real-time form validation with error feedback
+5. **Update**: Changes are saved and synchronized in real-time
+6. **Confirmation**: Updated task appears immediately for all team members
 
 ### Task Management Features
+- **Full CRUD Operations**: Create, read, update, and delete tasks
+- **Role-Based Assignment**: Team leaders can assign tasks to any team member
 - **Form Validation**: Required field validation for title and description
-- **Auto-Assignment**: New tasks are automatically assigned to the creator
+- **Priority Levels**: Low, medium, and high priority with visual indicators
+- **Label System**: Custom labels for task categorization and organization
 - **Status Tracking**: Tasks are organized by status (todo, in_progress, blocked, done)
 - **Drag and Drop**: Move tasks between columns using mouse (desktop) or touch (mobile)
-- **Visual Feedback**: Drag operations include visual feedback and hover states
-- **Real-time Sync**: Changes appear instantly across all team member devices
+- **Visual Feedback**: Drag operations and hover states with clear visual indicators
+- **Real-time Sync**: All changes appear instantly across all team member devices
 - **Error Handling**: Comprehensive error management with user-friendly messages
-- **Loading States**: Visual feedback during task operations
+- **Loading States**: Visual feedback during all task operations
 
 ### Drag and Drop Features
 - **Desktop Support**: Click and drag tasks between columns with visual feedback
@@ -381,6 +403,8 @@ const {
 - **Appwrite Setup**: `docs/appwrite-setup.md` - Backend configuration guide
 - **Dashboard Components**: `docs/dashboard-components.md` - Detailed component documentation
 - **Development Guide**: `docs/development-guide.md` - Development workflow and best practices
+- **Task Editing Functionality**: `docs/task-editing-functionality.md` - Complete task editing system documentation
+- **Task Management Quick Reference**: `docs/task-management-quick-reference.md` - Quick usage guide for task operations
 - **Messaging System**: `docs/messaging-system.md` - Complete messaging system documentation
 - **Drag and Drop Implementation**: `docs/drag-drop-implementation.md` - Complete drag and drop technical guide
 - **Drag and Drop Quick Reference**: `docs/drag-drop-quick-reference.md` - Quick usage guide for drag and drop
