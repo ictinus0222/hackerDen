@@ -1,43 +1,77 @@
 # HackerDen MVP
 
-A collaborative platform for hackathon teams featuring team management, task tracking, and real-time communication.
+A modern, collaborative platform for hackathon teams featuring comprehensive team management, advanced task tracking with drag-and-drop functionality, and real-time communication with a polished dark theme interface.
 
 ## Features
 
 ### ✅ Implemented
-- **User Authentication**: Registration, login, and session management
-- **Team Creation**: Create teams with unique join codes
-- **Team Management**: Join teams using invite codes
-- **Team Routing Logic**: Smart routing based on team membership status
-- **Protected Routes**: Secure access to team features
-- **Dashboard Layout**: Responsive dashboard with header, navigation, and main content areas
-- **Responsive Design**: Desktop side-by-side layout and mobile tab switching
-- **Error Boundaries**: Graceful error handling with recovery options
-- **Loading States**: Enhanced loading experience with contextual messages
-- **Kanban Board**: Four-column task board with real-time updates
-- **Task Creation**: Modal-based task creation with form validation and team member assignment
-- **Task Editing**: Full task editing functionality with role-based assignment permissions
-- **Task Management**: Create, edit, delete, and organize tasks by status with priority and labels
-- **Team Leader Assignment**: Team leaders can assign tasks to any team member
-- **Drag and Drop**: Full drag-and-drop support for moving tasks between columns (desktop and mobile)
-- **Real-time Chat**: Team chat with message display, input form, and live updates
-- **Message Management**: Send and receive messages with timestamps and user identification
-- **Task-Chat Integration**: Automated system messages for task activities with visual distinction
-- **Chat Setup Guide**: Automated setup assistance for Appwrite messages collection
 
-### 🚧 In Development
-- Team member management (invite/remove members)
-- Advanced task features (due dates, task dependencies)
-- Enhanced chat features (message reactions, file sharing)
-- Task filtering and search functionality
+#### 🎨 **Modern UI/UX Design**
+- **Dark Theme Interface**: Comprehensive dark theme with consistent color palette and professional styling
+- **Custom Design System**: Tailored color scheme with green accents and proper contrast ratios
+- **Smooth Animations**: Fade-in effects, slide transitions, and hover states for enhanced user experience
+- **Hidden Scrollbars**: Clean interface with hidden scrollbars while maintaining full scrolling functionality
+- **Responsive Layout**: Adaptive design that works seamlessly across desktop, tablet, and mobile devices
+- **Fixed Sidebar Navigation**: Always-visible navigation with proper viewport height and no scrolling
+- **Enhanced Spacing**: Improved visual hierarchy with consistent padding, margins, and element spacing
+- **Rounded Corners**: Smooth, modern button and component styling with 12px border radius
+- **Progress Indicators**: Visual task completion progress bar in sidebar with color-coded status
+
+#### 🔐 **Authentication & Team Management**
+- **User Authentication**: Secure registration, login, and session management
+- **Team Creation**: Create teams with unique join codes and automatic ownership assignment
+- **Team Management**: Join teams using invite codes with validation and duplicate prevention
+- **Team Routing Logic**: Smart routing based on team membership status
+- **Protected Routes**: Secure access to team features with authentication guards
+- **Team Leader Assignment**: Role-based permissions with team leaders able to assign tasks to any member
+
+#### 📋 **Advanced Task Management**
+- **Kanban Board**: Four-column task board (To-Do, In Progress, Blocked, Done) with real-time updates
+- **Task Creation**: Enhanced modal-based task creation with comprehensive form validation
+- **Task Editing**: Full task editing functionality with role-based assignment permissions
+- **Custom Dropdowns**: Consistent, theme-matching dropdown components for priority and assignment
+- **Task Management**: Create, edit, delete, and organize tasks by status with priority levels and custom labels
+- **Drag and Drop**: Full drag-and-drop support for moving tasks between columns (desktop and mobile)
+- **Real-time Synchronization**: Instant task updates across all team members
+- **Progress Tracking**: Task completion progress bar excluding blocked tasks from calculations
+- **Visual Feedback**: Hover states, loading indicators, and smooth transitions
+
+#### 💬 **Real-time Communication**
+- **Team Chat**: Real-time messaging with dark theme integration and modern styling
+- **User Avatars**: Colorful user avatars with initials and gradient backgrounds
+- **Actual User Names**: Display of real team member names instead of generic placeholders
+- **Message Styling**: Enhanced message bubbles with shadows, rings, and proper visual hierarchy
+- **System Messages**: Automated task activity notifications with visual distinction
+- **Message Management**: Send and receive messages with timestamps and user identification
+- **Chat Setup Guide**: Automated setup assistance for Appwrite messages collection
+- **Optimistic Updates**: Immediate message display with server confirmation
+
+#### 🎯 **User Experience Enhancements**
+- **Loading States**: Enhanced loading experience with contextual messages and spinners
+- **Error Boundaries**: Graceful error handling with recovery options
+- **Form Validation**: Comprehensive client-side validation with real-time feedback
+- **Accessibility**: Proper ARIA labels, keyboard navigation, and screen reader support
+- **Touch Optimization**: Mobile-friendly interactions with proper touch targets
+- **Visual Feedback**: Consistent hover states, focus indicators, and transition effects
+
+### 🚧 Future Enhancements
+- **Team Management**: Advanced member management (invite/remove members, role changes)
+- **Task Features**: Due dates, task dependencies, time tracking, and task templates
+- **Chat Features**: Message reactions, file sharing, message search, and thread replies
+- **Filtering & Search**: Advanced task filtering, search functionality, and saved filters
+- **Notifications**: Push notifications for task assignments and chat messages
+- **Analytics**: Team productivity analytics and task completion metrics
 
 ## Tech Stack
 
-- **Frontend**: React 19 + Vite
-- **Styling**: Tailwind CSS
-- **Backend**: Appwrite (BaaS)
-- **Routing**: React Router DOM
-- **State Management**: React Context API
+- **Frontend**: React 19 + Vite (Latest React features with fast development)
+- **Styling**: Tailwind CSS (Custom design system with dark theme)
+- **Backend**: Appwrite (Backend-as-a-Service with real-time capabilities)
+- **Routing**: React Router DOM (Client-side routing with protected routes)
+- **State Management**: React Context API (Global state for auth and team data)
+- **Real-time**: Appwrite Realtime (Live updates for tasks and messages)
+- **Icons**: Heroicons (Consistent SVG icon library)
+- **Date Handling**: date-fns (Lightweight date formatting)
 
 ## Getting Started
 
@@ -95,20 +129,23 @@ npm run dev
 src/
 ├── components/          # Reusable UI components
 │   ├── AppwriteSetupGuide.jsx   # Appwrite setup instructions
-│   ├── Chat.jsx                 # Real-time team chat interface
+│   ├── Chat.jsx                 # Real-time team chat interface with dark theme
 │   ├── ErrorBoundary.jsx        # Error boundary for crash protection
-│   ├── KanbanBoard.jsx          # Kanban board with full task management
-│   ├── Layout.jsx               # Main layout with header and navigation
-│   ├── LoadingSpinner.jsx       # Loading state component
-│   ├── MessageInput.jsx         # Message input form component
-│   ├── MessageItem.jsx          # Individual message display component
-│   ├── MessageList.jsx          # Scrollable message list component
+│   ├── KanbanBoard.jsx          # Kanban board with full task management and hidden scrollbars
+│   ├── Layout.jsx               # Main layout with fixed sidebar and responsive design
+│   ├── LoadingSpinner.jsx       # Loading state component with animations
+│   ├── Logo.jsx                 # HackerDen logo component with gradient styling
+│   ├── MessageInput.jsx         # Message input form with dark theme styling
+│   ├── MessageItem.jsx          # Individual message display with avatars and real names
+│   ├── MessageList.jsx          # Scrollable message list with hidden scrollbars
 │   ├── MessagesSetupGuide.jsx   # Messages collection setup guide
 │   ├── MobileTabSwitcher.jsx    # Mobile tab navigation component
+│   ├── ProgressBar.jsx          # Task completion progress bar component
 │   ├── ProtectedRoute.jsx       # Route protection component
+│   ├── Sidebar.jsx              # Fixed sidebar navigation with progress tracking
 │   ├── TaskCard.jsx             # Individual task display with edit/delete actions
-│   ├── TaskColumn.jsx           # Kanban column component with task operations
-│   ├── TaskModal.jsx            # Task creation and editing modal component
+│   ├── TaskColumn.jsx           # Kanban column component with hidden scrollbars
+│   ├── TaskModal.jsx            # Enhanced task creation/editing modal with custom dropdowns
 │   └── TeamSelector.jsx         # Team creation/join selector
 ├── contexts/           # React contexts
 │   ├── AuthContext.jsx
@@ -127,10 +164,13 @@ src/
 │   ├── TeamCreationPage.jsx
 │   └── TeamJoinPage.jsx
 ├── services/           # API services
-│   ├── authService.js
+│   ├── authService.js           # Authentication operations
 │   ├── messageService.js        # Message management operations
+│   ├── realtimeService.js       # Real-time subscription management
 │   ├── taskService.js           # Task management operations
-│   └── teamService.js
+│   ├── teamMemberService.js     # Team member management with name caching
+│   ├── teamService.js           # Team operations
+│   └── userNameService.js       # User name resolution and caching
 ├── docs/               # Documentation
 │   ├── appwrite-setup.md        # Backend setup guide
 │   ├── dashboard-components.md  # Component documentation
@@ -138,13 +178,32 @@ src/
 └── App.jsx             # Main app component
 ```
 
-## Dashboard Layout
+## Modern UI/UX Design
 
-### Responsive Design
+### Dark Theme Interface
+The application features a comprehensive dark theme with:
+
+- **Consistent Color Palette**: Professional dark green theme with proper contrast ratios
+- **Custom Design System**: Tailored colors defined in Tailwind config for consistency
+- **Visual Hierarchy**: Enhanced spacing, typography, and component styling
+- **Accessibility**: WCAG compliant contrast ratios and proper focus indicators
+
+### Enhanced User Experience
+- **Fixed Sidebar**: Always-visible navigation that never scrolls with page content
+- **Hidden Scrollbars**: Clean interface with hidden scrollbars while maintaining functionality
+- **Smooth Animations**: Fade-in effects, slide transitions, and hover states
+- **Progress Tracking**: Visual task completion progress bar in sidebar
+- **Rounded Corners**: Modern 12px border radius on buttons and components
+- **Responsive Layout**: Adapts seamlessly from mobile to desktop
+
+### Dashboard Layout
+
+#### Responsive Design
 The dashboard implements a responsive layout that adapts to different screen sizes:
 
-- **Desktop (lg+)**: Side-by-side layout with Kanban board and Chat components
-- **Mobile/Tablet**: Tab-based interface allowing users to switch between Kanban and Chat views
+- **Desktop (lg+)**: Fixed sidebar with main content area offset by sidebar width
+- **Mobile/Tablet**: Collapsible sidebar with overlay for mobile navigation
+- **Chat Integration**: Full-height chat with proper viewport constraints
 - **Loading States**: Contextual loading spinners with descriptive messages
 - **Error Handling**: Error boundaries that gracefully handle crashes with recovery options
 
@@ -266,17 +325,21 @@ The application implements smart routing based on user team membership:
 - **Error Handling**: Failed drag operations are handled gracefully
 - **Touch Optimization**: Proper touch event handling prevents scrolling during drag
 
-## Chat System
+## Enhanced Chat System
 
 ### Real-time Chat Features
+- **Dark Theme Integration**: Fully integrated dark theme with consistent styling
+- **User Avatars**: Colorful gradient avatars with user initials for visual identification
+- **Real User Names**: Displays actual team member names instead of generic placeholders
+- **Enhanced Message Styling**: Modern message bubbles with shadows and subtle rings instead of borders
 - **Team-Based Messaging**: Messages are filtered and displayed by team
 - **Real-time Updates**: Live message synchronization using Appwrite subscriptions
-- **Message Display**: Shows user names, timestamps, and message content
-- **Message Input**: Form-based message sending with validation and keyboard support
-- **Auto-scroll**: Automatically scrolls to latest messages
+- **Message Input**: Dark-themed input with green accent colors and smooth transitions
+- **Auto-scroll**: Automatically scrolls to latest messages with hidden scrollbars
 - **Optimistic Updates**: Messages appear immediately with server confirmation
 - **Message Validation**: Client and server-side validation prevents empty messages
 - **Loading Indicators**: Visual feedback during message transmission
+- **Viewport Fitting**: Chat properly fits within viewport with scrollable message area
 
 ### Chat Components
 - **Chat**: Main chat interface with message list and input form
