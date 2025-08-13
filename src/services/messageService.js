@@ -3,7 +3,7 @@ import client from '../lib/appwrite';
 
 export const messageService = {
   // Send a user message
-  async sendMessage(teamId, userId, content) {
+  async sendMessage(teamId, hackathonId, userId, content) {
     // Validate input parameters
     if (!teamId) {
       throw new Error('Team ID is required to send a message');
@@ -18,6 +18,7 @@ export const messageService = {
     try {
       const messageData = {
         teamId,
+        hackathonId,
         userId,
         content: content.trim(),
         type: 'user'
@@ -48,10 +49,11 @@ export const messageService = {
   },
 
   // Send a system message (for task updates)
-  async sendSystemMessage(teamId, content, type = 'system', userId = 'system') {
+  async sendSystemMessage(teamId, hackathonId, content, type = 'system', userId = 'system') {
     try {
       const messageData = {
         teamId,
+        hackathonId,
         userId: userId, // Use provided userId or 'system' as default
         content: content.trim(),
         type
@@ -70,14 +72,15 @@ export const messageService = {
     }
   },
 
-  // Get all messages for a team
-  async getTeamMessages(teamId) {
+  // Get all messages for a team in a specific hackathon
+  async getTeamMessages(teamId, hackathonId) {
     try {
       const response = await databases.listDocuments(
         DATABASE_ID,
         COLLECTIONS.MESSAGES,
         [
           Query.equal('teamId', teamId),
+          Query.equal('hackathonId', hackathonId),
           Query.orderAsc('$createdAt'),
           Query.limit(100) // Limit to last 100 messages for performance
         ]
@@ -101,13 +104,13 @@ export const messageService = {
   },
 
   // Subscribe to real-time message updates
-  subscribeToMessages(teamId, callback) {
+  subscribeToMessages(teamId, hackathonId, callback) {
     try {
       const unsubscribe = client.subscribe(
         `databases.${DATABASE_ID}.collections.${COLLECTIONS.MESSAGES}.documents`,
         (response) => {
-          // Only process messages for this team
-          if (response.payload.teamId === teamId) {
+          // Only process messages for this team and hackathon
+          if (response.payload.teamId === teamId && response.payload.hackathonId === hackathonId) {
             callback(response);
           }
         }

@@ -4,13 +4,9 @@ import { TeamProvider } from './contexts/TeamContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import Dashboard from './pages/Dashboard';
-import ProjectPage from './pages/ProjectPage';
-import TasksPage from './pages/TasksPage';
-import ChatPage from './pages/ChatPage';
-import DemoPage from './pages/DemoPage';
-import TeamCreationPage from './pages/TeamCreationPage';
-import TeamJoinPage from './pages/TeamJoinPage';
+import UserHackathonConsole from './pages/UserHackathonConsole';
+import HackathonDashboard from './pages/HackathonDashboard';
+import CreateHackathonPage from './pages/CreateHackathonPage';
 
 function App() {
   return (
@@ -24,68 +20,41 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               
               {/* Protected routes */}
+              {/* Main user console - landing page */}
               <Route 
-                path="/dashboard" 
+                path="/console" 
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/create-team" 
-                element={
-                  <ProtectedRoute>
-                    <TeamCreationPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/join-team" 
-                element={
-                  <ProtectedRoute>
-                    <TeamJoinPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tasks" 
-                element={
-                  <ProtectedRoute>
-                    <TasksPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/chat" 
-                element={
-                  <ProtectedRoute>
-                    <ChatPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/project/:projectId?" 
-                element={
-                  <ProtectedRoute>
-                    <ProjectPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/demo" 
-                element={
-                  <ProtectedRoute>
-                    <DemoPage />
+                    <UserHackathonConsole />
                   </ProtectedRoute>
                 } 
               />
               
-              {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              {/* Create hackathon page */}
+              <Route 
+                path="/create-hackathon" 
+                element={
+                  <ProtectedRoute>
+                    <CreateHackathonPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Hackathon workspace with nested routes */}
+              <Route 
+                path="/hackathon/:hackathonId/*" 
+                element={
+                  <ProtectedRoute>
+                    <HackathonDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Default redirect to console */}
+              <Route path="/" element={<Navigate to="/console" replace />} />
               
               {/* Catch all route */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/console" replace />} />
             </Routes>
           </div>
         </Router>

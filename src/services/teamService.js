@@ -13,7 +13,7 @@ export const teamService = {
   },
 
   // Create a new team with the current user as owner
-  async createTeam(name, userId, userName = null) {
+  async createTeam(name, userId, hackathonId, userName = null) {
     try {
       // Generate unique join code
       let joinCode;
@@ -56,6 +56,7 @@ export const teamService = {
           name: name.trim(),
           joinCode,
           ownerId: userId,
+          hackathonId: hackathonId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
@@ -68,6 +69,7 @@ export const teamService = {
         ID.unique(),
         {
           teamId: team.$id,
+          hackathonId: hackathonId,
           userId,
           userName: userName || 'Team Owner', // Store user name
           role: 'owner',
@@ -116,6 +118,49 @@ export const teamService = {
     }
   },
 
+  // Get user's team for a specific hackathon
+  async getUserTeamForHackathon(userId, hackathonId) {
+    try {
+      // First, find team membership
+      const memberships = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        [
+          Query.equal('userId', userId)
+        ]
+      );
+
+      if (memberships.documents.length === 0) {
+        return null;
+      }
+
+      // Get all teams the user is a member of for this hackathon
+      const teamPromises = memberships.documents.map(membership => 
+        databases.getDocument(DATABASE_ID, COLLECTIONS.TEAMS, membership.teamId)
+          .then(team => team.hackathonId === hackathonId ? team : null)
+          .catch(() => null)
+      );
+      
+      const teamResults = await Promise.all(teamPromises);
+      const teams = { documents: teamResults.filter(team => team !== null) };
+
+      if (teams.documents.length === 0) {
+        return null;
+      }
+
+      const team = teams.documents[0];
+      const userMembership = memberships.documents.find(membership => membership.teamId === team.$id);
+
+      return {
+        ...team,
+        userRole: userMembership.role
+      };
+    } catch (error) {
+      console.error('Error getting user team for hackathon:', error);
+      return null;
+    }
+  },
+
   // Join a team using join code
   async joinTeam(joinCode, userId, userName = null) {
     try {
@@ -157,6 +202,7 @@ export const teamService = {
         ID.unique(),
         {
           teamId: team.$id,
+          hackathonId: team.hackathonId,
           userId,
           userName: userName || 'Team Member', // Store user name
           role: 'member',
@@ -167,6 +213,294 @@ export const teamService = {
       return team;
     } catch (error) {
       throw new Error(error.message || 'Failed to join team');
+    }
+  },
+
+  // Get all teams a user is part of
+  async getUserTeams(userId) {
+    try {
+      // Get all team memberships for the user
+      const memberships = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        [
+          Query.equal('userId', userId),
+          Query.orderDesc('joinedAt')
+        ]
+      );
+
+      // Get team details for each membership
+      const teams = await Promise.all(
+        memberships.documents.map(async (membership) => {
+          try {
+            const team = await databases.getDocument(
+              DATABASE_ID,
+              COLLECTIONS.TEAMS,
+              membership.teamId
+            );
+            return {
+              ...team,
+              userRole: membership.role,
+              joinedAt: membership.joinedAt
+            };
+          } catch (error) {
+            console.warn(`Failed to get team ${membership.teamId}:`, error);
+            return null;
+          }
+        })
+      );
+
+      // Filter out any null teams (in case some teams were deleted)
+      return teams.filter(team => team !== null);
+    } catch (error) {
+      console.error('Error getting user teams:', error);
+      throw new Error('Failed to load your teams');
+    }
+  },
+
+  // Get all team members for a specific team and hackathon
+  async getTeamMembers(teamId, hackathonId) {
+    // Backward compatibility: if hackathonId is not provided, use legacy method
+    if (arguments.length === 1) {
+      return this.getLegacyTeamMembers(teamId);
+    }
+
+    try {
+      const memberships = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        [
+          Query.equal('teamId', teamId),
+          Query.equal('hackathonId', hackathonId),
+          Query.orderAsc('joinedAt')
+        ]
+      );
+
+      return memberships.documents.map(member => ({
+        id: member.$id,
+        userId: member.userId,
+        userName: member.userName,
+        role: member.role,
+        joinedAt: member.joinedAt
+      }));
+    } catch (error) {
+      console.error('Error getting team members:', error);
+      throw new Error('Failed to load team members');
+    }
+  },
+
+  // Legacy method for backward compatibility (without hackathon scoping)
+  async getLegacyTeamMembers(teamId) {
+    try {
+      const memberships = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        [
+          Query.equal('teamId', teamId),
+          Query.orderAsc('joinedAt')
+        ]
+      );
+
+      return memberships.documents.map(member => ({
+        id: member.$id,
+        userId: member.userId,
+        userName: member.userName,
+        role: member.role,
+        joinedAt: member.joinedAt
+      }));
+    } catch (error) {
+      console.error('Error getting legacy team members:', error);
+      throw new Error('Failed to load team members');
+    }
+  },
+
+  // Update team member role
+  async updateMemberRole(memberId, newRole, updatedBy) {
+    try {
+      // Validate role
+      const validRoles = ['owner', 'leader', 'member'];
+      if (!validRoles.includes(newRole)) {
+        throw new Error('Invalid role. Must be owner, leader, or member.');
+      }
+
+      const updatedMember = await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        memberId,
+        {
+          role: newRole,
+          updatedAt: new Date().toISOString(),
+          updatedBy: updatedBy
+        }
+      );
+
+      return updatedMember;
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      throw new Error('Failed to update member role');
+    }
+  },
+
+  // Remove team member
+  async removeMember(memberId, teamId, hackathonId, removedBy) {
+    try {
+      // Get member details before removing
+      const member = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        memberId
+      );
+
+      // Verify the member belongs to the correct team and hackathon
+      if (member.teamId !== teamId || member.hackathonId !== hackathonId) {
+        throw new Error('Member does not belong to this team or hackathon');
+      }
+
+      // Don't allow removing the owner
+      if (member.role === 'owner') {
+        throw new Error('Cannot remove team owner');
+      }
+
+      // Remove the member
+      await databases.deleteDocument(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        memberId
+      );
+
+      return { success: true, removedMember: member };
+    } catch (error) {
+      console.error('Error removing team member:', error);
+      throw new Error(error.message || 'Failed to remove team member');
+    }
+  },
+
+  // Leave team (for non-owners)
+  async leaveTeam(userId, teamId, hackathonId) {
+    try {
+      // Find user's membership
+      const memberships = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        [
+          Query.equal('userId', userId),
+          Query.equal('teamId', teamId),
+          Query.equal('hackathonId', hackathonId)
+        ]
+      );
+
+      const membership = memberships.documents[0];
+      
+      if (!membership) {
+        throw new Error('You are not a member of this team');
+      }
+
+      if (membership.role === 'owner') {
+        throw new Error('Team owner cannot leave the team. Transfer ownership first.');
+      }
+
+      // Remove the membership
+      await databases.deleteDocument(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        membership.$id
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error leaving team:', error);
+      throw new Error(error.message || 'Failed to leave team');
+    }
+  },
+
+  // Transfer team ownership
+  async transferOwnership(teamId, hackathonId, currentOwnerId, newOwnerId) {
+    try {
+      // Get current owner membership
+      const currentOwnerMemberships = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        [
+          Query.equal('userId', currentOwnerId),
+          Query.equal('teamId', teamId),
+          Query.equal('hackathonId', hackathonId),
+          Query.equal('role', 'owner')
+        ]
+      );
+
+      const currentOwnerMembership = currentOwnerMemberships.documents[0];
+      
+      if (!currentOwnerMembership) {
+        throw new Error('You are not the owner of this team');
+      }
+
+      // Get new owner membership
+      const newOwnerMemberships = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        [
+          Query.equal('userId', newOwnerId),
+          Query.equal('teamId', teamId),
+          Query.equal('hackathonId', hackathonId)
+        ]
+      );
+
+      const newOwnerMembership = newOwnerMemberships.documents[0];
+      
+      if (!newOwnerMembership) {
+        throw new Error('New owner is not a member of this team');
+      }
+
+      // Update current owner to leader
+      await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        currentOwnerMembership.$id,
+        {
+          role: 'leader',
+          updatedAt: new Date().toISOString()
+        }
+      );
+
+      // Update new owner
+      await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        newOwnerMembership.$id,
+        {
+          role: 'owner',
+          updatedAt: new Date().toISOString()
+        }
+      );
+
+      // Update team owner
+      await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.TEAMS,
+        teamId,
+        {
+          ownerId: newOwnerId,
+          updatedAt: new Date().toISOString()
+        }
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error transferring ownership:', error);
+      throw new Error(error.message || 'Failed to transfer ownership');
+    }
+  },
+
+  // Switch to a specific team (for multi-team support)
+  async switchToTeam(teamId) {
+    try {
+      // This is a placeholder for team switching logic
+      // In a real app, you might store the current team in local storage
+      // or update user preferences in the database
+      localStorage.setItem('currentTeamId', teamId);
+      return true;
+    } catch (error) {
+      throw new Error('Failed to switch team');
     }
   }
 };

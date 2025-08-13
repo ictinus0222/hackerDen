@@ -33,6 +33,7 @@ export const DATABASE_ID = APPWRITE_DATABASE_ID;
 
 // Collection IDs
 export const COLLECTIONS = {
+  HACKATHONS: 'hackathons',
   TEAMS: 'teams',
   TEAM_MEMBERS: 'team_members', 
   TASKS: 'tasks',

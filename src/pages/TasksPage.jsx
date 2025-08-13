@@ -1,22 +1,65 @@
 import { useState } from 'react';
-import Layout from '../components/Layout.jsx';
+import { useParams } from 'react-router-dom';
 import KanbanBoard from '../components/KanbanBoard.jsx';
 import TaskModal from '../components/TaskModal.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
-import { useTeam } from '../hooks/useTeam.jsx';
+import { useAuth } from '../hooks/useAuth';
+import { teamService } from '../services/teamService';
+import { useEffect } from 'react';
 
 const TasksPage = () => {
-  const { team, hasTeam } = useTeam();
+  const { hackathonId } = useParams();
+  const { user } = useAuth();
+  const [team, setTeam] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
+  // Get user's team for this hackathon
+  useEffect(() => {
+    const fetchTeam = async () => {
+      if (!user?.$id || !hackathonId) {
+        setTeam(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userTeam = await teamService.getUserTeamForHackathon(user.$id, hackathonId);
+        setTeam(userTeam);
+      } catch (err) {
+        console.error('Error fetching team:', err);
+        setTeam(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeam();
+  }, [user?.$id, hackathonId]);
+
+  const hasTeam = !!team;
 
   const handleTaskCreated = () => {
     // Task creation is handled by the modal and real-time updates
     // No need to manually refresh as the KanbanBoard uses real-time data
   };
 
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+            <p className="text-dark-tertiary">Loading team information...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!hasTeam) {
     return (
-      <Layout>
+      <div className="p-6">
         <div className="flex flex-col items-center justify-center min-h-[400px]">
           <div className="text-center">
             <svg className="w-16 h-16 text-dark-tertiary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,12 +77,12 @@ const TasksPage = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
+    <div className="p-6">
       <ErrorBoundary>
         <div className="h-full flex flex-col">
           {/* Page Header */}
@@ -75,7 +118,7 @@ const TasksPage = () => {
           />
         </div>
       </ErrorBoundary>
-    </Layout>
+    </div>
   );
 };
 

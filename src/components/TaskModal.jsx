@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useTeam } from '../hooks/useTeam';
-import { useTeamMembers } from '../hooks/useTeamMembers';
+import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
 import { taskService } from '../services/taskService';
+import { teamService } from '../services/teamService';
 
 // Custom Dropdown Component
 const CustomDropdown = ({ 
@@ -83,9 +84,10 @@ const CustomDropdown = ({
 };
 
 const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = null }) => {
+  const { hackathonId } = useParams();
   const { user } = useAuth();
-  const { team } = useTeam();
-  const { members } = useTeamMembers();
+  const { members } = useHackathonTeamMembers();
+  const [team, setTeam] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -97,6 +99,28 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
   const [newLabel, setNewLabel] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get user's team for this hackathon
+  useEffect(() => {
+    const fetchTeam = async () => {
+      if (!user?.$id || !hackathonId) {
+        setTeam(null);
+        return;
+      }
+
+      try {
+        const userTeam = await teamService.getUserTeamForHackathon(user.$id, hackathonId);
+        setTeam(userTeam);
+      } catch (err) {
+        console.error('Error fetching team:', err);
+        setTeam(null);
+      }
+    };
+
+    if (isOpen) {
+      fetchTeam();
+    }
+  }, [user?.$id, hackathonId, isOpen]);
 
   // Initialize form data when modal opens or when editing a task
   useEffect(() => {
@@ -222,7 +246,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
         };
 
         console.log('Creating task with data:', taskData);
-        const newTask = await taskService.createTask(team.$id, taskData, user.name, assignedName);
+        const newTask = await taskService.createTask(team.$id, hackathonId, taskData, user.name, assignedName);
 
         // Notify parent component
         if (onTaskCreated) {

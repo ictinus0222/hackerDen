@@ -1,6 +1,6 @@
 # HackerDen MVP
 
-A modern, collaborative platform for hackathon teams featuring comprehensive team management, advanced task tracking with drag-and-drop functionality, and real-time communication with a polished dark theme interface.
+A modern, hackathon-focused collaborative platform featuring comprehensive hackathon management, team coordination, advanced task tracking with drag-and-drop functionality, and real-time communication with a polished dark theme interface.
 
 ## Features
 
@@ -17,13 +17,16 @@ A modern, collaborative platform for hackathon teams featuring comprehensive tea
 - **Rounded Corners**: Smooth, modern button and component styling with 12px border radius
 - **Progress Indicators**: Visual task completion progress bar in sidebar with color-coded status
 
-#### 🔐 **Authentication & Team Management**
+#### 🏆 **Hackathon Management & Team Coordination**
 - **User Authentication**: Secure registration, login, and session management
+- **Hackathon Console**: Centralized dashboard showing all user's hackathons (ongoing, upcoming, completed)
+- **Hackathon-Specific Dashboards**: Individual dashboards for each hackathon with team management
 - **Team Creation**: Create teams with unique join codes and automatic ownership assignment
 - **Team Management**: Join teams using invite codes with validation and duplicate prevention
-- **Team Routing Logic**: Smart routing based on team membership status
-- **Protected Routes**: Secure access to team features with authentication guards
+- **Smart Routing**: Hackathon-focused navigation with UserHackathonConsole as the main landing page
+- **Protected Routes**: Secure access to hackathon features with authentication guards
 - **Team Leader Assignment**: Role-based permissions with team leaders able to assign tasks to any member
+- **Status-Based Organization**: Hackathons grouped by status (ongoing, upcoming, completed) for better organization
 
 #### 📋 **Advanced Task Management**
 - **Kanban Board**: Four-column task board (To-Do, In Progress, Blocked, Done) with real-time updates

@@ -4,7 +4,7 @@ import { messageService } from './messageService';
 
 export const taskService = {
   // Create a new task
-  async createTask(teamId, taskData, creatorName, assignedToName) {
+  async createTask(teamId, hackathonId, taskData, creatorName, assignedToName) {
     try {
       // Store user names in the userNameService cache when creating tasks
       if (taskData.assignedTo && (assignedToName || creatorName)) {
@@ -22,6 +22,7 @@ export const taskService = {
         ID.unique(),
         {
           teamId,
+          hackathonId,
           title: taskData.title,
           description: taskData.description || '',
           status: 'todo',
@@ -40,7 +41,7 @@ export const taskService = {
       // Send system message about task creation
       try {
         const systemMessage = `📝 ${creatorName || 'Someone'} created a new task: "${task.title}"`;
-        await messageService.sendSystemMessage(teamId, systemMessage, 'task_created', taskData.createdBy);
+        await messageService.sendSystemMessage(teamId, hackathonId, systemMessage, 'task_created', taskData.createdBy);
       } catch (messageError) {
         console.warn('Failed to send task creation system message:', messageError);
         // Don't fail the task creation if system message fails
@@ -52,6 +53,7 @@ export const taskService = {
       console.error('Error creating task:', error);
       console.error('Task data being sent:', {
         teamId,
+        hackathonId,
         title: taskData.title,
         description: taskData.description || '',
         status: 'todo',
@@ -78,10 +80,23 @@ export const taskService = {
     }
   },
 
-  // Get all tasks for a team
-  async getTeamTasks(teamId) {
+  // Get all tasks for a team in a specific hackathon
+  async getTeamTasks(teamId, hackathonId) {
+    // Backward compatibility: if hackathonId is not provided, use legacy method
+    if (arguments.length === 1) {
+      return this.getLegacyTeamTasks(teamId);
+    }
+
+    // Validate parameters
+    if (!teamId) {
+      throw new Error('Team ID is required to fetch tasks');
+    }
+    if (!hackathonId) {
+      throw new Error('Hackathon ID is required to fetch tasks');
+    }
+
     try {
-      console.log('Fetching tasks for team:', teamId);
+      console.log('Fetching tasks for team:', teamId, 'in hackathon:', hackathonId);
       console.log('Database ID:', DATABASE_ID);
       console.log('Tasks Collection:', COLLECTIONS.TASKS);
       
@@ -90,6 +105,7 @@ export const taskService = {
         COLLECTIONS.TASKS,
         [
           Query.equal('teamId', teamId),
+          Query.equal('hackathonId', hackathonId),
           Query.orderDesc('$createdAt')
         ]
       );
@@ -117,8 +133,52 @@ export const taskService = {
     }
   },
 
+  // Legacy method for backward compatibility (without hackathon scoping)
+  async getLegacyTeamTasks(teamId) {
+    // Validate parameters
+    if (!teamId) {
+      throw new Error('Team ID is required to fetch tasks');
+    }
+
+    try {
+      console.log('Fetching legacy tasks for team:', teamId);
+      console.log('Database ID:', DATABASE_ID);
+      console.log('Tasks Collection:', COLLECTIONS.TASKS);
+      
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        [
+          Query.equal('teamId', teamId),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      
+      console.log('Legacy tasks response:', response);
+      return response.documents;
+    } catch (error) {
+      console.error('Error fetching legacy team tasks:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        type: error.type
+      });
+      
+      // Handle specific error cases
+      if (error.message.includes('Collection with the requested ID could not be found')) {
+        throw new Error('Tasks collection not found. Please create the "tasks" collection in your Appwrite database.');
+      } else if (error.message.includes('Attribute not found in schema')) {
+        throw new Error('Tasks collection schema is incomplete. Please add the required attributes (teamId, title, description, status, assignedTo, createdBy) to the tasks collection.');
+      } else if (error.code === 401) {
+        throw new Error('Unauthorized access to tasks. Please check collection permissions.');
+      } else {
+        throw new Error(`Failed to fetch tasks: ${error.message}`);
+      }
+    }
+  },
+
   // Update task status
-  async updateTaskStatus(taskId, status, taskTitle, teamId, userId = 'system') {
+  async updateTaskStatus(taskId, status, taskTitle, teamId, hackathonId, userId = 'system') {
     try {
       const task = await databases.updateDocument(
         DATABASE_ID,
@@ -145,7 +205,7 @@ export const taskService = {
           systemMessage = `🔄 Task "${taskTitle || task.title}" moved to ${statusLabels[status] || status}`;
         }
 
-        await messageService.sendSystemMessage(teamId, systemMessage, 'task_status_changed', userId);
+        await messageService.sendSystemMessage(teamId, hackathonId, systemMessage, 'task_status_changed', userId);
       } catch (messageError) {
         console.warn('Failed to send task status change system message:', messageError);
         // Don't fail the task update if system message fails
@@ -192,12 +252,12 @@ export const taskService = {
   },
 
   // Subscribe to real-time task updates
-  subscribeToTasks(teamId, callback) {
+  subscribeToTasks(teamId, hackathonId, callback) {
     const unsubscribe = client.subscribe(
       `databases.${DATABASE_ID}.collections.${COLLECTIONS.TASKS}.documents`,
       (response) => {
-        // Only process events for tasks belonging to this team
-        if (response.payload.teamId === teamId) {
+        // Only process events for tasks belonging to this team and hackathon
+        if (response.payload.teamId === teamId && response.payload.hackathonId === hackathonId) {
           callback(response);
         }
       }

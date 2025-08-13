@@ -1,4 +1,4 @@
-import { useMessages } from '../hooks/useMessages';
+import { useHackathonMessages } from '../hooks/useHackathonMessages';
 import { useAuth } from '../hooks/useAuth';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
@@ -6,7 +6,7 @@ import ErrorBoundary from './ErrorBoundary';
 import MessagesSetupGuide from './MessagesSetupGuide';
 
 const Chat = () => {
-  const { messages, loading, error, sending, sendMessage } = useMessages();
+  const { messages, loading, error, sending, sendMessage, team } = useHackathonMessages();
   const { user } = useAuth();
 
   const handleSendMessage = (content) => {

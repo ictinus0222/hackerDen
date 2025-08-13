@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTasks } from '../hooks/useTasks';
-import { useTeam } from '../hooks/useTeam';
+import { useHackathonTasks } from '../hooks/useHackathonTasks';
 import { useAuth } from '../hooks/useAuth';
 import { useTouchDragDrop } from '../hooks/useTouchDragDrop';
 import { taskService } from '../services/taskService';
@@ -12,8 +11,7 @@ import AppwriteSetupGuide from './AppwriteSetupGuide';
 import { createTestTasks } from '../utils/testData';
 
 const KanbanBoard = () => {
-  const { tasksByStatus, loading, error, refetch } = useTasks();
-  const { team } = useTeam();
+  const { tasksByStatus, loading, error, refetch, team, hackathonId } = useHackathonTasks();
   const { user } = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
@@ -120,7 +118,7 @@ const KanbanBoard = () => {
     try {
       setIsUpdatingTask(true);
       console.log('Updating task status from', task.status, 'to', newStatus);
-      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id, user?.$id);
+      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id, hackathonId, user?.$id);
       console.log('Task status updated successfully');
       // The real-time subscription will handle updating the UI
     } catch (error) {
