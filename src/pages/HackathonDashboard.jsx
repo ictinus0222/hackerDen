@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import HackathonDashboardContent from '../components/HackathonDashboardContent';
 import TasksPage from './TasksPage';
 import ChatPage from './ChatPage';
+import WhiteboardPage from './WhiteboardPage';
 
 const HackathonDashboard = () => {
   const { hackathonId } = useParams();
@@ -94,6 +95,7 @@ const HackathonDashboard = () => {
       <Routes>
         <Route path="dashboard" element={<HackathonDashboardContent hackathon={hackathon} />} />
         <Route path="tasks" element={<TasksPage />} />
+        <Route path="whiteboard" element={<WhiteboardPage />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="" element={<Navigate to="dashboard" replace />} />
       </Routes>
