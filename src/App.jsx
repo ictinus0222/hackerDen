@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage';
 import UserHackathonConsole from './pages/UserHackathonConsole';
 import HackathonDashboard from './pages/HackathonDashboard';
 import CreateHackathonPage from './pages/CreateHackathonPage';
+import WhiteboardPage from './pages/WhiteboardPage';
 
 function App() {
   return (
@@ -36,6 +37,16 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CreateHackathonPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Whiteboard page */}
+              <Route 
+                path="/whiteboard" 
+                element={
+                  <ProtectedRoute>
+                    <WhiteboardPage />
                   </ProtectedRoute>
                 } 
               />
