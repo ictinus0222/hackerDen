@@ -18,7 +18,8 @@
     "backup": "node scripts/backup-utility.js",
     "backup:restore": "node scripts/backup-utility.js --restore",
     "backup:cleanup": "node scripts/backup-utility.js --cleanup",
-    "backup:cleanup-confirm": "node scripts/backup-utility.js --cleanup --confirm"
+    "backup:cleanup-confirm": "node scripts/backup-utility.js --cleanup --confirm",
+    "setup:whiteboard": "node scripts/setup-whiteboard.js"
   },
   "dependencies": {
     "appwrite": "^18.2.0",
@@ -37,6 +38,7 @@
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^16.6.1",
     "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
