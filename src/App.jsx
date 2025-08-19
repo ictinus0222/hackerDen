@@ -2,10 +2,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { TeamProvider } from './contexts/TeamContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
+import HackathonWrapper from './components/HackathonWrapper';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import UserHackathonConsole from './pages/UserHackathonConsole';
-import HackathonDashboard from './pages/HackathonDashboard';
 import CreateHackathonPage from './pages/CreateHackathonPage';
 
 function App() {
@@ -45,7 +45,7 @@ function App() {
                 path="/hackathon/:hackathonId/*" 
                 element={
                   <ProtectedRoute>
-                    <HackathonDashboard />
+                    <HackathonWrapper />
                   </ProtectedRoute>
                 } 
               />

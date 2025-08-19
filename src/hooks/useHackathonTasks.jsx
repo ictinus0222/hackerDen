@@ -5,7 +5,7 @@ import { realtimeService } from '../services/realtimeService';
 import { teamService } from '../services/teamService';
 import { useAuth } from './useAuth';
 
-export const useHackathonTasks = () => {
+export const useHackathonTasks = (onTaskUpdate = null) => {
   const { hackathonId } = useParams();
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
@@ -84,17 +84,36 @@ export const useHackathonTasks = () => {
     
     if (events.includes('databases.*.collections.*.documents.*.create')) {
       // New task created
-      setTasks(prev => [payload, ...prev]);
+      setTasks(prev => {
+        const newTasks = [payload, ...prev];
+        
+        // Trigger notification for all team members
+        if (onTaskUpdate) {
+          onTaskUpdate('task_created', payload.title, payload.createdBy);
+        }
+        
+        return newTasks;
+      });
     } else if (events.includes('databases.*.collections.*.documents.*.update')) {
       // Task updated
-      setTasks(prev => prev.map(task => 
-        task.$id === payload.$id ? payload : task
-      ));
+      setTasks(prev => {
+        const oldTask = prev.find(task => task.$id === payload.$id);
+        const updatedTasks = prev.map(task => 
+          task.$id === payload.$id ? payload : task
+        );
+        
+        // Trigger notification if status changed for all team members
+        if (onTaskUpdate && oldTask && oldTask.status !== payload.status) {
+          onTaskUpdate('task_updated', payload.title, payload.status, oldTask.status);
+        }
+        
+        return updatedTasks;
+      });
     } else if (events.includes('databases.*.collections.*.documents.*.delete')) {
       // Task deleted
       setTasks(prev => prev.filter(task => task.$id !== payload.$id));
     }
-  }, []);
+  }, [onTaskUpdate]);
 
   // Set up real-time subscription with enhanced error handling
   useEffect(() => {

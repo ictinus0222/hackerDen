@@ -421,6 +421,7 @@ const Dashboard = () => {
           onClose={() => setShowDebugPanel(false)} 
         />
       )}
+      
     </Layout>
   );
 };

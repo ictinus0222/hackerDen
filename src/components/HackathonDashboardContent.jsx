@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import { useHackathonTasks } from '../hooks/useHackathonTasks';
 import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
+import { useHackathonNotifications } from '../contexts/HackathonNotificationContext';
 import LoadingSpinner from './LoadingSpinner';
 import HackathonTeamSelector from './HackathonTeamSelector';
 
@@ -12,6 +13,7 @@ const HackathonDashboardContent = ({ hackathon }) => {
   const { team, loading: teamLoading, hasTeam } = useHackathonTeam(hackathon?.hackathonId);
   const { tasks, tasksByStatus, loading: tasksLoading } = useHackathonTasks();
   const { members: teamMembers, loading: membersLoading } = useHackathonTeamMembers();
+  const { notifyTaskCreated, notifyTaskUpdated, notifyMessageSent } = useHackathonNotifications();
   const [showTeamSelector, setShowTeamSelector] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
 
@@ -523,6 +525,33 @@ const HackathonDashboardContent = ({ hackathon }) => {
             </div>
             <HackathonTeamSelector hackathonId={hackathon.hackathonId} onTeamCreatedOrJoined={handleTeamCreatedOrJoined} />
           </div>
+        </div>
+      )}
+      
+      {/* Development Test Buttons */}
+      {process.env.NODE_ENV === 'development' && hasTeam && (
+        <div className="fixed bottom-20 right-4 space-y-2">
+          <button
+            onClick={() => notifyTaskCreated('Test Task', 'Test User')}
+            className="btn-secondary text-xs px-3 py-2 block"
+            title="Test Task Notification"
+          >
+            📝 Test Task
+          </button>
+          <button
+            onClick={() => notifyTaskUpdated('Test Task', 'done')}
+            className="btn-secondary text-xs px-3 py-2 block"
+            title="Test Task Complete"
+          >
+            ✅ Test Complete
+          </button>
+          <button
+            onClick={() => notifyMessageSent('Test User')}
+            className="btn-secondary text-xs px-3 py-2 block"
+            title="Test Message"
+          >
+            💬 Test Message
+          </button>
         </div>
       )}
     </div>

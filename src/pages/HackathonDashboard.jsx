@@ -97,6 +97,7 @@ const HackathonDashboard = () => {
         <Route path="chat" element={<ChatPage />} />
         <Route path="" element={<Navigate to="dashboard" replace />} />
       </Routes>
+      
     </HackathonLayout>
   );
 };

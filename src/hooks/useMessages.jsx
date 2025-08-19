@@ -4,7 +4,7 @@ import { realtimeService } from '../services/realtimeService';
 import { useAuth } from './useAuth';
 import { useTeam } from './useTeam';
 
-export const useMessages = () => {
+export const useMessages = (onMessageReceived = null) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -114,6 +114,11 @@ export const useMessages = () => {
               userName: payload.userId ? 'Team Member' : null // Simplified for MVP
             };
             
+            // Trigger notification for all team members when a user message is received
+            if (onMessageReceived && payload.type === 'user') {
+              onMessageReceived('message_sent', messageWithUser.userName || 'Team Member');
+            }
+            
             return [...prev, messageWithUser];
           });
         } else if (events.includes('databases.*.collections.*.documents.*.update')) {
@@ -143,7 +148,7 @@ export const useMessages = () => {
     );
 
     return unsubscribe;
-  }, [team?.$id, loadMessages]);
+  }, [team?.$id, loadMessages, onMessageReceived, user?.$id]);
 
   // Load messages when team changes
   useEffect(() => {

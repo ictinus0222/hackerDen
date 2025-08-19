@@ -5,7 +5,7 @@ import { realtimeService } from '../services/realtimeService';
 import { teamService } from '../services/teamService';
 import { useAuth } from './useAuth';
 
-export const useHackathonMessages = () => {
+export const useHackathonMessages = (onMessageReceived = null) => {
   const { hackathonId } = useParams();
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
@@ -145,6 +145,11 @@ export const useHackathonMessages = () => {
               userName: payload.userId ? 'Team Member' : null // Simplified for MVP
             };
             
+            // Trigger notification for all team members when a user message is received
+            if (onMessageReceived && payload.type === 'user') {
+              onMessageReceived('message_sent', messageWithUser.userName || 'Team Member');
+            }
+            
             return [...prev, messageWithUser];
           });
         } else if (events.includes('databases.*.collections.*.documents.*.update')) {
@@ -162,7 +167,7 @@ export const useHackathonMessages = () => {
     );
 
     return unsubscribe;
-  }, [team?.$id, hackathonId]);
+  }, [team?.$id, hackathonId, onMessageReceived, user?.$id]);
 
   // Load messages when hackathon changes
   useEffect(() => {
