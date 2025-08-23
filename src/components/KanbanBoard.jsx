@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useHackathonTasks } from '../hooks/useHackathonTasks';
 import { useAuth } from '../hooks/useAuth';
 import { useTouchDragDrop } from '../hooks/useTouchDragDrop';
@@ -16,7 +16,7 @@ const KanbanBoard = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [draggingTask, setDraggingTask] = useState(null);
-  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+
   const [filters, setFilters] = useState({
     priority: 'all',
     label: 'all',
@@ -42,14 +42,11 @@ const KanbanBoard = () => {
     }
 
     try {
-      setIsUpdatingTask(true);
       await taskService.deleteTask(taskId);
       refetch(); // Refresh the tasks after deletion
     } catch (error) {
       console.error('Failed to delete task:', error);
       alert('Failed to delete task. Please try again.');
-    } finally {
-      setIsUpdatingTask(false);
     }
   };
 
@@ -86,7 +83,7 @@ const KanbanBoard = () => {
     done: null // No limit for completed tasks
   };
 
-  const handleTaskDrop = async (taskId, newStatus) => {
+  const handleTaskDrop = useCallback(async (taskId, newStatus) => {
     console.log('Dropping task:', taskId, 'to status:', newStatus);
     
     // Find the task being moved
@@ -115,27 +112,32 @@ const KanbanBoard = () => {
       return;
     }
 
+    // Clear dragging state immediately for smooth UX
+    setDraggingTask(null);
+
     try {
-      setIsUpdatingTask(true);
       console.log('Updating task status from', task.status, 'to', newStatus);
+      
+      // Make API call and refresh silently in background
       await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id, hackathonId, user?.$id);
       console.log('Task status updated successfully');
-      // The real-time subscription will handle updating the UI
+      
+      // Silent refresh without loading state
+      refetch();
     } catch (error) {
       console.error('Failed to update task status:', error);
       alert('Failed to update task status. Please try again.');
-    } finally {
-      setIsUpdatingTask(false);
-      setDraggingTask(null);
+      // Refetch to restore correct state
+      refetch();
     }
-  };
+  }, [tasksByStatus, team?.$id, hackathonId, user?.$id, refetch]);
 
-  const handleDragStart = (task) => {
+  const handleDragStart = useCallback((task) => {
     console.log('Starting drag for task:', task.title);
     setDraggingTask(task);
-  };
+  }, []);
 
-  // Add CSS for touch drag feedback
+  // Add CSS for touch drag feedback and performance optimizations
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
@@ -144,17 +146,41 @@ const KanbanBoard = () => {
         border-color: rgb(59 130 246) !important;
         border-width: 2px !important;
         border-style: dashed !important;
+        transform: translateZ(0); /* Force hardware acceleration */
+      }
+      
+      .kanban-column {
+        contain: layout style paint; /* CSS containment for better performance */
+        will-change: auto;
+      }
+      
+      .dragging {
+        will-change: transform;
+        transform: translateZ(0); /* Force hardware acceleration */
+      }
+      
+      /* Optimize scrolling performance */
+      .hide-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
       }
     `;
     document.head.appendChild(style);
     
     return () => {
-      document.head.removeChild(style);
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
     };
   }, []);
 
-  // Filter tasks based on current filters
-  const filterTasks = (tasks) => {
+  // Memoized filter function for better performance
+  const filterTasks = useCallback((tasks) => {
     return tasks.filter(task => {
       const priorityMatch = filters.priority === 'all' || task.priority === filters.priority;
       const labelMatch = filters.label === 'all' || (task.labels && Array.isArray(task.labels) && task.labels.includes(filters.label));
@@ -163,10 +189,10 @@ const KanbanBoard = () => {
         task.description.toLowerCase().includes(filters.search.toLowerCase());
       return priorityMatch && labelMatch && searchMatch;
     });
-  };
+  }, [filters]);
 
-  // Get all unique labels for filter dropdown
-  const getAllLabels = () => {
+  // Memoized labels calculation
+  const allLabels = useMemo(() => {
     const allTasks = [
       ...tasksByStatus.todo,
       ...tasksByStatus.in_progress,
@@ -180,14 +206,15 @@ const KanbanBoard = () => {
       }
     });
     return Array.from(labels);
-  };
+  }, [tasksByStatus]);
 
-  const columns = [
+  // Memoized columns to prevent unnecessary re-renders
+  const columns = useMemo(() => [
     { title: 'To-Do', status: 'todo', tasks: filterTasks(tasksByStatus.todo) },
     { title: 'In Progress', status: 'in_progress', tasks: filterTasks(tasksByStatus.in_progress) },
     { title: 'Blocked', status: 'blocked', tasks: filterTasks(tasksByStatus.blocked) },
     { title: 'Done', status: 'done', tasks: filterTasks(tasksByStatus.done) }
-  ];
+  ], [tasksByStatus, filterTasks]);
 
   if (loading) {
     return (
@@ -290,7 +317,7 @@ const KanbanBoard = () => {
               className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="all">All Labels</option>
-              {getAllLabels().map(label => (
+              {allLabels.map(label => (
                 <option key={label} value={label}>{label}</option>
               ))}
             </select>
@@ -305,9 +332,7 @@ const KanbanBoard = () => {
       
       {/* Kanban Columns */}
       <div 
-        className={`flex-1 grid grid-cols-4 gap-6 min-h-0 overflow-y-auto hide-scrollbar ${
-          isUpdatingTask ? 'pointer-events-none opacity-75' : ''
-        }`}
+        className="flex-1 grid grid-cols-4 gap-6 min-h-0 overflow-y-auto hide-scrollbar"
         role="application"
         aria-label="Task columns"
         aria-live="polite"
@@ -331,18 +356,7 @@ const KanbanBoard = () => {
         ))}
       </div>
 
-      {/* Loading Overlay */}
-      {isUpdatingTask && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-40"
-          aria-live="assertive"
-          role="status"
-        >
-          <div className="bg-white rounded-lg p-4 shadow-lg">
-            <LoadingSpinner message="Updating task..." size="sm" />
-          </div>
-        </div>
-      )}
+
 
       {/* Task Creation Modal */}
       <TaskModal

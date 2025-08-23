@@ -1,4 +1,6 @@
-const TaskCard = ({
+import { memo, useCallback } from 'react';
+
+const TaskCard = memo(({
   task,
   onDragStart,
   isDragging = false,
@@ -19,32 +21,47 @@ const TaskCard = ({
     });
   };
 
-  const handleDragStart = (e) => {
+  const handleDragStart = useCallback((e) => {
     e.dataTransfer.setData('text/plain', task.$id);
     e.dataTransfer.effectAllowed = 'move';
 
-    // Create a custom drag image for better visual feedback
-    const dragImage = e.target.cloneNode(true);
-    dragImage.style.transform = 'rotate(5deg)';
-    dragImage.style.opacity = '0.8';
+    // Simplified drag image creation for better performance
+    const dragImage = document.createElement('div');
+    dragImage.textContent = task.title;
+    dragImage.style.cssText = `
+      position: absolute;
+      top: -1000px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    `;
+    
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 0, 0);
 
-    // Clean up the drag image after a short delay
-    setTimeout(() => {
-      document.body.removeChild(dragImage);
-    }, 0);
+    // Clean up immediately
+    requestAnimationFrame(() => {
+      if (document.body.contains(dragImage)) {
+        document.body.removeChild(dragImage);
+      }
+    });
 
     if (onDragStart) {
       onDragStart(task);
     }
-  };
+  }, [task, onDragStart]);
 
-  const handleTouchStart = (e) => {
+  const handleTouchStart = useCallback((e) => {
     if (onTouchStart) {
       onTouchStart(e, task);
     }
-  };
+  }, [onTouchStart, task]);
 
   const getStatusLabel = (status) => {
     switch (status) {
@@ -240,6 +257,6 @@ const TaskCard = ({
       </footer>
     </article>
   );
-};
+});
 
 export default TaskCard;

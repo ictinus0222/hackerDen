@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { realtimeService } from '../services/realtimeService';
 import { teamService } from '../services/teamService';
+import { taskService } from '../services/taskService';
+import { messageService } from '../services/messageService';
 import UpdateNotification from '../components/UpdateNotification';
 
 const HackathonNotificationContext = createContext();
@@ -22,6 +24,7 @@ export const HackathonNotificationProvider = ({ children }) => {
   const [team, setTeam] = useState(null);
 
   const showNotification = useCallback((type, message, details = null) => {
+    console.log('🔔 Showing notification:', { type, message, details });
     const newNotification = {
       id: Date.now(),
       type,
@@ -46,7 +49,15 @@ export const HackathonNotificationProvider = ({ children }) => {
     );
   }, [showNotification]);
 
-  const notifyTaskUpdated = useCallback((taskTitle, newStatus) => {
+  const notifyTaskStarted = useCallback((taskTitle) => {
+    showNotification(
+      'task_started',
+      `🚀 Someone started working on a task`,
+      `"${taskTitle}" is now in progress`
+    );
+  }, [showNotification]);
+
+  const notifyTaskUpdated = useCallback((taskTitle, newStatus, oldStatus = null) => {
     const statusLabels = {
       todo: 'To-Do',
       in_progress: 'In Progress',
@@ -54,14 +65,39 @@ export const HackathonNotificationProvider = ({ children }) => {
       done: 'Done'
     };
     
-    const emoji = newStatus === 'done' ? '✅' : '🔄';
+    // Special handling for different status changes
+    if (newStatus === 'in_progress' && oldStatus !== 'in_progress') {
+      // Someone started working on the task
+      notifyTaskStarted(taskTitle);
+      return;
+    }
     
+    if (newStatus === 'done') {
+      showNotification(
+        'task_completed',
+        `✅ Task completed!`,
+        `"${taskTitle}" is now done`
+      );
+      return;
+    }
+    
+    if (newStatus === 'blocked') {
+      showNotification(
+        'task_blocked',
+        `🚫 Task blocked`,
+        `"${taskTitle}" needs attention`
+      );
+      return;
+    }
+    
+    // Generic task update
+    const emoji = '🔄';
     showNotification(
-      newStatus === 'done' ? 'task_completed' : 'task_updated',
+      'task_updated',
       `${emoji} Task moved to ${statusLabels[newStatus]}`,
       `"${taskTitle}"`
     );
-  }, [showNotification]);
+  }, [showNotification, notifyTaskStarted]);
 
   const notifyMessageSent = useCallback((senderName) => {
     showNotification(
@@ -105,44 +141,56 @@ export const HackathonNotificationProvider = ({ children }) => {
     let messageUnsubscribe = null;
 
     const setupSubscriptions = async () => {
+      console.log('🔔 Setting up notification subscriptions for hackathon:', hackathonId, 'user:', user?.$id);
       const userTeam = await fetchTeam();
-      if (!userTeam?.$id) return;
+      if (!userTeam?.$id) {
+        console.log('🔔 No team found, skipping notification subscriptions');
+        return;
+      }
+      console.log('🔔 Found team for notifications:', userTeam.$id);
 
-      // Subscribe to task updates
-      taskUnsubscribe = realtimeService.subscribeToTasks(
+      // Subscribe to task updates using the same method as taskService
+      taskUnsubscribe = taskService.subscribeToTasks(
         userTeam.$id,
+        hackathonId,
         (response) => {
           const { events, payload } = response;
-          console.log('Task notification received:', { events, payload });
+          console.log('🔔 Task notification received:', { events, payload, teamId: userTeam.$id, hackathonId });
           
-          if (events.includes('databases.*.collections.*.documents.*.create')) {
+          // Check for create events (more flexible pattern matching)
+          const isCreateEvent = events.some(event => event.includes('.create'));
+          const isUpdateEvent = events.some(event => event.includes('.update'));
+          
+          if (isCreateEvent) {
             // New task created
-            console.log('Showing task created notification');
+            console.log('🔔 Showing task created notification for:', payload.title);
             notifyTaskCreated(payload.title, 'Team Member');
-          } else if (events.includes('databases.*.collections.*.documents.*.update')) {
+          } else if (isUpdateEvent) {
             // Task updated - we need to check if status changed
-            // For now, we'll show notification for any update
-            console.log('Showing task updated notification');
-            if (payload.status === 'done') {
-              notifyTaskUpdated(payload.title, 'done');
-            } else {
-              notifyTaskUpdated(payload.title, payload.status);
-            }
+            console.log('🔔 Showing task updated notification for:', payload.title, 'status:', payload.status);
+            
+            // For updates, we'll show notification for any status change
+            // The notifyTaskUpdated function will handle the specific logic
+            notifyTaskUpdated(payload.title, payload.status);
           }
         }
       );
 
-      // Subscribe to message updates
-      messageUnsubscribe = realtimeService.subscribeToMessages(
+      // Subscribe to message updates using the same method as messageService
+      messageUnsubscribe = messageService.subscribeToMessages(
         userTeam.$id,
+        hackathonId,
         (response) => {
           const { events, payload } = response;
-          console.log('Message notification received:', { events, payload });
+          console.log('🔔 Message notification received:', { events, payload, teamId: userTeam.$id, hackathonId });
           
-          if (events.includes('databases.*.collections.*.documents.*.create')) {
+          // Check for create events (more flexible pattern matching)
+          const isCreateEvent = events.some(event => event.includes('.create'));
+          
+          if (isCreateEvent) {
             // New message created
             if (payload.type === 'user') {
-              console.log('Showing message notification');
+              console.log('🔔 Showing message notification');
               notifyMessageSent('Team Member');
             }
           }
@@ -163,6 +211,7 @@ export const HackathonNotificationProvider = ({ children }) => {
     showNotification,
     clearNotification,
     notifyTaskCreated,
+    notifyTaskStarted,
     notifyTaskUpdated,
     notifyMessageSent,
     notifyMemberJoined,

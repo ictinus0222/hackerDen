@@ -1,31 +1,65 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
+
+// Throttle function for performance optimization
+const throttle = (func, delay) => {
+  let timeoutId;
+  let lastExecTime = 0;
+  return function (...args) {
+    const currentTime = Date.now();
+
+    if (currentTime - lastExecTime > delay) {
+      func.apply(this, args);
+      lastExecTime = currentTime;
+    } else {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func.apply(this, args);
+        lastExecTime = Date.now();
+      }, delay - (currentTime - lastExecTime));
+    }
+  };
+};
 
 export const useTouchDragDrop = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [draggedItem, setDraggedItem] = useState(null);
   const [touchOffset, setTouchOffset] = useState({ x: 0, y: 0 });
   const dragPreviewRef = useRef(null);
+  const lastDropZoneRef = useRef(null);
 
+  // Optimized drag preview creation with minimal DOM manipulation
   const createDragPreview = useCallback((element) => {
     try {
-      if (dragPreviewRef.current && document.body.contains(dragPreviewRef.current)) {
-        document.body.removeChild(dragPreviewRef.current);
+      // Clean up existing preview
+      if (dragPreviewRef.current) {
+        dragPreviewRef.current.remove();
+        dragPreviewRef.current = null;
       }
 
-      const preview = element.cloneNode(true);
-      preview.style.position = 'fixed';
-      preview.style.pointerEvents = 'none';
-      preview.style.zIndex = '9999';
-      preview.style.opacity = '0.9';
-      preview.style.transform = 'rotate(3deg) scale(1.1)';
-      preview.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.4)';
-      preview.style.borderRadius = '8px';
-      preview.style.transition = 'none';
-      
-      // Ensure preview is visible on mobile
-      preview.style.maxWidth = '280px';
-      preview.style.fontSize = '14px';
-      
+      // Create lightweight preview instead of full clone
+      const preview = document.createElement('div');
+      const rect = element.getBoundingClientRect();
+
+      // Copy essential styles only
+      preview.className = element.className;
+      preview.innerHTML = element.innerHTML;
+
+      // Apply optimized styles
+      Object.assign(preview.style, {
+        position: 'fixed',
+        pointerEvents: 'none',
+        zIndex: '9999',
+        opacity: '0.85',
+        transform: 'rotate(2deg) scale(1.05)',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+        borderRadius: '8px',
+        transition: 'none',
+        maxWidth: '280px',
+        fontSize: '14px',
+        width: `${rect.width}px`,
+        willChange: 'transform' // Optimize for animations
+      });
+
       document.body.appendChild(preview);
       dragPreviewRef.current = preview;
     } catch (error) {
@@ -36,10 +70,10 @@ export const useTouchDragDrop = () => {
   const handleTouchStart = useCallback((e, item) => {
     try {
       if (!e.touches || e.touches.length === 0) return;
-      
+
       const touch = e.touches[0];
       const rect = e.currentTarget.getBoundingClientRect();
-      
+
       setIsDragging(true);
       setDraggedItem(item);
       setTouchOffset({
@@ -62,36 +96,54 @@ export const useTouchDragDrop = () => {
     }
   }, [createDragPreview]);
 
+  // Throttled touch move handler for better performance
+  const throttledTouchMove = useMemo(
+    () => throttle((touch, touchOffset) => {
+      try {
+        // Update drag preview position with transform for better performance
+        if (dragPreviewRef.current) {
+          const x = touch.clientX - touchOffset.x;
+          const y = touch.clientY - touchOffset.y;
+          dragPreviewRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(2deg) scale(1.05)`;
+        }
+
+        // Find the element under the touch point
+        const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+        const dropZone = elementBelow?.closest('[data-drop-zone]');
+
+        // Only update if drop zone changed to avoid unnecessary DOM manipulation
+        if (dropZone !== lastDropZoneRef.current) {
+          // Remove previous highlight
+          if (lastDropZoneRef.current) {
+            lastDropZoneRef.current.classList.remove('touch-drag-over');
+          }
+
+          // Add new highlight
+          if (dropZone) {
+            dropZone.classList.add('touch-drag-over');
+          }
+
+          lastDropZoneRef.current = dropZone;
+        }
+      } catch (error) {
+        console.error('Error in throttled touch move:', error);
+      }
+    }, 16), // ~60fps throttling
+    []
+  );
+
   const handleTouchMove = useCallback((e) => {
     try {
       if (!isDragging || !draggedItem || !e.touches || e.touches.length === 0) return;
 
       const touch = e.touches[0];
-      
-      // Update drag preview position
-      if (dragPreviewRef.current) {
-        dragPreviewRef.current.style.left = `${touch.clientX - touchOffset.x}px`;
-        dragPreviewRef.current.style.top = `${touch.clientY - touchOffset.y}px`;
-      }
-
-      // Find the element under the touch point
-      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-      const dropZone = elementBelow?.closest('[data-drop-zone]');
-      
-      // Update drop zone visual feedback
-      document.querySelectorAll('[data-drop-zone]').forEach(zone => {
-        zone.classList.remove('touch-drag-over');
-      });
-      
-      if (dropZone) {
-        dropZone.classList.add('touch-drag-over');
-      }
+      throttledTouchMove(touch, touchOffset);
 
       e.preventDefault();
     } catch (error) {
       console.error('Error in handleTouchMove:', error);
     }
-  }, [isDragging, draggedItem, touchOffset]);
+  }, [isDragging, draggedItem, touchOffset, throttledTouchMove]);
 
   const handleTouchEnd = useCallback((e, onDrop) => {
     try {
@@ -107,12 +159,14 @@ export const useTouchDragDrop = () => {
         const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
         dropZone = elementBelow?.closest('[data-drop-zone]');
       }
-      
-      // Clean up visual feedback
-      document.querySelectorAll('[data-drop-zone]').forEach(zone => {
-        zone.classList.remove('touch-drag-over');
-      });
 
+      // Clean up visual feedback
+      if (lastDropZoneRef.current) {
+        lastDropZoneRef.current.classList.remove('touch-drag-over');
+        lastDropZoneRef.current = null;
+      }
+
+      // Handle drop
       if (dropZone && onDrop) {
         const newStatus = dropZone.dataset.dropZone;
         onDrop(draggedItem.$id, newStatus);
@@ -124,13 +178,8 @@ export const useTouchDragDrop = () => {
       setTouchOffset({ x: 0, y: 0 });
 
       // Remove drag preview
-      try {
-        if (dragPreviewRef.current && document.body.contains(dragPreviewRef.current)) {
-          document.body.removeChild(dragPreviewRef.current);
-          dragPreviewRef.current = null;
-        }
-      } catch (error) {
-        console.error('Error removing drag preview:', error);
+      if (dragPreviewRef.current) {
+        dragPreviewRef.current.remove();
         dragPreviewRef.current = null;
       }
 
@@ -141,6 +190,10 @@ export const useTouchDragDrop = () => {
       setIsDragging(false);
       setDraggedItem(null);
       setTouchOffset({ x: 0, y: 0 });
+      if (dragPreviewRef.current) {
+        dragPreviewRef.current.remove();
+        dragPreviewRef.current = null;
+      }
     }
   }, [isDragging, draggedItem]);
 

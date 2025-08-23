@@ -32,10 +32,14 @@ const UpdateNotification = ({ notification, onClose }) => {
     switch (type) {
       case 'task_created':
         return '📝';
+      case 'task_started':
+        return '🚀';
       case 'task_updated':
         return '🔄';
       case 'task_completed':
         return '✅';
+      case 'task_blocked':
+        return '🚫';
       case 'message_sent':
         return '💬';
       case 'member_joined':
@@ -49,10 +53,14 @@ const UpdateNotification = ({ notification, onClose }) => {
     switch (type) {
       case 'task_created':
         return 'bg-blue-500';
+      case 'task_started':
+        return 'bg-orange-500';
       case 'task_updated':
         return 'bg-yellow-500';
       case 'task_completed':
         return 'bg-green-500';
+      case 'task_blocked':
+        return 'bg-red-500';
       case 'message_sent':
         return 'bg-purple-500';
       case 'member_joined':
@@ -73,7 +81,7 @@ const UpdateNotification = ({ notification, onClose }) => {
           }
         `}
       >
-        <div className="bg-background-card border border-gray-700 rounded-lg shadow-lg p-4 min-w-80 max-w-md mx-4 sm:mx-0">
+        <div className="border border-gray-700 rounded-lg shadow-lg p-4 min-w-80 max-w-md mx-4 sm:mx-0" style={{ backgroundColor: '#1e2b29' }}>
           <div className="flex items-start space-x-3">
             <div className={`
               flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm

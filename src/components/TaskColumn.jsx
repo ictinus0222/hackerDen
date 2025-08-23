@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import TaskCard from './TaskCard';
 
-const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, draggingTask, onDragStart, touchHandlers, onTaskDelete, onTaskEdit, wipLimit }) => {
+const TaskColumn = memo(({ title, status, tasks, className = '', onTaskDrop, draggingTask, onDragStart, touchHandlers, onTaskDelete, onTaskEdit, wipLimit }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const getColumnColor = (status) => {
     switch (status) {
@@ -48,26 +48,26 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
     }
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setIsDragOver(true);
-  };
+  }, []);
 
-  const handleDragEnter = (e) => {
+  const handleDragEnter = useCallback((e) => {
     e.preventDefault();
     setIsDragOver(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e) => {
+  const handleDragLeave = useCallback((e) => {
     e.preventDefault();
     // Only set isDragOver to false if we're leaving the column entirely
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setIsDragOver(false);
     }
-  };
+  }, []);
 
-  const handleDrop = (e) => {
+  const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragOver(false);
     
@@ -77,7 +77,7 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
     if (taskId && onTaskDrop) {
       onTaskDrop(taskId, status);
     }
-  };
+  }, [title, status, onTaskDrop]);
 
   return (
     <div className={`kanban-column flex flex-col h-full ${className} animate-fade-in`} role="region" aria-label={`${title} tasks`}>
@@ -168,6 +168,6 @@ const TaskColumn = ({ title, status, tasks, className = '', onTaskDrop, dragging
       </div>
     </div>
   );
-};
+});
 
 export default TaskColumn;
