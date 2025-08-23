@@ -19,7 +19,8 @@
     "backup:restore": "node scripts/backup-utility.js --restore",
     "backup:cleanup": "node scripts/backup-utility.js --cleanup",
     "backup:cleanup-confirm": "node scripts/backup-utility.js --cleanup --confirm",
-    "setup:whiteboard": "node scripts/setup-whiteboard.js"
+    "setup:whiteboard": "node scripts/setup-whiteboard.js",
+    "setup:vault": "node scripts/setup-vault.js"
   },
   "dependencies": {
     "appwrite": "^18.2.0",

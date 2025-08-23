@@ -10,6 +10,7 @@ import HackathonDashboardContent from '../components/HackathonDashboardContent';
 import TasksPage from './TasksPage';
 import ChatPage from './ChatPage';
 import WhiteboardPage from './WhiteboardPage';
+import VaultPage from './VaultPage';
 
 const HackathonDashboard = () => {
   const { hackathonId } = useParams();
@@ -97,6 +98,7 @@ const HackathonDashboard = () => {
         <Route path="tasks" element={<TasksPage />} />
         <Route path="whiteboard" element={<WhiteboardPage />} />
         <Route path="chat" element={<ChatPage />} />
+        <Route path="vault" element={<VaultPage />} />
         <Route path="" element={<Navigate to="dashboard" replace />} />
       </Routes>
       

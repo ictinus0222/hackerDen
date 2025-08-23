@@ -37,7 +37,9 @@ export const COLLECTIONS = {
   TEAMS: 'teams',
   TEAM_MEMBERS: 'team_members', 
   TASKS: 'tasks',
-  MESSAGES: 'messages'
+  MESSAGES: 'messages',
+  VAULT_SECRETS: 'vault_secrets',
+  VAULT_ACCESS_REQUESTS: 'vault_access_requests'
 };
 
 export { Query, ID };
