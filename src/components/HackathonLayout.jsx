@@ -3,6 +3,7 @@ import Logo from './Logo.jsx';
 import ProgressBar from './ProgressBar.jsx';
 import { ThemeToggle } from './ui/theme-toggle.jsx';
 import { Button } from './ui/button';
+import BreadcrumbNavigation from './BreadcrumbNavigation.jsx';
 import { useAuth } from '../hooks/useAuth';
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import { useHackathonTasks } from '../hooks/useHackathonTasks';
@@ -240,6 +241,11 @@ const HackathonLayout = ({ children, hackathon }) => {
             
             <div className="w-10"></div> {/* Spacer for centering */}
         </header>
+
+        {/* Breadcrumb Navigation */}
+        <div className="border-b border-border bg-background/95 backdrop-blur-sm px-4 lg:px-6 py-3">
+          <BreadcrumbNavigation hackathon={hackathon} />
+        </div>
 
         {/* Main Content */}
         <main 

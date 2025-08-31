@@ -10,6 +10,7 @@ import UserHackathonConsole from './pages/UserHackathonConsole';
 import CreateHackathonPage from './pages/CreateHackathonPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import CardTest from './components/CardTest';
+import InputComponentsDemo from './components/InputComponentsDemo';
 
 function App() {
   return (
@@ -65,6 +66,16 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <CardTest />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Input Components Demo - temporary for development */}
+                <Route 
+                  path="/input-demo" 
+                  element={
+                    <ProtectedRoute>
+                      <InputComponentsDemo />
                     </ProtectedRoute>
                   } 
                 />

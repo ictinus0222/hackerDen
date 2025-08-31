@@ -1,9 +1,9 @@
 import * as React from "react";
 import { Moon, Sun, Monitor } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useTheme } from "@/components/ThemeProvider";
-import { createThemeToggle } from "@/lib/theme-integration";
-import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { useTheme } from "../ThemeProvider";
+import { createThemeToggle } from "../../lib/theme-integration";
+import { cn } from "../../lib/utils";
 
 export function ThemeToggle({ className, variant = "ghost", size = "icon", ...props }) {
   const { theme, setTheme, themes, isThemeReady } = useTheme();

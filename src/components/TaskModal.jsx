@@ -5,6 +5,7 @@ import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
 import { taskService } from '../services/taskService';
 import { teamService } from '../services/teamService';
 import { Button } from './ui/button';
+import { InputField, TextareaField } from './ui';
 import { PriorityBadge } from './ui/status-badge';
 
 // Custom Dropdown Component
@@ -350,78 +351,52 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
             {/* Main Content Section */}
             <div className="space-y-5">
               {/* Title Field - Full Width */}
-              <div>
-                <label htmlFor="title" className="block text-sm font-semibold text-white mb-3 flex items-center">
-                  <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
-                  Task Title <span className="text-red-400 ml-1">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  required
-                  aria-invalid={errors.title ? 'true' : 'false'}
-                  aria-describedby={errors.title ? 'title-error' : undefined}
-                  className={`w-full px-4 py-3 text-base rounded-xl border text-white placeholder-dark-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 transition-all duration-200 ${
-                    errors.title 
-                      ? 'bg-red-500/5 border-red-400 focus:ring-red-500 focus:border-red-400' 
-                      : 'bg-background-sidebar border-dark-primary/30 hover:border-green-500/50'
-                  }`}
-                  style={{ fontSize: '16px' }}
-                  placeholder="What needs to be done?"
-                  maxLength={100}
-                />
-                {errors.title && (
-                  <p id="title-error" className="mt-2 text-sm text-red-400 flex items-center" role="alert">
-                    <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <InputField
+                label={
+                  <span className="flex items-center text-white">
+                    <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                    {errors.title}
-                  </p>
-                )}
-              </div>
+                    Task Title
+                  </span>
+                }
+                name="title"
+                type="text"
+                variant="large"
+                required
+                error={errors.title}
+                value={formData.title}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="What needs to be done?"
+                maxLength={100}
+                className="text-white placeholder-dark-tertiary bg-background-sidebar border-dark-primary/30 hover:border-green-500/50 focus:ring-green-500 focus:border-green-500"
+                style={{ fontSize: '16px' }}
+              />
 
               {/* Description Field - Full Width */}
-              <div>
-                <label htmlFor="description" className="block text-sm font-semibold text-white mb-3 flex items-center">
-                  <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                  </svg>
-                  Description <span className="text-red-400 ml-1">*</span>
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  required
-                  rows={3}
-                  aria-invalid={errors.description ? 'true' : 'false'}
-                  aria-describedby={errors.description ? 'description-error' : undefined}
-                  className={`w-full px-4 py-3 text-base rounded-xl border text-white placeholder-dark-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 resize-none transition-all duration-200 ${
-                    errors.description 
-                      ? 'bg-red-500/5 border-red-400 focus:ring-red-500 focus:border-red-400' 
-                      : 'bg-background-sidebar border-dark-primary/30 hover:border-green-500/50'
-                  }`}
-                  style={{ fontSize: '16px' }}
-                  placeholder="Describe the task details..."
-                  maxLength={500}
-                />
-                {errors.description && (
-                  <p id="description-error" className="mt-2 text-sm text-red-400 flex items-center" role="alert">
-                    <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <TextareaField
+                label={
+                  <span className="flex items-center text-white">
+                    <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
                     </svg>
-                    {errors.description}
-                  </p>
-                )}
-              </div>
+                    Description
+                  </span>
+                }
+                name="description"
+                required
+                error={errors.description}
+                value={formData.description}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                rows={3}
+                placeholder="Describe the task details..."
+                maxLength={500}
+                showCharCount
+                className="text-white placeholder-dark-tertiary bg-background-sidebar border-dark-primary/30 hover:border-green-500/50 focus:ring-green-500 focus:border-green-500 resize-none"
+                style={{ fontSize: '16px' }}
+              />
 
               {/* Two Column Layout for Priority and Assignment */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -494,8 +469,9 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
                 
                 {/* Label Input */}
                 <div className="flex gap-2 mb-3">
-                  <input
+                  <InputField
                     type="text"
+                    variant="compact"
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
                     onKeyDown={(e) => {
@@ -505,7 +481,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
                       }
                     }}
                     disabled={isSubmitting}
-                    className="flex-1 px-3 py-2 text-sm rounded-lg bg-background-sidebar border border-dark-primary/30 text-white placeholder-dark-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 hover:border-green-500/50 transition-all duration-200"
+                    className="flex-1 text-white placeholder-dark-tertiary bg-background-sidebar border-dark-primary/30 hover:border-green-500/50 focus:ring-green-500 focus:border-green-500"
                     placeholder="Add a label..."
                     maxLength={20}
                   />

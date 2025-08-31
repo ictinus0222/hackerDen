@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 
 const MessageInput = ({ onSendMessage, disabled = false, sending = false }) => {
   const [message, setMessage] = useState('');
@@ -34,15 +35,16 @@ const MessageInput = ({ onSendMessage, disabled = false, sending = false }) => {
         <label htmlFor="message-input" className="sr-only">
           Type your message
         </label>
-        <input
+        <Input
           id="message-input"
           type="text"
+          variant="large"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           disabled={disabled || sending}
-          className="w-full px-4 py-3 sm:py-2 text-base sm:text-sm rounded-xl bg-background-sidebar text-white placeholder-dark-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ring-1 ring-white/10 hover:ring-green-500/30 focus:ring-green-500 transition-all duration-200"
+          className="w-full rounded-xl bg-background-sidebar text-white placeholder-dark-tertiary shadow-md ring-1 ring-white/10 hover:ring-green-500/30 focus:ring-green-500 transition-all duration-200"
           style={{ fontSize: '16px' }} // Prevents zoom on iOS
           aria-describedby={sending ? "sending-status" : undefined}
           maxLength={1000}
