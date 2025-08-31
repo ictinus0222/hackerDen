@@ -29,6 +29,11 @@ body {
     @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
 
+  /* Floating Action Button */
+  .fab {
+    @apply fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 transition-all duration-200 hover:scale-105;
+  }
+
   .btn-primary {
     background-color: #00C853;
     color: #FFFFFF;
@@ -257,39 +262,39 @@ body {
 }
 
 :root {
-  /* Light mode - HackerDen theme adapted */
-  --background: #ffffff;
-  --foreground: #121C1B;
-  --card: #ffffff;
-  --card-foreground: #121C1B;
-  --popover: #ffffff;
-  --popover-foreground: #121C1B;
-  --primary: #00C853;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #00C853;
-  --chart-1: #00C853;
-  --chart-2: #00B24A;
-  --chart-3: #22c55e;
-  --chart-4: #16a34a;
-  --chart-5: #15803d;
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #121C1B;
-  --sidebar-primary: #00C853;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #00C853;
+  /* Light mode - Updated Shadcn theme */
+  --background: oklch(1.0000 0 0);
+  --foreground: oklch(0.2101 0.0318 264.6645);
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.2101 0.0318 264.6645);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.2101 0.0318 264.6645);
+  --primary: oklch(0.6716 0.1368 48.5130);
+  --primary-foreground: oklch(1.0000 0 0);
+  --secondary: oklch(0.5360 0.0398 196.0280);
+  --secondary-foreground: oklch(1.0000 0 0);
+  --muted: oklch(0.9670 0.0029 264.5419);
+  --muted-foreground: oklch(0.5510 0.0234 264.3637);
+  --accent: oklch(0.9491 0 0);
+  --accent-foreground: oklch(0.2101 0.0318 264.6645);
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(0.9851 0 0);
+  --border: oklch(0.9276 0.0058 264.5313);
+  --input: oklch(0.9276 0.0058 264.5313);
+  --ring: oklch(0.6716 0.1368 48.5130);
+  --chart-1: oklch(0.5940 0.0443 196.0233);
+  --chart-2: oklch(0.7214 0.1337 49.9802);
+  --chart-3: oklch(0.8721 0.0864 68.5474);
+  --chart-4: oklch(0.6268 0 0);
+  --chart-5: oklch(0.6830 0 0);
+  --sidebar: oklch(0.9670 0.0029 264.5419);
+  --sidebar-foreground: oklch(0.2101 0.0318 264.6645);
+  --sidebar-primary: oklch(0.6716 0.1368 48.5130);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(1.0000 0 0);
+  --sidebar-accent-foreground: oklch(0.2101 0.0318 264.6645);
+  --sidebar-border: oklch(0.9276 0.0058 264.5313);
+  --sidebar-ring: oklch(0.6716 0.1368 48.5130);
   --font-sans: 'Inter', sans-serif;
   --font-serif: serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -307,39 +312,39 @@ body {
 }
 
 .dark {
-  /* Dark mode - HackerDen original theme */
-  --background: #121C1B;
-  --foreground: #B0B8B6;
-  --card: #1E2B29;
-  --card-foreground: #FFFFFF;
-  --popover: #1E2B29;
-  --popover-foreground: #FFFFFF;
-  --primary: #00C853;
-  --primary-foreground: #121C1B;
-  --secondary: #1A2423;
-  --secondary-foreground: #B0B8B6;
-  --muted: #22312F;
-  --muted-foreground: #9ca3af;
-  --accent: #22312F;
-  --accent-foreground: #FFFFFF;
-  --destructive: #ef4444;
-  --destructive-foreground: #121C1B;
-  --border: #2a3a37;
-  --input: #2a3a37;
-  --ring: #00C853;
-  --chart-1: #00C853;
-  --chart-2: #00B24A;
-  --chart-3: #22c55e;
-  --chart-4: #16a34a;
-  --chart-5: #15803d;
-  --sidebar: #1A2423;
-  --sidebar-foreground: #B0B8B6;
-  --sidebar-primary: #00C853;
-  --sidebar-primary-foreground: #121C1B;
-  --sidebar-accent: #22312F;
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #2a3a37;
-  --sidebar-ring: #00C853;
+  /* Dark mode - Updated Shadcn theme */
+  --background: oklch(0.1797 0.0043 308.1928);
+  --foreground: oklch(0.8109 0 0);
+  --card: oklch(0.1822 0 0);
+  --card-foreground: oklch(0.8109 0 0);
+  --popover: oklch(0.1797 0.0043 308.1928);
+  --popover-foreground: oklch(0.8109 0 0);
+  --primary: oklch(0.7214 0.1337 49.9802);
+  --primary-foreground: oklch(0.1797 0.0043 308.1928);
+  --secondary: oklch(0.5940 0.0443 196.0233);
+  --secondary-foreground: oklch(0.1797 0.0043 308.1928);
+  --muted: oklch(0.2520 0 0);
+  --muted-foreground: oklch(0.6268 0 0);
+  --accent: oklch(0.3211 0 0);
+  --accent-foreground: oklch(0.8109 0 0);
+  --destructive: oklch(0.5940 0.0443 196.0233);
+  --destructive-foreground: oklch(0.1797 0.0043 308.1928);
+  --border: oklch(0.2520 0 0);
+  --input: oklch(0.2520 0 0);
+  --ring: oklch(0.7214 0.1337 49.9802);
+  --chart-1: oklch(0.5940 0.0443 196.0233);
+  --chart-2: oklch(0.7214 0.1337 49.9802);
+  --chart-3: oklch(0.8721 0.0864 68.5474);
+  --chart-4: oklch(0.6268 0 0);
+  --chart-5: oklch(0.6830 0 0);
+  --sidebar: oklch(0.1822 0 0);
+  --sidebar-foreground: oklch(0.8109 0 0);
+  --sidebar-primary: oklch(0.7214 0.1337 49.9802);
+  --sidebar-primary-foreground: oklch(0.1797 0.0043 308.1928);
+  --sidebar-accent: oklch(0.3211 0 0);
+  --sidebar-accent-foreground: oklch(0.8109 0 0);
+  --sidebar-border: oklch(0.2520 0 0);
+  --sidebar-ring: oklch(0.7214 0.1337 49.9802);
   --font-sans: 'Inter', sans-serif;
   --font-serif: serif;
   --font-mono: 'JetBrains Mono', monospace;

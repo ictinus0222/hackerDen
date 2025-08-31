@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
 import { taskService } from '../services/taskService';
 import { teamService } from '../services/teamService';
+import { Button } from './ui/button';
 
 // Custom Dropdown Component
 const CustomDropdown = ({ 
@@ -36,46 +37,48 @@ const CustomDropdown = ({
       <label className="block text-sm font-medium text-dark-secondary mb-2">
         {label} {required && <span className="text-red-400" aria-label="required">*</span>}
       </label>
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full px-4 py-3 text-base rounded-xl bg-background-sidebar border border-dark-primary/30 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 hover:border-green-500/50 transition-all duration-200 flex items-center justify-between ${
-          isOpen ? 'ring-2 ring-green-500 border-green-500' : ''
+        className={`w-full px-4 py-3 text-base rounded-xl justify-between ${
+          isOpen ? 'ring-2 ring-ring border-ring' : ''
         }`}
         style={{ fontSize: '16px' }}
       >
-        <span className={selectedOption ? 'text-white' : 'text-dark-tertiary'}>
+        <span className={selectedOption ? 'text-foreground' : 'text-muted-foreground'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <svg 
-          className={`w-5 h-5 text-dark-tertiary transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+          className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
-      </button>
+      </Button>
       
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-background-sidebar border border-dark-primary/30 rounded-xl shadow-lg max-h-60 overflow-auto">
+        <div className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-xl shadow-lg max-h-60 overflow-auto">
           {options.map((option) => (
-            <button
+            <Button
               key={option.value}
               type="button"
+              variant="ghost"
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className={`w-full px-4 py-3 text-left text-base hover:bg-sidebar-hover transition-colors duration-200 first:rounded-t-xl last:rounded-b-xl ${
+              className={`w-full px-4 py-3 text-left text-base justify-start rounded-none first:rounded-t-xl last:rounded-b-xl ${
                 value === option.value 
-                  ? 'bg-green-500/20 text-green-300 border-l-2 border-green-500' 
-                  : 'text-white hover:text-green-300'
+                  ? 'bg-accent text-accent-foreground border-l-2 border-primary' 
+                  : 'text-popover-foreground hover:text-primary'
               }`}
             >
               {option.label}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -313,17 +316,19 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
               {editTask ? 'Edit Task' : 'Create New Task'}
             </h2>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="text-dark-tertiary hover:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 p-2 rounded-lg hover:bg-dark-primary/20"
+            className="text-muted-foreground hover:text-foreground"
             aria-label="Close dialog"
             type="button"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </header>
 
         {/* Modal Body */}
@@ -503,17 +508,19 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
                     placeholder="Add a label..."
                     maxLength={20}
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={addLabel}
                     disabled={isSubmitting || !newLabel.trim()}
-                    className="px-4 py-2 text-sm font-medium text-green-300 bg-green-500/20 rounded-lg hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed border border-green-500/30 transition-all duration-200 flex items-center"
+                    className="px-4 py-2 text-sm font-medium text-primary bg-primary/10 border-primary/30 hover:bg-primary/20"
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                     Add
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Label Display */}
@@ -525,15 +532,17 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
                         className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-colors duration-200"
                       >
                         {label}
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => removeLabel(label)}
                           disabled={isSubmitting}
-                          className="ml-2 text-green-300 hover:text-green-100 disabled:opacity-50 transition-colors duration-200"
+                          className="ml-2 h-auto p-0 text-primary hover:text-primary/80 disabled:opacity-50"
                           aria-label={`Remove ${label} label`}
                         >
                           ×
-                        </button>
+                        </Button>
                       </span>
                     ))}
                   </div>
@@ -545,20 +554,21 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
         </div>
 
         {/* Modal Footer */}
-        <footer className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:space-x-3 sm:gap-0 p-6 border-t border-dark-primary/20">
-          <button
+        <footer className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:space-x-3 sm:gap-0 p-6 border-t border-border">
+          <Button
             type="button"
+            variant="outline"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="px-6 py-3 text-sm font-semibold text-dark-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] touch-manipulation bg-background-sidebar border border-dark-primary/20 hover:bg-sidebar-hover hover:text-white transition-all duration-200"
+            className="px-6 py-3 text-sm font-semibold min-h-[48px]"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="task-form"
             disabled={isSubmitting}
-            className="px-6 py-3 text-sm font-semibold text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] touch-manipulation bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-200"
+            className="px-6 py-3 text-sm font-semibold min-h-[48px] bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80"
             aria-describedby={isSubmitting ? "submit-status" : undefined}
           >
             {isSubmitting ? (
@@ -572,7 +582,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
             ) : (
               editTask ? 'Update Task' : 'Create Task'
             )}
-          </button>
+          </Button>
         </footer>
       </div>
     </div>

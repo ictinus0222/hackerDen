@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from './ui/button';
 
 const MobileTabSwitcher = ({ children }) => {
   const [activeTab, setActiveTab] = useState('kanban');
@@ -11,20 +12,21 @@ const MobileTabSwitcher = ({ children }) => {
   return (
     <div className="lg:hidden">
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-4 sm:mb-6">
+      <div className="border-b border-border mb-4 sm:mb-6">
         <nav className="-mb-px flex">
           {tabs.map((tab) => (
-            <button
+            <Button
               key={tab.id}
+              variant="ghost"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 px-4 border-b-2 font-medium text-sm sm:text-base transition-colors min-h-[48px] touch-manipulation ${
+              className={`flex-1 py-3 px-4 border-b-2 font-medium text-sm sm:text-base transition-colors min-h-[48px] rounded-none ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600 bg-blue-50'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 active:bg-gray-50'
+                  ? 'border-primary text-primary bg-primary/10'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
               }`}
             >
               {tab.label}
-            </button>
+            </Button>
           ))}
         </nav>
       </div>

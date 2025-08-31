@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from './ui/button';
 
 const MessageInput = ({ onSendMessage, disabled = false, sending = false }) => {
   const [message, setMessage] = useState('');
@@ -47,10 +48,10 @@ const MessageInput = ({ onSendMessage, disabled = false, sending = false }) => {
           maxLength={1000}
         />
       </div>
-      <button
+      <Button
         type="submit"
         disabled={isSendDisabled}
-        className="px-5 py-3 sm:py-2 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-background-card disabled:opacity-50 disabled:cursor-not-allowed min-w-[60px] min-h-[48px] touch-manipulation font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200"
+        className="px-5 py-3 sm:py-2 min-w-[60px] min-h-[48px] font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80"
         aria-label={sending ? "Sending message..." : "Send message"}
       >
         {sending ? (
@@ -63,7 +64,7 @@ const MessageInput = ({ onSendMessage, disabled = false, sending = false }) => {
         ) : (
           <span className="text-sm sm:text-base">Send</span>
         )}
-      </button>
+      </Button>
     </form>
   );
 };

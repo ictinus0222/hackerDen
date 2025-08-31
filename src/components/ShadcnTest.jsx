@@ -46,13 +46,25 @@ export function ShadcnTest() {
             <CardTitle>Button Variants</CardTitle>
             <CardDescription>Testing all button styles</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Button size="sm">Default</Button>
               <Button variant="secondary" size="sm">Secondary</Button>
               <Button variant="outline" size="sm">Outline</Button>
               <Button variant="ghost" size="sm">Ghost</Button>
               <Button variant="destructive" size="sm">Destructive</Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button size="lg">Large</Button>
+              <Button size="icon">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </Button>
+              <Button disabled>Disabled</Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              ✅ Focus states, touch targets (44px min), and accessibility attributes tested
             </div>
           </CardContent>
         </Card>

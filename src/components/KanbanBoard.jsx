@@ -9,6 +9,7 @@ import LoadingSpinner from './LoadingSpinner';
 import { KanbanColumnSkeleton } from './SkeletonLoader';
 import AppwriteSetupGuide from './AppwriteSetupGuide';
 import { createTestTasks } from '../utils/testData';
+import { Button } from './ui/button';
 
 const KanbanBoard = () => {
   const { tasksByStatus, loading, error, refetch, team, hackathonId } = useHackathonTasks();
@@ -368,16 +369,16 @@ const KanbanBoard = () => {
       />
 
       {/* Floating Action Button */}
-      <button
+      <Button
         onClick={() => setIsTaskModalOpen(true)}
-        className="fab flex items-center justify-center"
+        className="fab flex items-center justify-center fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
         aria-label="Quick create task"
         title="Create new task"
       >
         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
-      </button>
+      </Button>
     </section>
   );
 };
