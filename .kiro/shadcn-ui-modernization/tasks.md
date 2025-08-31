@@ -131,14 +131,14 @@
   - Integrate priority selection, assignment, and labeling using appropriate Shadcn components
   - _Requirements: 1.1, 1.2, 6.1, 7.4_
 
-- [ ] 6.2 Modernize TaskCard Component
+- [x] 6.2 Modernize TaskCard Component
   - Replace existing TaskCard with Shadcn Card as base and add custom task-specific styling
   - Implement drag-and-drop visual feedback using Shadcn interaction patterns
   - Create task action buttons using Shadcn Button variants with proper accessibility
   - Add task status indicators using modernized Shadcn Badge components
   - _Requirements: 1.1, 5.1, 5.2, 6.1_
 
-- [ ] 6.3 Enhance KanbanBoard with Shadcn Components
+- [x] 6.3 Enhance KanbanBoard with Shadcn Components
   - Implement column headers using Shadcn Card with integrated Badge for task counts
   - Add Shadcn Resizable panels for adjustable column widths on desktop
   - Create advanced filtering interface using Shadcn Select, Input, and Command components

@@ -11,6 +11,8 @@ import AppwriteSetupGuide from './AppwriteSetupGuide';
 import { createTestTasks } from '../utils/testData';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from './ui/resizable';
+import FilterBar from './FilterBar';
 
 const KanbanBoard = () => {
   const { tasksByStatus, loading, error, refetch, team, hackathonId } = useHackathonTasks();
@@ -22,7 +24,10 @@ const KanbanBoard = () => {
   const [filters, setFilters] = useState({
     priority: 'all',
     label: 'all',
-    search: ''
+    search: '',
+    assignee: 'all',
+    dateRange: 'all',
+    status: 'all'
   });
   
   const touchDragDrop = useTouchDragDrop();
@@ -181,7 +186,7 @@ const KanbanBoard = () => {
     };
   }, []);
 
-  // Memoized filter function for better performance
+  // Enhanced filter function for better performance and new filter options
   const filterTasks = useCallback((tasks) => {
     return tasks.filter(task => {
       const priorityMatch = filters.priority === 'all' || task.priority === filters.priority;
@@ -189,9 +194,37 @@ const KanbanBoard = () => {
       const searchMatch = !filters.search || 
         task.title.toLowerCase().includes(filters.search.toLowerCase()) ||
         task.description.toLowerCase().includes(filters.search.toLowerCase());
-      return priorityMatch && labelMatch && searchMatch;
+      
+      // New filter logic
+      const assigneeMatch = filters.assignee === 'all' || 
+        (filters.assignee === 'me' && task.assignedTo === user?.$id) ||
+        (filters.assignee === 'unassigned' && !task.assignedTo);
+      
+      const statusMatch = filters.status === 'all' || task.status === filters.status;
+      
+      // Date range filter
+      let dateMatch = true;
+      if (filters.dateRange !== 'all') {
+        const taskDate = new Date(task.$createdAt);
+        const now = new Date();
+        switch (filters.dateRange) {
+          case 'today':
+            dateMatch = taskDate.toDateString() === now.toDateString();
+            break;
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            dateMatch = taskDate >= weekAgo;
+            break;
+          case 'month':
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            dateMatch = taskDate >= monthAgo;
+            break;
+        }
+      }
+      
+      return priorityMatch && labelMatch && searchMatch && assigneeMatch && statusMatch && dateMatch;
     });
-  }, [filters]);
+  }, [filters, user?.$id]);
 
   // Memoized labels calculation
   const allLabels = useMemo(() => {
@@ -291,71 +324,54 @@ const KanbanBoard = () => {
               </span>
             </div>
           </div>
-
-          {/* Search and Filters */}
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              placeholder="Search tasks..."
-              value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500 w-32 placeholder-slate-400"
-            />
-            
-            <select
-              value={filters.priority}
-              onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="all">All Priorities</option>
-              <option value="high">🔴 High</option>
-              <option value="medium">🟡 Medium</option>
-              <option value="low">🟢 Low</option>
-            </select>
-            
-            <select
-              value={filters.label}
-              onChange={(e) => setFilters(prev => ({ ...prev, label: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="all">All Labels</option>
-              {allLabels.map(label => (
-                <option key={label} value={label}>{label}</option>
-              ))}
-            </select>
-          </div>
-          
-
-
-
-
         </div>
       </header>
       
-      {/* Kanban Columns */}
+      {/* Advanced Filter Bar */}
+      <FilterBar 
+        filters={filters}
+        onFiltersChange={setFilters}
+        allLabels={allLabels}
+        taskStats={{
+          todo: filterTasks(tasksByStatus.todo).length,
+          in_progress: filterTasks(tasksByStatus.in_progress).length,
+          blocked: filterTasks(tasksByStatus.blocked).length,
+          done: filterTasks(tasksByStatus.done).length
+        }}
+      />
+      
+      {/* Resizable Kanban Columns */}
       <div 
-        className="flex-1 grid grid-cols-4 gap-6 min-h-0 overflow-y-auto hide-scrollbar"
+        className="flex-1 min-h-0 overflow-hidden"
         role="application"
         aria-label="Task columns"
         aria-live="polite"
         aria-atomic="false"
       >
-        {columns.map((column) => (
-          <TaskColumn
-            key={column.status}
-            title={column.title}
-            status={column.status}
-            tasks={column.tasks}
-            className="min-h-0"
-            onTaskDrop={handleTaskDrop}
-            draggingTask={draggingTask || touchDragDrop.draggedItem}
-            onDragStart={handleDragStart}
-            touchHandlers={touchDragDrop}
-            onTaskDelete={handleTaskDelete}
-            onTaskEdit={handleTaskEdit}
-            wipLimit={WIP_LIMITS[column.status]}
-          />
-        ))}
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          {columns.map((column, index) => (
+            <div key={column.status} className="contents">
+              <ResizablePanel defaultSize={25} minSize={20}>
+                <TaskColumn
+                  title={column.title}
+                  status={column.status}
+                  tasks={column.tasks}
+                  className="h-full"
+                  onTaskDrop={handleTaskDrop}
+                  draggingTask={draggingTask || touchDragDrop.draggedItem}
+                  onDragStart={handleDragStart}
+                  touchHandlers={touchDragDrop}
+                  onTaskDelete={handleTaskDelete}
+                  onTaskEdit={handleTaskEdit}
+                  wipLimit={WIP_LIMITS[column.status]}
+                />
+              </ResizablePanel>
+              {index < columns.length - 1 && (
+                <ResizableHandle withHandle />
+              )}
+            </div>
+          ))}
+        </ResizablePanelGroup>
       </div>
 
 
