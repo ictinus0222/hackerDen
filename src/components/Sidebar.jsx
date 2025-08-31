@@ -2,6 +2,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo.jsx';
 import ProgressBar from './ProgressBar.jsx';
+import { ThemeToggle } from './ui/theme-toggle.jsx';
 import { useAuth } from '../hooks/useAuth';
 import { useTeam } from '../hooks/useTeam';
 import { useTasks } from '../hooks/useTasks';
@@ -175,6 +176,11 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 </p>
                 <p className="text-xs text-text-secondary leading-none">Team Member</p>
               </div>
+              <ThemeToggle 
+                variant="ghost" 
+                size="icon"
+                className="text-text-secondary hover:text-text-primary hover:bg-sidebar-hover"
+              />
             </div>
             
             <button

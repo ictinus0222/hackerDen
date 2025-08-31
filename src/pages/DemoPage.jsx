@@ -1,5 +1,7 @@
 import Layout from '../components/Layout.jsx';
 import ProjectOverviewDemo from '../components/ProjectOverviewDemo.jsx';
+import { ThemeTest } from '../components/ui/theme-test.jsx';
+import { ShadcnTest } from '../components/ShadcnTest.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 
 const DemoPage = () => {
@@ -16,6 +18,16 @@ const DemoPage = () => {
               Experience the new project overview interface inspired by GitHub's clean and 
               intuitive design, perfectly integrated with HackerDen's dark theme.
             </p>
+          </div>
+
+          {/* Shadcn UI Integration Test */}
+          <div className="mb-8">
+            <ShadcnTest />
+          </div>
+
+          {/* Advanced Theme Integration Test */}
+          <div className="mb-8">
+            <ThemeTest />
           </div>
 
           {/* Demo Component */}

@@ -5,6 +5,7 @@ import { hackathonService } from '../services/hackathonService';
 import ConsoleLayout from '../components/ConsoleLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import TeamSelector from '../components/TeamSelector';
+import { ShadcnTest } from '../components/ShadcnTest';
 
 const UserHackathonConsole = () => {
   const { user } = useAuth();
@@ -107,6 +108,9 @@ const UserHackathonConsole = () => {
   return (
     <ConsoleLayout>
       <div className="max-w-6xl mx-auto space-y-8">
+        {/* Shadcn Test Component */}
+        <ShadcnTest />
+        
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
