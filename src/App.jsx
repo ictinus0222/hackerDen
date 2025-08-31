@@ -11,6 +11,7 @@ import CreateHackathonPage from './pages/CreateHackathonPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import CardTest from './components/CardTest';
 import InputComponentsDemo from './components/InputComponentsDemo';
+import { Toaster } from './components/ui/sonner';
 
 function App() {
   return (
@@ -97,6 +98,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/console" replace />} />
               </Routes>
             </div>
+            <Toaster />
           </Router>
         </TeamProvider>
       </AuthProvider>

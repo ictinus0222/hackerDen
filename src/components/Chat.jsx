@@ -5,13 +5,71 @@ import MessageInput from './MessageInput';
 import ErrorBoundary from './ErrorBoundary';
 import MessagesSetupGuide from './MessagesSetupGuide';
 import { Card, EnhancedCard } from './ui/card';
+import { Badge } from './ui/badge';
+import { useConnectionStatus } from '../hooks/useConnectionStatus';
+import SystemAlert, { SystemAlerts } from './SystemAlert';
+import { notificationService } from '../services/notificationService';
+import { useEffect, useState } from 'react';
 
 const Chat = () => {
   const { messages, loading, error, sending, sendMessage, team } = useHackathonMessages();
   const { user } = useAuth();
+  const { isConnected, isReconnecting, reconnectAttempts } = useConnectionStatus();
+  const [showConnectionAlert, setShowConnectionAlert] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]);
 
   const handleSendMessage = (content) => {
     sendMessage(content);
+  };
+
+  // Monitor connection status and show notifications
+  useEffect(() => {
+    if (!isConnected && !isReconnecting) {
+      setShowConnectionAlert(true);
+      notificationService.connection.lost();
+    } else if (isConnected && showConnectionAlert) {
+      setShowConnectionAlert(false);
+      notificationService.connection.restored();
+    } else if (isReconnecting) {
+      notificationService.connection.reconnecting(reconnectAttempts);
+    }
+  }, [isConnected, isReconnecting, reconnectAttempts, showConnectionAlert]);
+
+  // Handle message send with notifications
+  const handleSendMessageWithNotification = (content) => {
+    try {
+      handleSendMessage(content);
+      // Don't show success notification for every message - too noisy
+    } catch (error) {
+      notificationService.message.failed();
+    }
+  };
+
+  const getConnectionBadge = () => {
+    if (isConnected && !isReconnecting) {
+      return (
+        <Badge variant="default" className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-xs">Online</span>
+        </Badge>
+      );
+    }
+    
+    if (isReconnecting) {
+      return (
+        <Badge variant="secondary" className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+          <span className="text-xs">Reconnecting ({reconnectAttempts})</span>
+        </Badge>
+      );
+    }
+    
+    return (
+      <Badge variant="destructive" className="flex items-center space-x-1">
+        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+        <span className="text-xs">Offline</span>
+      </Badge>
+    );
   };
 
   // Show setup guide if there's a collection error
@@ -44,8 +102,7 @@ const Chat = () => {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-chart-2 rounded-full animate-pulse"></div>
-            <span className="text-sm text-dark-tertiary">Online</span>
+            {getConnectionBadge()}
           </div>
         </div>
         {error && !error.includes('collection') && !error.includes('schema') && (
@@ -60,6 +117,16 @@ const Chat = () => {
         )}
       </header>
 
+      {/* System Alerts */}
+      {showConnectionAlert && (
+        <div className="px-6 py-2">
+          <SystemAlerts.ConnectionLost
+            dismissible
+            onDismiss={() => setShowConnectionAlert(false)}
+          />
+        </div>
+      )}
+
       {/* Messages Area */}
       <div className="flex-1 flex flex-col min-h-0" role="log" aria-live="polite" aria-label="Chat messages">
         <ErrorBoundary>
@@ -67,6 +134,7 @@ const Chat = () => {
             messages={messages}
             loading={loading}
             currentUserId={user?.$id}
+            typingUsers={typingUsers}
           />
         </ErrorBoundary>
       </div>
@@ -74,7 +142,7 @@ const Chat = () => {
       {/* Message Input */}
       <footer className="px-6 py-4 border-t border-dark-primary/20 flex-shrink-0">
         <MessageInput
-          onSendMessage={handleSendMessage}
+          onSendMessage={handleSendMessageWithNotification}
           disabled={!user}
           sending={sending}
         />

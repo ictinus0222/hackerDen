@@ -2,8 +2,10 @@ import { useEffect, useRef } from 'react';
 import MessageItem from './MessageItem';
 import LoadingSpinner from './LoadingSpinner';
 import { MessageSkeleton } from './SkeletonLoader';
+import { ScrollArea } from './ui/scroll-area';
+import TypingIndicator from './TypingIndicator';
 
-const MessageList = ({ messages, loading, currentUserId }) => {
+const MessageList = ({ messages, loading, currentUserId, typingUsers = [] }) => {
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -44,16 +46,22 @@ const MessageList = ({ messages, loading, currentUserId }) => {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-2 space-y-2 overscroll-behavior-y-contain max-h-full hide-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
-      {messages.map((message) => (
-        <MessageItem
-          key={message.$id}
-          message={message}
-          currentUserId={currentUserId}
-        />
-      ))}
-      <div ref={messagesEndRef} />
-    </div>
+    <ScrollArea className="flex-1 px-3 sm:px-4 py-2">
+      <div className="space-y-2">
+        {messages.map((message) => (
+          <MessageItem
+            key={message.$id}
+            message={message}
+            currentUserId={currentUserId}
+          />
+        ))}
+        
+        {/* Typing Indicator */}
+        <TypingIndicator users={typingUsers} />
+        
+        <div ref={messagesEndRef} />
+      </div>
+    </ScrollArea>
   );
 };
 

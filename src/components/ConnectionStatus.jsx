@@ -1,5 +1,7 @@
 import React from 'react';
 import { useConnectionStatus } from '../hooks/useConnectionStatus';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 
 const ConnectionStatus = ({ className = '' }) => {
   const { 
@@ -10,34 +12,33 @@ const ConnectionStatus = ({ className = '' }) => {
     retryConnection 
   } = useConnectionStatus();
 
-  // Don't show anything if connected
-  if (isConnected && !isReconnecting) {
-    return null;
-  }
-
-  const getStatusColor = () => {
-    if (isReconnecting) return 'bg-yellow-500';
-    if (!isConnected) return 'bg-red-500';
-    return 'bg-green-500';
+  const getBadgeVariant = () => {
+    if (isConnected && !isReconnecting) return 'default';
+    if (isReconnecting) return 'secondary';
+    if (!isConnected) return 'destructive';
+    return 'default';
   };
 
   const getStatusText = () => {
+    if (isConnected && !isReconnecting) {
+      return 'Connected';
+    }
     if (isReconnecting) {
-      return `Reconnecting... (attempt ${reconnectAttempts})`;
+      return `Reconnecting... (${reconnectAttempts})`;
     }
     if (!isConnected) {
       const timeSince = lastDisconnect 
         ? Math.floor((Date.now() - lastDisconnect.getTime()) / 1000)
         : 0;
-      return `Offline ${timeSince > 0 ? `(${timeSince}s ago)` : ''}`;
+      return `Offline${timeSince > 0 ? ` (${timeSince}s)` : ''}`;
     }
-    return 'Connected';
+    return 'Unknown';
   };
 
   const getStatusIcon = () => {
     if (isReconnecting) {
       return (
-        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
           <circle 
             className="opacity-25" 
             cx="12" 
@@ -57,7 +58,7 @@ const ConnectionStatus = ({ className = '' }) => {
     
     if (!isConnected) {
       return (
-        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path 
             strokeLinecap="round" 
             strokeLinejoin="round" 
@@ -69,7 +70,7 @@ const ConnectionStatus = ({ className = '' }) => {
     }
     
     return (
-      <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path 
           strokeLinecap="round" 
           strokeLinejoin="round" 
@@ -82,27 +83,27 @@ const ConnectionStatus = ({ className = '' }) => {
 
   return (
     <div className={`fixed top-4 right-4 z-50 ${className}`}>
-      <div className={`
-        flex items-center space-x-2 px-3 py-2 rounded-lg shadow-lg text-white text-sm
-        ${getStatusColor()}
-        transition-all duration-300 ease-in-out
-      `}>
-        {getStatusIcon()}
-        <span className="font-medium">{getStatusText()}</span>
+      <div className="flex items-center space-x-2">
+        <Badge variant={getBadgeVariant()} className="flex items-center space-x-1 px-2 py-1">
+          {getStatusIcon()}
+          <span className="text-xs font-medium">{getStatusText()}</span>
+        </Badge>
         
         {!isConnected && !isReconnecting && (
-          <button
+          <Button
             onClick={retryConnection}
-            className="ml-2 px-2 py-1 bg-white bg-opacity-20 rounded text-xs hover:bg-opacity-30 transition-colors"
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-xs"
             aria-label="Retry connection"
           >
             Retry
-          </button>
+          </Button>
         )}
       </div>
       
       {/* Additional info for debugging */}
-      {process.env.NODE_ENV === 'development' && !isConnected && (
+      {process.env.NODE_ENV === 'development' && (isReconnecting || !isConnected) && (
         <div className="mt-2 p-2 bg-gray-800 text-white text-xs rounded shadow-lg max-w-xs">
           <div>Last disconnect: {lastDisconnect?.toLocaleTimeString()}</div>
           <div>Attempts: {reconnectAttempts}</div>
