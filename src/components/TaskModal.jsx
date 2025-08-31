@@ -5,6 +5,7 @@ import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
 import { taskService } from '../services/taskService';
 import { teamService } from '../services/teamService';
 import { Button } from './ui/button';
+import { PriorityBadge } from './ui/status-badge';
 
 // Custom Dropdown Component
 const CustomDropdown = ({ 

@@ -7,6 +7,7 @@ import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
 import { useHackathonNotifications } from '../contexts/HackathonNotificationContext';
 import LoadingSpinner from './LoadingSpinner';
 import HackathonTeamSelector from './HackathonTeamSelector';
+import { InteractiveCard, EnhancedCard, Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 const HackathonDashboardContent = ({ hackathon }) => {
   const { user } = useAuth();
@@ -170,59 +171,57 @@ const HackathonDashboardContent = ({ hackathon }) => {
           {/* Large Navigation Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 max-w-4xl mx-auto flex-shrink-0">
             {/* Manage Tasks Card */}
-            <Link
-              to={`/hackathon/${hackathon.hackathonId}/tasks`}
-              className="card-enhanced rounded-2xl p-6 lg:p-8 hover:scale-105 transition-all duration-300 group cursor-pointer"
-            >
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                  </svg>
+            <Link to={`/hackathon/${hackathon.hackathonId}/tasks`}>
+              <InteractiveCard className="p-6 lg:p-8 hover:scale-105 transition-all duration-300 group">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-dark-primary mb-2 group-hover:text-blue-400 transition-colors">
+                    Manage Tasks
+                  </h2>
+                  <p className="text-dark-tertiary">
+                    Organize your team's work with our Kanban board
+                  </p>
+                  <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-dark-secondary">
+                    <span>{totalTasks} total tasks</span>
+                    <span>•</span>
+                    <span>{completedTasks} completed</span>
+                  </div>
                 </div>
-                <h2 className="text-xl font-bold text-dark-primary mb-2 group-hover:text-blue-400 transition-colors">
-                  Manage Tasks
-                </h2>
-                <p className="text-dark-tertiary">
-                  Organize your team's work with our Kanban board
-                </p>
-                <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-dark-secondary">
-                  <span>{totalTasks} total tasks</span>
-                  <span>•</span>
-                  <span>{completedTasks} completed</span>
-                </div>
-              </div>
+              </InteractiveCard>
             </Link>
 
             {/* Open Team Chat Card */}
-            <Link
-              to={`/hackathon/${hackathon.hackathonId}/chat`}
-              className="card-enhanced rounded-2xl p-6 lg:p-8 hover:scale-105 transition-all duration-300 group cursor-pointer"
-            >
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
+            <Link to={`/hackathon/${hackathon.hackathonId}/chat`}>
+              <InteractiveCard className="p-6 lg:p-8 hover:scale-105 transition-all duration-300 group">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-dark-primary mb-2 group-hover:text-green-400 transition-colors">
+                    Open Team Chat
+                  </h2>
+                  <p className="text-dark-tertiary">
+                    Communicate with your team in real-time
+                  </p>
+                  <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-dark-secondary">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span>Connected</span>
+                  </div>
                 </div>
-                <h2 className="text-xl font-bold text-dark-primary mb-2 group-hover:text-green-400 transition-colors">
-                  Open Team Chat
-                </h2>
-                <p className="text-dark-tertiary">
-                  Communicate with your team in real-time
-                </p>
-                <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-dark-secondary">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span>Connected</span>
-                </div>
-              </div>
+              </InteractiveCard>
             </Link>
           </div>
 
           {/* Summary Widgets */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 flex-1 min-h-0">
             {/* My Tasks Widget */}
-            <div className="card-enhanced rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
+            <EnhancedCard className="p-4 lg:p-6 flex flex-col min-h-0">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-dark-primary">My Tasks</h3>
                 <Link to={`/hackathon/${hackathon.hackathonId}/tasks`} className="text-sm text-blue-400 hover:text-blue-300 flex items-center space-x-1">
@@ -297,10 +296,10 @@ const HackathonDashboardContent = ({ hackathon }) => {
                   </div>
                 )}
               </div>
-            </div>
+            </EnhancedCard>
 
             {/* Team Members Widget */}
-            <div className="card-enhanced rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
+            <EnhancedCard className="p-4 lg:p-6 flex flex-col min-h-0">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-dark-primary">Team Members</h3>
                 <span className="text-sm text-dark-tertiary">
@@ -340,10 +339,10 @@ const HackathonDashboardContent = ({ hackathon }) => {
                   );
                 })}
               </div>
-            </div>
+            </EnhancedCard>
 
             {/* Team Activity Widget */}
-            <div className="card-enhanced rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
+            <EnhancedCard className="p-4 lg:p-6 flex flex-col min-h-0">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-dark-primary">Team Activity</h3>
                 <div className="flex items-center space-x-2">
@@ -429,7 +428,7 @@ const HackathonDashboardContent = ({ hackathon }) => {
                   </div>
                 )}
               </div>
-            </div>
+            </EnhancedCard>
           </div>
         </>
       ) : (
@@ -456,7 +455,7 @@ const HackathonDashboardContent = ({ hackathon }) => {
       {/* Rules Modal */}
       {showRulesModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-background-card rounded-2xl shadow-2xl w-full max-w-2xl p-6">
+          <Card className="w-full max-w-2xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-xl font-bold text-white">Hackathon Rules</h3>
@@ -501,14 +500,14 @@ const HackathonDashboardContent = ({ hackathon }) => {
                 Got it!
               </button>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
       {/* Team Selector Modal */}
       {showTeamSelector && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-background-card rounded-2xl shadow-2xl w-full max-w-md p-6">
+          <Card className="w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-xl font-bold text-white">Join or Create Team</h3>
@@ -524,7 +523,7 @@ const HackathonDashboardContent = ({ hackathon }) => {
               </button>
             </div>
             <HackathonTeamSelector hackathonId={hackathon.hackathonId} onTeamCreatedOrJoined={handleTeamCreatedOrJoined} />
-          </div>
+          </Card>
         </div>
       )}
       

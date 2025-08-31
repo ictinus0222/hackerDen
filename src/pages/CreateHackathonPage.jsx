@@ -5,6 +5,7 @@ import { hackathonService } from '../services/hackathonService';
 import { teamService } from '../services/teamService';
 import ConsoleLayout from '../components/ConsoleLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { EnhancedCard } from '../components/ui/card';
 
 const CreateHackathonPage = () => {
   const { user } = useAuth();
@@ -125,7 +126,7 @@ const CreateHackathonPage = () => {
         <div className="mb-8">
           <div className="flex items-center space-x-4">
             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              step >= 1 ? 'bg-green-500 text-white' : 'bg-dark-primary text-dark-tertiary'
+              step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-dark-primary text-dark-tertiary'
             }`}>
               {step > 1 ? (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -135,9 +136,9 @@ const CreateHackathonPage = () => {
                 <span className="text-sm font-bold">1</span>
               )}
             </div>
-            <div className={`h-1 flex-1 rounded ${step > 1 ? 'bg-green-500' : 'bg-dark-primary'}`}></div>
+            <div className={`h-1 flex-1 rounded ${step > 1 ? 'bg-primary' : 'bg-dark-primary'}`}></div>
             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              step >= 2 ? 'bg-green-500 text-white' : 'bg-dark-primary text-dark-tertiary'
+              step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-dark-primary text-dark-tertiary'
             }`}>
               <span className="text-sm font-bold">2</span>
             </div>
@@ -161,7 +162,7 @@ const CreateHackathonPage = () => {
         )}
 
         {step === 1 && (
-          <div className="card-enhanced p-8">
+          <EnhancedCard className="p-8">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-white mb-2">Create New Hackathon</h1>
               <p className="text-dark-tertiary">Set up your hackathon details and rules</p>
@@ -239,7 +240,7 @@ const CreateHackathonPage = () => {
                   <button
                     type="button"
                     onClick={addRule}
-                    className="px-3 py-1 text-sm bg-green-500/20 text-green-300 rounded-lg hover:bg-green-500/30 transition-all duration-200 border border-green-500/30"
+                    className="px-3 py-1 text-sm bg-primary/20 text-chart-2 rounded-lg hover:bg-primary/30 transition-all duration-200 border border-primary/30"
                   >
                     Add Rule
                   </button>
@@ -281,17 +282,17 @@ const CreateHackathonPage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+                  className="px-8 py-3 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium"
                 >
                   Create Hackathon
                 </button>
               </div>
             </form>
-          </div>
+          </EnhancedCard>
         )}
 
         {step === 2 && (
-          <div className="card-enhanced p-8">
+          <EnhancedCard className="p-8">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-white mb-2">Create Your Team</h1>
               <p className="text-dark-tertiary">
@@ -349,13 +350,13 @@ const CreateHackathonPage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+                  className="px-8 py-3 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium"
                 >
                   Create Team & Continue
                 </button>
               </div>
             </form>
-          </div>
+          </EnhancedCard>
         )}
       </div>
     </ConsoleLayout>

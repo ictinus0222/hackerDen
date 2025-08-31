@@ -18,7 +18,7 @@ export function ThemeTest() {
   };
 
   const StatusIcon = ({ status }) => {
-    if (status === true) return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (status === true) return <CheckCircle className="h-4 w-4 text-primary" />;
     if (status === false) return <XCircle className="h-4 w-4 text-red-500" />;
     return <AlertCircle className="h-4 w-4 text-yellow-500" />;
   };

@@ -6,6 +6,7 @@ import ConsoleLayout from '../components/ConsoleLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import TeamSelector from '../components/TeamSelector';
 import { ShadcnTest } from '../components/ShadcnTest';
+import { EnhancedCard, Card } from '../components/ui/card.jsx';
 
 const UserHackathonConsole = () => {
   const { user } = useAuth();
@@ -42,7 +43,7 @@ const UserHackathonConsole = () => {
   const getStatusBadge = (status) => {
     const badges = {
       upcoming: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      ongoing: 'bg-green-500/20 text-green-300 border-green-500/30',
+      ongoing: 'bg-primary/20 text-chart-2 border-primary/30',
       completed: 'bg-gray-500/20 text-gray-300 border-gray-500/30'
     };
     return badges[status] || badges.upcoming;
@@ -131,7 +132,7 @@ const UserHackathonConsole = () => {
             </button>
             <Link
               to="/create-hackathon"
-              className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium flex items-center space-x-2"
+              className="px-6 py-3 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium flex items-center space-x-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -167,7 +168,7 @@ const UserHackathonConsole = () => {
             </p>
             <Link
               to="/create-hackathon"
-              className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+              className="px-6 py-3 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium"
             >
               Create Your First Hackathon
             </Link>
@@ -178,7 +179,7 @@ const UserHackathonConsole = () => {
             {groupedHackathons.ongoing.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-3"></div>
+                  <div className="w-3 h-3 bg-chart-2 rounded-full animate-pulse mr-3"></div>
                   Ongoing Hackathons
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -242,7 +243,7 @@ const UserHackathonConsole = () => {
         {/* Team Selector Modal */}
         {showTeamSelector && selectedHackathon && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-            <div className="bg-background-card rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <Card className="w-full max-w-md p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-bold text-white">Join Team</h3>
@@ -258,14 +259,14 @@ const UserHackathonConsole = () => {
                 </button>
               </div>
               <TeamSelector onTeamCreatedOrJoined={handleTeamAction} />
-            </div>
+            </Card>
           </div>
         )}
 
         {/* Join Team by Code Modal */}
         {showJoinTeamModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-            <div className="bg-background-card rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <Card className="w-full max-w-md p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-bold text-white">Join Team</h3>
@@ -320,7 +321,7 @@ const UserHackathonConsole = () => {
                   {joinLoading ? 'Joining...' : 'Join Team'}
                 </button>
               </form>
-            </div>
+            </Card>
           </div>
         )}
       </div>
@@ -331,7 +332,7 @@ const UserHackathonConsole = () => {
 // Hackathon Card Component
 const HackathonCard = ({ hackathon, onJoinCreateTeam, getStatusBadge, getRoleBadge }) => {
   return (
-    <div className="card-enhanced p-6 transition-all duration-200 hover:shadow-xl hover:bg-background-sidebar">
+    <EnhancedCard className="p-6 transition-all duration-200 hover:shadow-xl hover:bg-background-sidebar">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
@@ -381,7 +382,7 @@ const HackathonCard = ({ hackathon, onJoinCreateTeam, getStatusBadge, getRoleBad
         <div className="flex gap-2 pt-2">
           <Link
             to={`/hackathon/${hackathon.hackathonId}/dashboard`}
-            className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium text-center text-sm"
+            className="flex-1 px-4 py-2 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium text-center text-sm"
           >
             View Dashboard
           </Link>
@@ -404,7 +405,7 @@ const HackathonCard = ({ hackathon, onJoinCreateTeam, getStatusBadge, getRoleBad
           )}
         </div>
       </div>
-    </div>
+    </EnhancedCard>
   );
 };
 

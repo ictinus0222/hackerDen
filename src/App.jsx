@@ -9,6 +9,7 @@ import RegisterPage from './pages/RegisterPage';
 import UserHackathonConsole from './pages/UserHackathonConsole';
 import CreateHackathonPage from './pages/CreateHackathonPage';
 import WhiteboardPage from './pages/WhiteboardPage';
+import CardTest from './components/CardTest';
 
 function App() {
   return (
@@ -54,6 +55,16 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <WhiteboardPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Card Test page - temporary for development */}
+                <Route 
+                  path="/card-test" 
+                  element={
+                    <ProtectedRoute>
+                      <CardTest />
                     </ProtectedRoute>
                   } 
                 />

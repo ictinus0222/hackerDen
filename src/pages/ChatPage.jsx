@@ -41,7 +41,7 @@ const ChatPage = () => {
       <div className="p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-dark-tertiary">Loading team information...</p>
           </div>
         </div>
@@ -87,7 +87,7 @@ const ChatPage = () => {
             </div>
             
             <div className="flex items-center space-x-2 text-sm text-dark-tertiary">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <div className="w-2 h-2 bg-chart-2 rounded-full"></div>
               <span>Connected</span>
             </div>
           </div>

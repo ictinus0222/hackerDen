@@ -1,5 +1,7 @@
 import { memo, useCallback } from 'react';
 import { Button } from './ui/button';
+import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
+import { StatusBadge, PriorityBadge, TaskIdBadge, LabelBadge } from './ui/status-badge';
 
 const TaskCard = memo(({
   task,
@@ -82,28 +84,28 @@ const TaskCard = memo(({
   const getAccentColor = (status) => {
     switch (status) {
       case 'todo':
-        return 'border-l-slate-400/60 bg-gradient-to-r from-slate-500/10 to-transparent';
+        return 'border-l-muted-foreground/60 bg-gradient-to-r from-muted/50 to-transparent';
       case 'in_progress':
-        return 'border-l-green-400/80 bg-gradient-to-r from-green-500/15 to-transparent';
+        return 'border-l-primary/80 bg-gradient-to-r from-primary/15 to-transparent';
       case 'blocked':
-        return 'border-l-red-400/70 bg-gradient-to-r from-red-500/12 to-transparent';
+        return 'border-l-destructive/70 bg-gradient-to-r from-destructive/12 to-transparent';
       case 'done':
-        return 'border-l-emerald-400/80 bg-gradient-to-r from-emerald-500/15 to-transparent';
+        return 'border-l-green-500/80 bg-gradient-to-r from-green-500/15 to-transparent';
       default:
-        return 'border-l-slate-400/60 bg-gradient-to-r from-slate-500/10 to-transparent';
+        return 'border-l-muted-foreground/60 bg-gradient-to-r from-muted/50 to-transparent';
     }
   };
 
   return (
-    <article
+    <Card
+      variant="enhanced"
       draggable
       onDragStart={handleDragStart}
       onTouchStart={handleTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      className={`backdrop-blur-sm border border-slate-700/50 rounded-xl hover:border-slate-600/60 transition-all duration-300 group p-4 cursor-move select-none min-h-[120px] slide-up border-l-4 ${getAccentColor(task.status)} ${isDragging ? 'dragging opacity-50 scale-95' : ''
-        }`}
-      style={{ background: 'transparent' }}
+      className={`group cursor-move select-none min-h-[120px] border-l-4 ${getAccentColor(task.status)} ${isDragging ? 'opacity-50 scale-95' : 'hover:shadow-xl'
+        } transition-all duration-300`}
       tabIndex="0"
       role="button"
       aria-label={`Task: ${task.title}. Status: ${getStatusLabel(task.status)}. ${task.description ? `Description: ${task.description}` : ''}`}
@@ -117,10 +119,9 @@ const TaskCard = memo(({
         }
       }}
     >
-      {/* Task Header */}
-      <header className="mb-3">
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between mb-2">
-          <h4 className="font-semibold text-slate-100 text-sm leading-relaxed flex-1 pr-2">
+          <h4 className="font-semibold text-foreground text-sm leading-relaxed flex-1 pr-2">
             {task.title}
           </h4>
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
@@ -162,105 +163,85 @@ const TaskCard = memo(({
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-slate-400 font-mono bg-slate-700/50 px-2 py-0.5 rounded">
-              #{task.$id.slice(-4)}
-            </span>
-            <span className={`text-xs px-1.5 py-0.5 rounded ${(task.priority === 'high') ? 'bg-red-500/20 text-red-300' :
-              (task.priority === 'medium') ? 'bg-yellow-500/20 text-yellow-300' :
-                (task.priority === 'low') ? 'bg-green-500/20 text-green-300' :
-                  'bg-yellow-500/20 text-yellow-300' // Default to medium if no priority
-              }`}>
-              {(task.priority === 'high') ? '🔴' :
-                (task.priority === 'medium') ? '🟡' :
-                  (task.priority === 'low') ? '🟢' : '🟡'}
-            </span>
+            <TaskIdBadge taskId={task.$id} />
+            <PriorityBadge priority={task.priority} />
           </div>
           <div className="flex items-center space-x-1">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
-              <span className="text-xs font-bold text-white">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
+              <span className="text-xs font-bold text-primary-foreground">
                 {task.title.charAt(0).toUpperCase()}
               </span>
             </div>
           </div>
         </div>
-      </header>
+      </CardHeader>
 
-      {/* Task Description */}
-      {task.description && (
-        <div className="mb-4">
-          <p className="text-slate-300 text-xs leading-relaxed line-clamp-2">
+      <CardContent className="space-y-4">
+        {/* Task Description */}
+        {task.description && (
+          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
             {task.description}
           </p>
-        </div>
-      )}
+        )}
 
-      {/* Labels */}
-      {task.labels && Array.isArray(task.labels) && task.labels.length > 0 && (
-        <div className="mb-3">
+        {/* Labels */}
+        {task.labels && Array.isArray(task.labels) && task.labels.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {task.labels.slice(0, 3).map((label, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30"
-              >
-                {label}
-              </span>
+              <LabelBadge key={index} label={label} />
             ))}
             {task.labels.length > 3 && (
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-500/20 text-slate-400">
-                +{task.labels.length - 3}
-              </span>
+              <LabelBadge label={`+${task.labels.length - 3}`} variant="outline" />
             )}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Professional Progress Indicator */}
-      <div className="mb-3">
-        <div className="flex items-center justify-between text-xs mb-2">
-          <div className="flex items-center space-x-2">
-            <span className="text-slate-400">Progress</span>
-            <span className="text-slate-200 font-medium font-mono">
-              {task.status === 'done' ? '100%' : task.status === 'in_progress' ? '50%' : '0%'}
-            </span>
+        {/* Professional Progress Indicator */}
+        <div>
+          <div className="flex items-center justify-between text-xs mb-2">
+            <div className="flex items-center space-x-2">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="text-foreground font-medium font-mono">
+                {task.status === 'done' ? '100%' : task.status === 'in_progress' ? '50%' : '0%'}
+              </span>
+            </div>
+          </div>
+          <div className="w-full bg-muted rounded-full h-1.5">
+            <div
+              className={`h-1.5 rounded-full transition-all duration-500 ${task.status === 'done' ? 'bg-gradient-to-r from-primary to-primary/80 w-full' :
+                task.status === 'in_progress' ? 'bg-gradient-to-r from-primary to-primary/60 w-1/2' :
+                  task.status === 'blocked' ? 'bg-gradient-to-r from-destructive to-destructive/80 w-1/4' :
+                    'bg-muted-foreground w-0'
+                }`}
+            ></div>
           </div>
         </div>
-        <div className="w-full bg-slate-700/60 rounded-full h-1.5">
-          <div
-            className={`h-1.5 rounded-full transition-all duration-500 ${task.status === 'done' ? 'bg-gradient-to-r from-emerald-500 to-green-500 w-full' :
-              task.status === 'in_progress' ? 'bg-gradient-to-r from-green-500 to-emerald-500 w-1/2' :
-                task.status === 'blocked' ? 'bg-gradient-to-r from-red-500 to-orange-500 w-1/4' :
-                  'bg-slate-600 w-0'
-              }`}
-          ></div>
-        </div>
-      </div>
+      </CardContent>
 
-      {/* Professional Task Footer */}
-      <footer
+      <CardFooter
         id={`task-${task.$id}-details`}
-        className="flex items-center justify-between text-xs border-t border-slate-700/50 pt-3"
+        className="flex items-center justify-between text-xs pt-3"
       >
         <time
           dateTime={task.$createdAt}
-          className="text-slate-400 text-xs font-mono"
+          className="text-muted-foreground text-xs font-mono"
           title={`Created on ${new Date(task.$createdAt).toLocaleString()}`}
         >
           {formatDate(task.$createdAt)}
         </time>
         <div className="flex items-center space-x-2">
           {task.$updatedAt !== task.$createdAt && (
-            <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Recently updated"></div>
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" title="Recently updated"></div>
           )}
           <div className="flex items-center space-x-1">
-            <svg className="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <span className="text-slate-500 font-mono">2</span>
+            <span className="text-muted-foreground font-mono">2</span>
           </div>
         </div>
-      </footer>
-    </article>
+      </CardFooter>
+    </Card>
   );
 });
 

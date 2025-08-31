@@ -10,6 +10,7 @@ import { KanbanColumnSkeleton } from './SkeletonLoader';
 import AppwriteSetupGuide from './AppwriteSetupGuide';
 import { createTestTasks } from '../utils/testData';
 import { Button } from './ui/button';
+import { Card } from './ui/card';
 
 const KanbanBoard = () => {
   const { tasksByStatus, loading, error, refetch, team, hackathonId } = useHackathonTasks();
@@ -219,7 +220,7 @@ const KanbanBoard = () => {
 
   if (loading) {
     return (
-      <div className="card p-6 h-full flex flex-col fade-in">
+      <Card className="p-6 h-full flex flex-col fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 rounded-lg bg-gray-200 animate-pulse"></div>
@@ -237,18 +238,18 @@ const KanbanBoard = () => {
           <KanbanColumnSkeleton />
           <KanbanColumnSkeleton />
         </div>
-      </div>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="card p-6 h-full">
+      <Card className="p-6 h-full">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Kanban Board</h2>
         <div className="h-96 overflow-y-auto">
           <AppwriteSetupGuide error={error} />
         </div>
-      </div>
+      </Card>
     );
   }
 
@@ -260,7 +261,7 @@ const KanbanBoard = () => {
     >
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center ring-2 ring-primary/20">
             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v10z" />
             </svg>
@@ -272,7 +273,7 @@ const KanbanBoard = () => {
           {/* Professional Stats */}
           <div className="hidden sm:flex items-center space-x-6 text-sm">
             <div className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
               <span className="text-slate-300 font-mono text-xs">
                 {tasksByStatus.in_progress?.length || 0} <span className="text-slate-400">active</span>
               </span>

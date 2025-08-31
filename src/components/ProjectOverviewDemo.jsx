@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ProjectOverview from './ProjectOverview.jsx';
+import { EnhancedCard } from './ui/card';
 
 const ProjectOverviewDemo = () => {
   const [selectedDemo, setSelectedDemo] = useState('default');
@@ -96,7 +97,7 @@ const ProjectOverviewDemo = () => {
   return (
     <div className="space-y-6">
       {/* Demo Controls */}
-      <div className="card-enhanced rounded-xl p-4">
+      <EnhancedCard className="p-4">
         <h3 className="text-lg font-semibold text-dark-primary mb-4">
           GitHub-Inspired Project Overview Demo
         </h3>

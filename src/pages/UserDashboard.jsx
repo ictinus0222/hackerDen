@@ -6,6 +6,7 @@ import { teamService } from '../services/teamService';
 import Layout from '../components/Layout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import TeamSelector from '../components/TeamSelector';
+import { EnhancedCard, InteractiveCard } from '../components/ui/card.jsx';
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -89,17 +90,17 @@ const UserDashboard = () => {
 
         {/* Current Team */}
         {currentTeam && (
-          <div className="card-enhanced p-6 border-l-4 border-green-500">
+          <EnhancedCard className="p-6 border-l-4 border-primary">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center shadow-lg">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-white">Current Team</h3>
-                  <p className="text-xl font-bold text-green-400">{currentTeam.name}</p>
+                  <p className="text-xl font-bold text-chart-2">{currentTeam.name}</p>
                   <p className="text-sm text-dark-tertiary">
                     Role: {currentTeam.userRole === 'owner' ? 'Team Leader' : 'Member'}
                   </p>
@@ -107,12 +108,12 @@ const UserDashboard = () => {
               </div>
               <Link
                 to="/dashboard"
-                className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+                className="px-6 py-3 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium"
               >
                 Go to Team Dashboard
               </Link>
             </div>
-          </div>
+          </EnhancedCard>
         )}
 
         {/* All Teams */}
@@ -138,7 +139,7 @@ const UserDashboard = () => {
               <p className="text-dark-tertiary mb-4">You haven't joined any teams yet.</p>
               <button
                 onClick={() => setShowTeamSelector(true)}
-                className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+                className="px-6 py-3 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium"
               >
                 Create or Join Your First Team
               </button>
@@ -146,12 +147,12 @@ const UserDashboard = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {userTeams.map((team) => (
-                <div
+                <InteractiveCard
                   key={team.$id}
-                  className={`card-enhanced p-6 transition-all duration-200 hover:shadow-xl ${
+                  className={`p-6 ${
                     currentTeam?.$id === team.$id 
-                      ? 'ring-2 ring-green-500 bg-green-500/5' 
-                      : 'hover:bg-background-sidebar'
+                      ? 'ring-2 ring-primary bg-primary/5' 
+                      : ''
                   }`}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -172,7 +173,7 @@ const UserDashboard = () => {
                         )}
                       </div>
                       {currentTeam?.$id === team.$id && (
-                        <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        <div className="w-3 h-3 bg-chart-2 rounded-full animate-pulse"></div>
                       )}
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${
@@ -188,7 +189,7 @@ const UserDashboard = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-white truncate">{team.name}</h3>
                       <p className="text-sm text-dark-tertiary">
-                        Join Code: <span className="font-mono text-green-400">{team.joinCode}</span>
+                        Join Code: <span className="font-mono text-chart-2">{team.joinCode}</span>
                       </p>
                     </div>
 
@@ -199,14 +200,14 @@ const UserDashboard = () => {
                       {currentTeam?.$id !== team.$id && (
                         <button
                           onClick={() => handleTeamSwitch(team.$id)}
-                          className="px-3 py-1 text-sm bg-green-500/20 text-green-300 rounded-lg hover:bg-green-500/30 transition-all duration-200 border border-green-500/30"
+                          className="px-3 py-1 text-sm bg-primary/20 text-chart-2 rounded-lg hover:bg-primary/30 transition-all duration-200 border border-primary/30"
                         >
                           Switch
                         </button>
                       )}
                     </div>
                   </div>
-                </div>
+                </InteractiveCard>
               ))}
             </div>
           )}

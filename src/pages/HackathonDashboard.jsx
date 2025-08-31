@@ -65,7 +65,7 @@ const HackathonDashboard = () => {
           <p className="text-dark-tertiary mb-6">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+            className="px-6 py-3 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium"
           >
             Try Again
           </button>
@@ -82,7 +82,7 @@ const HackathonDashboard = () => {
           <p className="text-dark-tertiary mb-6">The hackathon you're looking for doesn't exist.</p>
           <Link
             to="/console"
-            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+            className="px-6 py-3 bg-gradient-to-r from-primary to-chart-2 text-primary-foreground rounded-xl hover:opacity-90 transition-all duration-200 font-medium"
           >
             Back to Console
           </Link>
