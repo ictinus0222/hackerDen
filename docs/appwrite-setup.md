@@ -86,13 +86,17 @@ Create the following collections in your Appwrite database:
 
 **Attributes:**
 - `teamId` (string, required) - Reference to teams collection
+- `hackathonId` (string, required) - Reference to hackathon for isolation
 - `userId` (string, optional) - User ID of message sender (null for system messages)
+- `userName` (string, optional) - Display name of message sender (null for system messages)
 - `content` (string, required) - Message content
-- `type` (string, required) - Either "user" or "system"
+- `type` (string, required) - Message type: "user", "system", "task_created", "task_status_changed", "task_completed", "vault_secret_added", "vault_secret_updated", "vault_secret_deleted"
+- `systemData` (string, optional) - JSON string containing additional data for system messages
 
 **Indexes:**
-- `teamId` (index on teamId field)
+- `teamId_hackathonId` (compound index on teamId and hackathonId fields)
 - `createdAt` (index on $createdAt field for chronological ordering)
+- `type` (index on type field for filtering message types)
 
 **Permissions:**
 - Create: Users

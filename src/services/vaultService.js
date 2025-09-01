@@ -1,4 +1,15 @@
 import { databases, DATABASE_ID, COLLECTIONS, ID, Query } from '../lib/appwrite';
+import { messageService } from './messageService';
+
+// Helper function to send vault system messages with error handling
+const sendVaultSystemMessage = async (teamId, hackathonId, messageType, content, systemData) => {
+  try {
+    await messageService.sendSystemMessage(teamId, hackathonId, content, messageType, systemData);
+  } catch (error) {
+    console.warn('Failed to send vault system message:', error);
+    // Don't fail the parent operation - just log the warning
+  }
+};
 
 // Simple encryption utilities (in production, use proper encryption libraries)
 const encryptValue = (value, key) => {
@@ -58,6 +69,18 @@ export const vaultService = {
           lastAccessedBy: null
         }
       );
+
+      // Send system message for vault secret addition
+      const systemMessageContent = `🔐 ${createdByName} added a new secret to the vault: "${name.trim()}"`;
+      const systemData = {
+        secretId: secret.$id,
+        secretName: name.trim(),
+        action: 'added',
+        modifiedBy: createdByName,
+        category: 'vault'
+      };
+
+      await sendVaultSystemMessage(teamId, hackathonId, 'vault_secret_added', systemMessageContent, systemData);
 
       return {
         ...secret,
@@ -314,6 +337,27 @@ export const vaultService = {
         }
       );
 
+      // Send system message for vault secret update
+      // Get the original secret to get the team ID and user name
+      const originalSecret = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.VAULT_SECRETS,
+        secretId
+      );
+
+      // Get user name from the updatedBy parameter (assuming it's passed as user name)
+      const updatedByName = updatedBy; // This should be the user name, not ID
+      const systemMessageContent = `🔄 ${updatedByName} updated vault secret: "${updatedSecret.name}"`;
+      const systemData = {
+        secretId: secretId,
+        secretName: updatedSecret.name,
+        action: 'updated',
+        modifiedBy: updatedByName,
+        category: 'vault'
+      };
+
+      await sendVaultSystemMessage(originalSecret.teamId, originalSecret.hackathonId, 'vault_secret_updated', systemMessageContent, systemData);
+
       return {
         ...updatedSecret,
         encryptedValue: undefined
@@ -324,8 +368,15 @@ export const vaultService = {
   },
 
   // Delete a secret (only by team leaders)
-  async deleteSecret(secretId, deletedBy) {
+  async deleteSecret(secretId, deletedBy, deletedByName) {
     try {
+      // Get the secret details before deletion for system message
+      const secret = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.VAULT_SECRETS,
+        secretId
+      );
+
       // Delete associated access requests first
       const accessRequests = await databases.listDocuments(
         DATABASE_ID,
@@ -352,6 +403,18 @@ export const vaultService = {
         COLLECTIONS.VAULT_SECRETS,
         secretId
       );
+
+      // Send system message for vault secret deletion
+      const systemMessageContent = `🗑️ ${deletedByName || deletedBy} deleted vault secret: "${secret.name}"`;
+      const systemData = {
+        secretId: secretId,
+        secretName: secret.name,
+        action: 'deleted',
+        modifiedBy: deletedByName || deletedBy,
+        category: 'vault'
+      };
+
+      await sendVaultSystemMessage(secret.teamId, secret.hackathonId, 'vault_secret_deleted', systemMessageContent, systemData);
 
       return { success: true };
     } catch (error) {

@@ -20,7 +20,8 @@
     "backup:cleanup": "node scripts/backup-utility.js --cleanup",
     "backup:cleanup-confirm": "node scripts/backup-utility.js --cleanup --confirm",
     "setup:whiteboard": "node scripts/setup-whiteboard.js",
-    "setup:vault": "node scripts/setup-vault.js"
+    "setup:vault": "node scripts/setup-vault.js",
+    "setup:documents": "node scripts/setup-collaborative-documents.js"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
@@ -46,6 +47,7 @@
     "react": "^19.1.0",
     "react-day-picker": "^9.9.0",
     "react-dom": "^19.1.0",
+    "react-error-boundary": "^6.0.0",
     "react-hook-form": "^7.62.0",
     "react-resizable-panels": "^3.0.5",
     "react-router-dom": "^7.7.1",

@@ -39,7 +39,12 @@ export const COLLECTIONS = {
   TASKS: 'tasks',
   MESSAGES: 'messages',
   VAULT_SECRETS: 'vault_secrets',
-  VAULT_ACCESS_REQUESTS: 'vault_access_requests'
+  VAULT_ACCESS_REQUESTS: 'vault_access_requests',
+  // Collaborative Documents collections
+  DOCUMENTS: 'documents',
+  DOCUMENT_VERSIONS: 'document_versions',
+  DOCUMENT_OPERATIONS: 'document_operations',
+  USER_PRESENCE: 'user_presence'
 };
 
 export { Query, ID };

@@ -1,6 +1,16 @@
 import { databases, DATABASE_ID, COLLECTIONS, Query, ID } from '../lib/appwrite';
 import client from '../lib/appwrite';
+import { messageService } from './messageService';
 
+// Helper function to send task system messages with error handling
+const sendTaskSystemMessage = async (teamId, hackathonId, messageType, content, systemData) => {
+  try {
+    await messageService.sendSystemMessage(teamId, hackathonId, content, messageType, systemData);
+  } catch (error) {
+    console.warn('Failed to send task system message:', error);
+    // Don't fail the parent operation - just log the warning
+  }
+};
 
 export const taskService = {
   // Create a new task
@@ -38,8 +48,19 @@ export const taskService = {
         }
       );
 
+      // Send system message for task creation
+      const assignedToDisplay = assignedToName || creatorName;
+      const systemMessageContent = `📝 ${creatorName} created a new task: "${taskData.title}"${assignedToDisplay && assignedToDisplay !== creatorName ? ` (assigned to ${assignedToDisplay})` : ''}`;
+      
+      const systemData = {
+        taskId: task.$id,
+        taskTitle: taskData.title,
+        createdBy: creatorName,
+        assignedTo: assignedToDisplay,
+        priority: taskData.priority || 'medium'
+      };
 
-
+      await sendTaskSystemMessage(teamId, hackathonId, 'task_created', systemMessageContent, systemData);
 
       return task;
     } catch (error) {
@@ -171,8 +192,17 @@ export const taskService = {
   },
 
   // Update task status
-  async updateTaskStatus(taskId, status, taskTitle, teamId, hackathonId, userId = 'system') {
+  async updateTaskStatus(taskId, status, taskTitle, teamId, hackathonId, userId = 'system', userName = 'System') {
     try {
+      // Get the current task to check the old status
+      const currentTask = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId
+      );
+
+      const oldStatus = currentTask.status;
+
       const task = await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.TASKS,
@@ -182,7 +212,38 @@ export const taskService = {
         }
       );
 
+      // Send system message for status change
+      if (oldStatus !== status) {
+        let systemMessageContent;
+        let messageType;
 
+        if (status === 'completed') {
+          // Task completion message
+          systemMessageContent = `✅ ${userName} completed task: "${taskTitle || task.title}"`;
+          messageType = 'task_completed';
+        } else {
+          // General status change message
+          const statusEmoji = {
+            'todo': '📋',
+            'in_progress': '🔄',
+            'completed': '✅',
+            'blocked': '🚫'
+          };
+          
+          systemMessageContent = `${statusEmoji[status] || '🔄'} ${userName} changed task "${taskTitle || task.title}" from ${oldStatus} to ${status}`;
+          messageType = 'task_status_changed';
+        }
+
+        const systemData = {
+          taskId: taskId,
+          taskTitle: taskTitle || task.title,
+          oldStatus: oldStatus,
+          newStatus: status,
+          changedBy: userName
+        };
+
+        await sendTaskSystemMessage(teamId, hackathonId, messageType, systemMessageContent, systemData);
+      }
 
       return task;
     } catch (error) {
@@ -208,14 +269,57 @@ export const taskService = {
   },
 
   // Update task with priority and labels (for existing tasks)
-  async updateTaskFields(taskId, updates) {
+  async updateTaskFields(taskId, updates, teamId, userName = 'System') {
     try {
+      // Get the current task to check for status changes
+      const currentTask = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId
+      );
+
       const task = await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.TASKS,
         taskId,
         updates
       );
+
+      // If status was updated, send system message
+      if (updates.status && updates.status !== currentTask.status && teamId) {
+        const oldStatus = currentTask.status;
+        const newStatus = updates.status;
+
+        let systemMessageContent;
+        let messageType;
+
+        if (newStatus === 'completed') {
+          // Task completion message
+          systemMessageContent = `✅ ${userName} completed task: "${task.title}"`;
+          messageType = 'task_completed';
+        } else {
+          // General status change message
+          const statusEmoji = {
+            'todo': '📋',
+            'in_progress': '🔄',
+            'completed': '✅',
+            'blocked': '🚫'
+          };
+          
+          systemMessageContent = `${statusEmoji[newStatus] || '🔄'} ${userName} changed task "${task.title}" from ${oldStatus} to ${newStatus}`;
+          messageType = 'task_status_changed';
+        }
+
+        const systemData = {
+          taskId: taskId,
+          taskTitle: task.title,
+          oldStatus: oldStatus,
+          newStatus: newStatus,
+          changedBy: userName
+        };
+
+        await sendTaskSystemMessage(teamId, currentTask.hackathonId, messageType, systemMessageContent, systemData);
+      }
 
       return task;
     } catch (error) {
