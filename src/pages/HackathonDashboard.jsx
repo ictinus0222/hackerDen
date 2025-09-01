@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 // Import the individual workspace components
 import HackathonDashboardContent from '../components/HackathonDashboardContent';
 import TasksPage from './TasksPage';
-import ChatPage from './ChatPage';
+
 import WhiteboardPage from './WhiteboardPage';
 import VaultPage from './VaultPage';
 
@@ -97,7 +97,7 @@ const HackathonDashboard = () => {
         <Route path="dashboard" element={<HackathonDashboardContent hackathon={hackathon} />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="whiteboard" element={<WhiteboardPage />} />
-        <Route path="chat" element={<ChatPage />} />
+
         <Route path="vault" element={<VaultPage />} />
         <Route path="" element={<Navigate to="dashboard" replace />} />
       </Routes>

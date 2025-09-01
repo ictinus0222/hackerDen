@@ -8,8 +8,8 @@ import Layout from '../components/Layout.jsx';
 import TeamSelector from '../components/TeamSelector.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import ConnectionStatus from '../components/ConnectionStatus.jsx';
-import RealtimeDebugPanel from '../components/RealtimeDebugPanel.jsx';
+
+
 import { InteractiveCard, EnhancedCard } from '../components/ui/card.jsx';
 
 
@@ -18,7 +18,7 @@ const Dashboard = () => {
   const { team, loading: teamLoading, hasTeam } = useTeam();
   const { tasks, tasksByStatus, loading: tasksLoading } = useTasks();
   const { members: teamMembers, loading: membersLoading } = useTeamMembers();
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
+
 
   // Get user's tasks
   const myTasks = (tasks || []).filter(task => task.assigned_to === user?.name || task.assignedTo === user?.$id);
@@ -91,7 +91,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <ConnectionStatus />
+      
       <ErrorBoundary>
         {teamLoading ? (
           <LoadingSpinner message="Loading your team..." />
@@ -134,28 +134,7 @@ const Dashboard = () => {
                 </InteractiveCard>
               </Link>
 
-              {/* Open Team Chat Card */}
-              <Link to="/chat">
-                <InteractiveCard className="rounded-2xl p-6 lg:p-8 hover:scale-105 group">
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl font-bold text-foreground mb-2 group-hover:text-chart-2 transition-colors">
-                      Open Team Chat
-                    </h2>
-                    <p className="text-muted-foreground">
-                      Communicate with your team in real-time
-                    </p>
-                    <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                      <div className="w-2 h-2 bg-chart-2 rounded-full"></div>
-                      <span>Connected</span>
-                    </div>
-                  </div>
-                </InteractiveCard>
-              </Link>
+
             </div>
 
             {/* Summary Widgets */}
@@ -394,18 +373,7 @@ const Dashboard = () => {
               </EnhancedCard>
             </div>
 
-            {/* Development Debug Panel Button */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="text-center flex-shrink-0">
-                <button
-                  onClick={() => setShowDebugPanel(true)}
-                  className="btn-secondary text-xs px-3 py-2"
-                  title="Open Real-time Debug Panel"
-                >
-                  🔧 Debug
-                </button>
-              </div>
-            )}
+
           </div>
         ) : (
           // User doesn't have a team - show team selection options
@@ -413,13 +381,7 @@ const Dashboard = () => {
         )}
       </ErrorBoundary>
       
-      {/* Debug Panel (Development Only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <RealtimeDebugPanel 
-          isOpen={showDebugPanel} 
-          onClose={() => setShowDebugPanel(false)} 
-        />
-      )}
+
       
     </Layout>
   );

@@ -2,8 +2,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 
 const MobileTabSwitcher = ({ children }) => {
   const tabs = [
-    { id: 'kanban', label: 'Kanban', component: children[0] },
-    { id: 'chat', label: 'Chat', component: children[1] }
+    { id: 'kanban', label: 'Kanban', component: children[0] }
   ];
 
   return (

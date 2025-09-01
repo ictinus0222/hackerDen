@@ -2,55 +2,80 @@ import { useParams } from 'react-router-dom';
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import TeamVault from '../components/TeamVault';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { Card, CardContent, CardHeader } from '../components/ui/card';
+import { Key, AlertCircle, Users } from 'lucide-react';
 
-// SVG Icon
-const KeyIcon = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159-.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-  </svg>
-);
+
 
 const VaultPage = () => {
   const { hackathonId } = useParams();
   const { team, loading, error } = useHackathonTeam(hackathonId);
 
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
+      <div className="space-y-6 p-6">
+        <Card className="bg-card/95 backdrop-blur-sm border-border/30 shadow-lg">
+          <CardContent className="p-16 text-center">
+            <LoadingSpinner />
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <KeyIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">Unable to Load Vault</h2>
-          <p className="text-gray-400">{error}</p>
-        </div>
+      <div className="space-y-6 p-6">
+        <Card className="bg-card/95 backdrop-blur-sm border-border/30 shadow-lg">
+          <CardContent className="p-16 text-center">
+            <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Unable to Load Vault</h2>
+            <p className="text-muted-foreground">{error}</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (!team) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <KeyIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">No Team Found</h2>
-          <p className="text-gray-400">You need to be part of a team to access the vault.</p>
-        </div>
+      <div className="space-y-6 p-6">
+        <Card className="bg-card/95 backdrop-blur-sm border-border/30 shadow-lg">
+          <CardContent className="p-16 text-center">
+            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">No Team Found</h2>
+            <p className="text-muted-foreground">You need to be part of a team to access the vault.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <TeamVault teamId={team.$id} hackathonId={hackathonId} />
-      </div>
+    <div className="space-y-6 p-6">
+      <Card className="bg-card/95 backdrop-blur-sm border-border/30 shadow-lg">
+                <CardHeader className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg">
+                <Key className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Team Vault</h1>
+                <p className="text-muted-foreground">
+                  Secure storage for your team's sensitive information and credentials
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+      
+      <TeamVault 
+        teamId={team.$id} 
+        hackathonId={hackathonId} 
+      />
     </div>
   );
 };

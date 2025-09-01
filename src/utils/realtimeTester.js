@@ -16,7 +16,7 @@ class RealtimeTester {
   /**
    * Test task synchronization across multiple tabs
    */
-  async testTaskSync(teamId, taskService, messageService) {
+  async testTaskSync(teamId, taskService) {
     console.log('🧪 Starting task synchronization test...');
     
     this.isRunning = true;
@@ -77,26 +77,7 @@ class RealtimeTester {
 
       console.log(`✅ Task update sync: ${updateSyncTime}ms`);
 
-      // Test 3: System Message Sync
-      console.log('💬 Testing system message sync...');
-      const messageStartTime = Date.now();
-      
-      await messageService.sendSystemMessage(
-        teamId,
-        '🧪 Real-time sync test completed',
-        'test',
-        'test-user'
-      );
 
-      const messageEndTime = Date.now();
-      const messageSyncTime = messageEndTime - messageStartTime;
-      
-      testResults.systemMessages.push({
-        syncTime: messageSyncTime,
-        success: messageSyncTime < 2000
-      });
-
-      console.log(`✅ System message sync: ${messageSyncTime}ms`);
 
     } catch (error) {
       console.error('❌ Test error:', error);
@@ -369,8 +350,7 @@ export const runRealtimeTests = async (teamId, services, hooks) => {
   // Run basic sync tests
   const syncResults = await tester.testTaskSync(
     teamId, 
-    services.taskService, 
-    services.messageService
+    services.taskService
   );
   
   // Start monitoring

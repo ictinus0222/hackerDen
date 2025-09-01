@@ -1,6 +1,6 @@
 import { databases, DATABASE_ID, COLLECTIONS, Query, ID } from '../lib/appwrite';
 import client from '../lib/appwrite';
-import { messageService } from './messageService';
+
 
 export const taskService = {
   // Create a new task
@@ -38,14 +38,7 @@ export const taskService = {
         }
       );
 
-      // Send system message about task creation
-      try {
-        const systemMessage = `📝 ${creatorName || 'Someone'} created a new task: "${task.title}"`;
-        await messageService.sendSystemMessage(teamId, hackathonId, systemMessage, 'task_created', taskData.createdBy);
-      } catch (messageError) {
-        console.warn('Failed to send task creation system message:', messageError);
-        // Don't fail the task creation if system message fails
-      }
+
 
 
       return task;
@@ -189,27 +182,7 @@ export const taskService = {
         }
       );
 
-      // Send system message about status change
-      try {
-        let systemMessage;
-        const statusLabels = {
-          'todo': 'To-Do',
-          'in_progress': 'In Progress',
-          'blocked': 'Blocked',
-          'done': 'Done'
-        };
 
-        if (status === 'done') {
-          systemMessage = `✅ Task completed: "${taskTitle || task.title}"`;
-        } else {
-          systemMessage = `🔄 Task "${taskTitle || task.title}" moved to ${statusLabels[status] || status}`;
-        }
-
-        await messageService.sendSystemMessage(teamId, hackathonId, systemMessage, 'task_status_changed', userId);
-      } catch (messageError) {
-        console.warn('Failed to send task status change system message:', messageError);
-        // Don't fail the task update if system message fails
-      }
 
       return task;
     } catch (error) {

@@ -6,6 +6,11 @@ import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import { useAuth } from '../hooks/useAuth';
 import { teamService } from '../services/teamService';
 import { useEffect } from 'react';
+import { Card, CardContent, CardHeader } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Separator } from '../components/ui/separator';
+import { Plus, Users, CheckSquare, AlertCircle } from 'lucide-react';
 
 const TasksPage = () => {
   const { hackathonId } = useParams();
@@ -46,64 +51,76 @@ const TasksPage = () => {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
+      <div className="space-y-6 p-6">
+        <Card className="bg-card text-card-foreground rounded-xl border shadow-sm">
+          <CardContent className="p-16 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-dark-tertiary">Loading team information...</p>
-          </div>
-        </div>
+            <p className="text-muted-foreground">Loading team information...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (!hasTeam) {
     return (
-      <div className="p-6">
-        <div className="flex flex-col items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <svg className="w-16 h-16 text-dark-tertiary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <h3 className="text-lg font-semibold text-dark-primary mb-2">No Team Found</h3>
-            <p className="text-dark-tertiary mb-4">You need to join or create a team to manage tasks.</p>
-            <div className="space-x-3">
-              <a href="/create-team" className="btn-primary">
-                Create Team
-              </a>
-              <a href="/join-team" className="btn-secondary">
-                Join Team
-              </a>
+      <div className="space-y-6 p-6">
+        <Card className="bg-card text-card-foreground rounded-xl border shadow-sm">
+          <CardContent className="p-16 text-center">
+            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Team Found</h3>
+            <p className="text-muted-foreground mb-6">You need to join or create a team to manage tasks.</p>
+            <div className="flex items-center justify-center space-x-3">
+              <Button asChild>
+                <a href="/create-team">
+                  Create Team
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/join-team">
+                  Join Team
+                </a>
+              </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="space-y-6 p-6">
       <ErrorBoundary>
-        <div className="h-full flex flex-col">
-          {/* Page Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-dark-primary">Task Management</h1>
-              <p className="text-dark-tertiary">
-                Manage your team's tasks and track progress
-              </p>
-            </div>
-            
-            <button
-              onClick={() => setIsTaskModalOpen(true)}
-              className="btn-primary flex items-center space-x-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Add Task</span>
-            </button>
-          </div>
+        <div className="h-full flex flex-col space-y-6">
+          {/* Page Header Card */}
+          <Card className="bg-card/95 backdrop-blur-sm border-border/30 shadow-lg">
+            <CardHeader className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg">
+                      <CheckSquare className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold text-foreground">Task Management</h1>
+                      <p className="text-muted-foreground">
+                        Manage your team's tasks and track progress
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={() => setIsTaskModalOpen(true)}
+                  className="flex items-center space-x-2"
+                  size="lg"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Add Task</span>
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
 
           {/* Full-Screen Kanban Board */}
           <div className="flex-1 min-h-0">

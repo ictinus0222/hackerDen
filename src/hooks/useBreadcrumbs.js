@@ -1,11 +1,9 @@
 import { useMemo } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { useTeam } from './useTeam';
 
 export const useBreadcrumbs = (hackathon = null) => {
   const location = useLocation();
   const params = useParams();
-  const { team } = useTeam();
 
   const breadcrumbs = useMemo(() => {
     const path = location.pathname;
@@ -43,7 +41,6 @@ export const useBreadcrumbs = (hackathon = null) => {
         if (subRoute !== 'dashboard') {
           const routeLabels = {
             'tasks': 'Tasks',
-            'chat': 'Chat',
             'whiteboard': 'Whiteboard',
             'vault': 'Vault'
           };
@@ -86,7 +83,6 @@ export const useBreadcrumbs = (hackathon = null) => {
         'console': 'Console',
         'dashboard': 'Dashboard',
         'tasks': 'Tasks',
-        'chat': 'Chat',
         'card-test': 'Card Test'
       };
 
@@ -104,7 +100,7 @@ export const useBreadcrumbs = (hackathon = null) => {
     }
 
     return crumbs;
-  }, [location.pathname, params.hackathonId, hackathon?.name]);
+  }, [location.pathname, params.hackathonId, hackathon]);
 
   return breadcrumbs;
 };

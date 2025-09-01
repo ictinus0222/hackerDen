@@ -121,8 +121,6 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 })}
               </nav>
 
-
-
               {/* User Profile Section */}
               <div className="p-4 flex-shrink-0">
                 <div className="p-3 rounded-xl bg-muted/20 border border-border/20">
@@ -145,16 +143,16 @@ const Sidebar = ({ isOpen, onToggle }) => {
                   />
                 </div>
                 
-                                                   <Button
-                    variant="outline"
-                    onClick={handleLogout}
-                    className="w-full flex items-center space-x-3 px-3 py-3 text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/10 border-destructive/30 hover:border-destructive/50 rounded-xl transition-colors duration-200"
-                  >
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                   </svg>
-                   <span>Sign Out</span>
-                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="w-full flex items-center space-x-3 px-3 py-3 text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/10 border-destructive/30 hover:border-destructive/50 rounded-xl transition-colors duration-200"
+                >
+                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                 </svg>
+                 <span>Sign Out</span>
+               </Button>
                 </div>
                </div>
             </CardContent>

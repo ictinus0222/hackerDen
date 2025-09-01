@@ -343,7 +343,7 @@ const CreateHackathonPage = () => {
                         <li>• Your team will be created with a unique join code</li>
                         <li>• You'll be taken to the hackathon dashboard</li>
                         <li>• You can invite team members using the join code</li>
-                        <li>• Start collaborating on tasks and chat</li>
+                        <li>• Start collaborating on tasks</li>
                       </ul>
                     </div>
                   </div>

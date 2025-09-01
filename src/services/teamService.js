@@ -157,6 +157,23 @@ export const teamService = {
       };
     } catch (error) {
       console.error('Error getting user team for hackathon:', error);
+      
+      // Handle specific error types
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('CORS')) {
+        console.error('❌ CORS or Network Error - Check your Appwrite configuration and network connection');
+        throw new Error('Network connection failed. Please check your internet connection and try again.');
+      }
+      
+      if (error.code === 401) {
+        console.error('❌ Unauthorized - Check your Appwrite API keys and permissions');
+        throw new Error('Authentication failed. Please log in again.');
+      }
+      
+      if (error.code === 404) {
+        console.error('❌ Resource not found - Check your database and collection IDs');
+        throw new Error('Team not found. Please check your configuration.');
+      }
+      
       return null;
     }
   },
