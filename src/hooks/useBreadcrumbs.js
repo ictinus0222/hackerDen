@@ -12,9 +12,9 @@ export const useBreadcrumbs = (hackathon = null) => {
     const segments = path.split('/').filter(Boolean);
     const crumbs = [];
 
-    // Always start with Home
+    // Always start with Console
     crumbs.push({
-      label: 'Home',
+      label: 'Console',
       href: '/console',
       isActive: false
     });
@@ -79,6 +79,7 @@ export const useBreadcrumbs = (hackathon = null) => {
         isActive: true
       });
     }
+
     // Handle other routes
     else {
       const routeLabels = {

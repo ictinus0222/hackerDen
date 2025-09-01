@@ -121,7 +121,7 @@ const ProjectOverviewDemo = () => {
             </button>
           ))}
         </div>
-      </div>
+      </EnhancedCard>
 
       {/* Project Overview Component */}
       <ProjectOverview 
