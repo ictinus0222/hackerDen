@@ -41,6 +41,7 @@ export const useBreadcrumbs = (hackathon = null) => {
         if (subRoute !== 'dashboard') {
           const routeLabels = {
             'tasks': 'Tasks',
+            'documents': 'Documents',
             'whiteboard': 'Whiteboard',
             'vault': 'Vault'
           };

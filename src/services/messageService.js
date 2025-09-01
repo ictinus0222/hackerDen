@@ -36,10 +36,11 @@ export const messageService = {
       const messageData = {
         teamId,
         hackathonId,
+        userId: 'system', // Use 'system' as a special user ID for system messages
+        userName: 'System', // Use 'System' as the display name
         content: content.trim(),
         type,
-        systemData: systemData ? JSON.stringify(systemData) : null,
-        $createdAt: new Date().toISOString()
+        systemData: systemData ? JSON.stringify(systemData) : null
       };
 
       const response = await databases.createDocument(

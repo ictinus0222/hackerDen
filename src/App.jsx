@@ -11,6 +11,7 @@ import CreateHackathonPage from './pages/CreateHackathonPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import CardTest from './components/CardTest';
 import InputComponentsDemo from './components/InputComponentsDemo';
+import MarkdownEditorDemo from './components/MarkdownEditorDemo';
 
 import { Toaster } from './components/ui/sonner';
 
@@ -78,6 +79,16 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <InputComponentsDemo />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Markdown Editor Demo - temporary for development */}
+                <Route 
+                  path="/markdown-demo" 
+                  element={
+                    <ProtectedRoute>
+                      <MarkdownEditorDemo />
                     </ProtectedRoute>
                   } 
                 />

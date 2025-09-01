@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Client, Databases, Permission, Role, ID } from 'appwrite';
+import { Client, Databases, Permission, Role, ID } from 'node-appwrite';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -57,7 +57,7 @@ async function createDocumentsCollection() {
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENTS, 'hackathonId', 255, true);
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENTS, 'title', 500, true);
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENTS, 'content', 1000000, false, ''); // 1MB max
-    await databases.createIntegerAttribute(DATABASE_ID, COLLECTIONS.DOCUMENTS, 'contentVersion', true, 1, null, 1);
+    await databases.createIntegerAttribute(DATABASE_ID, COLLECTIONS.DOCUMENTS, 'contentVersion', true);
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENTS, 'createdBy', 255, true);
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENTS, 'createdByName', 255, true);
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENTS, 'lastModifiedBy', 255, true);
@@ -110,7 +110,7 @@ async function createDocumentVersionsCollection() {
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENT_VERSIONS, 'createdBy', 255, true);
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENT_VERSIONS, 'createdByName', 255, true);
     await databases.createStringAttribute(DATABASE_ID, COLLECTIONS.DOCUMENT_VERSIONS, 'changesSummary', 1000, false, '');
-    await databases.createBooleanAttribute(DATABASE_ID, COLLECTIONS.DOCUMENT_VERSIONS, 'isSnapshot', true, false);
+    await databases.createBooleanAttribute(DATABASE_ID, COLLECTIONS.DOCUMENT_VERSIONS, 'isSnapshot', false, false);
 
     // Create indexes
     await databases.createIndex(DATABASE_ID, COLLECTIONS.DOCUMENT_VERSIONS, 'documentId_version', 'key', ['documentId', 'versionNumber']);

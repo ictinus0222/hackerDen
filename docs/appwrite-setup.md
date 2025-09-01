@@ -104,6 +104,97 @@ Create the following collections in your Appwrite database:
 - Update: None (messages are immutable)
 - Delete: Users (with conditions for team members)
 
+### 5. Documents Collection (ID: `documents`)
+
+**Attributes:**
+- `teamId` (string, required) - Reference to teams collection
+- `hackathonId` (string, required) - Reference to hackathon for isolation
+- `title` (string, required, size: 200) - Document title
+- `content` (string, optional, size: 100000) - Document content (markdown)
+- `contentVersion` (integer, required, default: 1) - Version number for content
+- `createdBy` (string, required) - User ID of document creator
+- `createdByName` (string, required) - Display name of creator
+- `lastModifiedBy` (string, required) - User ID of last modifier
+- `lastModifiedByName` (string, required) - Display name of last modifier
+- `tags` (string, array, optional) - Document tags for categorization
+- `permissions` (string, required) - JSON string containing permission settings
+- `collaborators` (string, array, required) - Array of user IDs who have collaborated
+- `isArchived` (boolean, required, default: false) - Archive status
+
+**Indexes:**
+- `teamId_hackathonId` (compound index on teamId and hackathonId fields)
+- `createdBy` (index on createdBy field)
+- `isArchived` (index on isArchived field)
+- `tags` (index on tags field for tag-based filtering)
+
+**Permissions:**
+- Create: Users
+- Read: Users
+- Update: Users (with conditions for team members)
+- Delete: Users (with conditions for document creator)
+
+### 6. Document Versions Collection (ID: `document_versions`)
+
+**Attributes:**
+- `documentId` (string, required) - Reference to documents collection
+- `version` (integer, required) - Version number
+- `content` (string, required) - Document content at this version
+- `createdBy` (string, required) - User ID who created this version
+- `createdByName` (string, required) - Display name of version creator
+- `changeDescription` (string, optional) - Description of changes made
+
+**Indexes:**
+- `documentId` (index on documentId field)
+- `documentId_version` (compound index on documentId and version fields)
+
+**Permissions:**
+- Create: Users
+- Read: Users
+- Update: None (versions are immutable)
+- Delete: None (versions are permanent)
+
+### 7. Document Operations Collection (ID: `document_operations`)
+
+**Attributes:**
+- `documentId` (string, required) - Reference to documents collection
+- `userId` (string, required) - User ID performing the operation
+- `userName` (string, required) - Display name of user
+- `operation` (string, required) - Operation type: "insert", "delete", "retain"
+- `position` (integer, required) - Position in document
+- `content` (string, optional) - Content for insert operations
+- `length` (integer, optional) - Length for delete operations
+
+**Indexes:**
+- `documentId` (index on documentId field)
+- `documentId_createdAt` (compound index on documentId and $createdAt fields)
+
+**Permissions:**
+- Create: Users
+- Read: Users
+- Update: None (operations are immutable)
+- Delete: Users (with conditions for cleanup)
+
+### 8. User Presence Collection (ID: `user_presence`)
+
+**Attributes:**
+- `documentId` (string, required) - Reference to documents collection
+- `userId` (string, required) - User ID
+- `userName` (string, required) - Display name of user
+- `cursorPosition` (integer, optional) - Current cursor position
+- `selection` (string, optional) - JSON string of current selection
+- `isActive` (boolean, required, default: true) - Whether user is actively editing
+
+**Indexes:**
+- `documentId` (index on documentId field)
+- `userId` (index on userId field)
+- `documentId_userId` (unique compound index on documentId and userId)
+
+**Permissions:**
+- Create: Users
+- Read: Users
+- Update: Users
+- Delete: Users
+
 ## Authentication Setup
 
 Enable Email/Password authentication in your Appwrite project settings.
