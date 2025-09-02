@@ -1,4 +1,5 @@
 import { account, ID } from '../lib/appwrite';
+import { clearAppStorage, hasActiveSession } from '../utils/sessionUtils';
 
 export const authService = {
   // Register a new user
@@ -16,16 +17,15 @@ export const authService = {
   // Login user
   async login(email, password) {
     try {
-      // First, try to clear any existing session
-      try {
-        await account.deleteSession('current');
-      } catch {
-        // Ignore errors if no session exists
+      // Only try to delete existing session if we detect one in localStorage
+      if (hasActiveSession()) {
+        try {
+          await account.deleteSession('current');
+        } catch (deleteError) {
+          // Session might be expired or invalid, continue with login
+          console.log('Previous session cleanup failed, continuing with new login');
+        }
       }
-      
-      // Clear local storage to ensure clean state
-      localStorage.clear();
-      sessionStorage.clear();
       
       // Create new session
       const session = await account.createEmailPasswordSession(email, password);
@@ -38,20 +38,15 @@ export const authService = {
   // Logout user
   async logout() {
     try {
-      // Delete all sessions to ensure complete logout
-      await this.deleteAllSessions();
+      // Delete current session
+      await account.deleteSession('current');
       
-      // Clear any local storage or session storage
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clear any app-specific local storage (but not Appwrite session data)
+      clearAppStorage();
       
-      // Force reload to clear any cached state
-      window.location.reload();
+      return true;
     } catch (error) {
-      // Even if logout fails, clear local data and reload
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.reload();
+      console.warn('Logout error:', error);
       throw new Error(error.message || 'Logout failed');
     }
   },

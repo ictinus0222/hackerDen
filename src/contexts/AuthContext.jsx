@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from 'react';
 import { authService } from '../services/authService';
+import { clearAppStorage, handleAuthError } from '../utils/sessionUtils';
 
 const AuthContext = createContext();
 
@@ -15,10 +16,15 @@ const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       setLoading(true);
+      setError(null);
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
-    } catch {
+    } catch (authError) {
+      const errorInfo = handleAuthError(authError);
       setUser(null);
+      if (errorInfo.shouldRedirect) {
+        setError(errorInfo.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -62,7 +68,10 @@ const AuthProvider = ({ children }) => {
       await authService.logout();
       setUser(null);
     } catch (logoutError) {
+      console.warn('Logout error:', logoutError);
       setError(logoutError.message);
+      // Even if logout fails, clear the user state
+      setUser(null);
       throw logoutError;
     }
   };
