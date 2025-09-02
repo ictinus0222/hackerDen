@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { realtimeService } from '../services/realtimeService';
 import { teamService } from '../services/teamService';
 import { taskService } from '../services/taskService';
-import { messageService } from '../services/messageService';
+
 import UpdateNotification from '../components/UpdateNotification';
 
 const HackathonNotificationContext = createContext();
@@ -99,13 +99,7 @@ export const HackathonNotificationProvider = ({ children }) => {
     );
   }, [showNotification, notifyTaskStarted]);
 
-  const notifyMessageSent = useCallback((senderName) => {
-    showNotification(
-      'message_sent',
-      `💬 New team message`,
-      'Check the chat for details'
-    );
-  }, [showNotification]);
+
 
   const notifyMemberJoined = useCallback((memberName) => {
     showNotification(
@@ -138,7 +132,6 @@ export const HackathonNotificationProvider = ({ children }) => {
     if (!hackathonId || !user?.$id) return;
 
     let taskUnsubscribe = null;
-    let messageUnsubscribe = null;
 
     const setupSubscriptions = async () => {
       console.log('🔔 Setting up notification subscriptions for hackathon:', hackathonId, 'user:', user?.$id);
@@ -176,35 +169,15 @@ export const HackathonNotificationProvider = ({ children }) => {
         }
       );
 
-      // Subscribe to message updates using the same method as messageService
-      messageUnsubscribe = messageService.subscribeToMessages(
-        userTeam.$id,
-        hackathonId,
-        (response) => {
-          const { events, payload } = response;
-          console.log('🔔 Message notification received:', { events, payload, teamId: userTeam.$id, hackathonId });
-          
-          // Check for create events (more flexible pattern matching)
-          const isCreateEvent = events.some(event => event.includes('.create'));
-          
-          if (isCreateEvent) {
-            // New message created
-            if (payload.type === 'user') {
-              console.log('🔔 Showing message notification');
-              notifyMessageSent('Team Member');
-            }
-          }
-        }
-      );
+
     };
 
     setupSubscriptions();
 
     return () => {
       if (taskUnsubscribe) taskUnsubscribe();
-      if (messageUnsubscribe) messageUnsubscribe();
     };
-  }, [hackathonId, user?.$id, fetchTeam, notifyTaskCreated, notifyTaskUpdated, notifyMessageSent]);
+      }, [hackathonId, user?.$id, fetchTeam, notifyTaskCreated, notifyTaskUpdated]);
 
   const contextValue = {
     notification,
@@ -213,7 +186,6 @@ export const HackathonNotificationProvider = ({ children }) => {
     notifyTaskCreated,
     notifyTaskStarted,
     notifyTaskUpdated,
-    notifyMessageSent,
     notifyMemberJoined,
     team,
     hackathonId

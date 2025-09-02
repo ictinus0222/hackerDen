@@ -8,8 +8,9 @@ import Layout from '../components/Layout.jsx';
 import TeamSelector from '../components/TeamSelector.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import ConnectionStatus from '../components/ConnectionStatus.jsx';
-import RealtimeDebugPanel from '../components/RealtimeDebugPanel.jsx';
+
+
+import { InteractiveCard, EnhancedCard } from '../components/ui/card.jsx';
 
 
 const Dashboard = () => {
@@ -17,7 +18,7 @@ const Dashboard = () => {
   const { team, loading: teamLoading, hasTeam } = useTeam();
   const { tasks, tasksByStatus, loading: tasksLoading } = useTasks();
   const { members: teamMembers, loading: membersLoading } = useTeamMembers();
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
+
 
   // Get user's tasks
   const myTasks = (tasks || []).filter(task => task.assigned_to === user?.name || task.assignedTo === user?.$id);
@@ -90,7 +91,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <ConnectionStatus />
+      
       <ErrorBoundary>
         {teamLoading ? (
           <LoadingSpinner message="Loading your team..." />
@@ -99,10 +100,10 @@ const Dashboard = () => {
           <div className="h-full flex flex-col space-y-6">
             {/* Page Title */}
             <div className="text-center flex-shrink-0">
-              <h1 className="text-2xl lg:text-3xl font-bold text-dark-primary mb-1">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-1">
                 {team.name}'s HQ
               </h1>
-              <p className="text-sm text-dark-tertiary">
+              <p className="text-sm text-muted-foreground">
                 Your team's central command center
               </p>
             </div>
@@ -110,61 +111,38 @@ const Dashboard = () => {
             {/* Large Navigation Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 max-w-4xl mx-auto flex-shrink-0">
               {/* Manage Tasks Card */}
-              <Link
-                to="/tasks"
-                className="card-enhanced rounded-2xl p-6 lg:p-8 hover:scale-105 transition-all duration-300 group cursor-pointer"
-              >
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
+              <Link to="/tasks">
+                <InteractiveCard className="rounded-2xl p-6 lg:p-8 hover:scale-105 group">
+                  <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-foreground mb-2 group-hover:text-blue-400 transition-colors">
+                      Manage Tasks
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Organize your team's work with our Kanban board
+                    </p>
+                    <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                      <span>{(tasks || []).length} total tasks</span>
+                      <span>•</span>
+                      <span>{tasksByStatus?.done?.length || 0} completed</span>
+                    </div>
                   </div>
-                  <h2 className="text-xl font-bold text-dark-primary mb-2 group-hover:text-blue-400 transition-colors">
-                    Manage Tasks
-                  </h2>
-                  <p className="text-dark-tertiary">
-                    Organize your team's work with our Kanban board
-                  </p>
-                  <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-dark-secondary">
-                    <span>{(tasks || []).length} total tasks</span>
-                    <span>•</span>
-                    <span>{tasksByStatus?.done?.length || 0} completed</span>
-                  </div>
-                </div>
+                </InteractiveCard>
               </Link>
 
-              {/* Open Team Chat Card */}
-              <Link
-                to="/chat"
-                className="card-enhanced rounded-2xl p-6 lg:p-8 hover:scale-105 transition-all duration-300 group cursor-pointer"
-              >
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-dark-primary mb-2 group-hover:text-green-400 transition-colors">
-                    Open Team Chat
-                  </h2>
-                  <p className="text-dark-tertiary">
-                    Communicate with your team in real-time
-                  </p>
-                  <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-dark-secondary">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span>Connected</span>
-                  </div>
-                </div>
-              </Link>
+
             </div>
 
             {/* Summary Widgets */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 flex-1 min-h-0">
               {/* My Tasks Widget */}
-              <div className="card-enhanced rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
+              <EnhancedCard className="rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-dark-primary">My Tasks</h3>
+                  <h3 className="text-lg font-semibold text-foreground">My Tasks</h3>
                   <Link to="/tasks" className="text-sm text-blue-400 hover:text-blue-300 flex items-center space-x-1">
                     <span>View all</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +156,7 @@ const Dashboard = () => {
                       const getStatusInfo = (status) => {
                         switch (status) {
                           case 'done':
-                            return { color: 'bg-green-400', label: 'Completed', textColor: 'text-green-400' };
+                            return { color: 'bg-chart-2', label: 'Completed', textColor: 'text-chart-2' };
                           case 'in_progress':
                             return { color: 'bg-blue-400', label: 'In Progress', textColor: 'text-blue-400' };
                           case 'blocked':
@@ -198,7 +176,7 @@ const Dashboard = () => {
                         >
                           <div className={`w-3 h-3 rounded-full ${statusInfo.color} flex-shrink-0`}></div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-dark-primary truncate group-hover:text-blue-400 transition-colors">
+                            <p className="text-sm font-medium text-foreground truncate group-hover:text-blue-400 transition-colors">
                               {task.title}
                             </p>
                             <div className="flex items-center space-x-2 mt-1">
@@ -207,11 +185,11 @@ const Dashboard = () => {
                               </span>
                               {task.priority && (
                                 <>
-                                  <span className="text-xs text-dark-tertiary">•</span>
+                                  <span className="text-xs text-muted-foreground">•</span>
                                   <span className={`text-xs ${
                                     task.priority === 'high' ? 'text-red-400' :
                                     task.priority === 'medium' ? 'text-yellow-400' :
-                                    'text-green-400'
+                                    'text-chart-2'
                                   }`}>
                                     {task.priority} priority
                                   </span>
@@ -219,7 +197,7 @@ const Dashboard = () => {
                               )}
                             </div>
                           </div>
-                          <svg className="w-4 h-4 text-dark-tertiary group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-muted-foreground group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </Link>
@@ -227,25 +205,25 @@ const Dashboard = () => {
                     })
                   ) : (
                     <div className="text-center py-6">
-                      <svg className="w-10 h-10 text-dark-tertiary mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-10 h-10 text-muted-foreground mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
-                      <p className="text-sm text-dark-tertiary mb-2">No tasks assigned</p>
+                      <p className="text-sm text-muted-foreground mb-2">No tasks assigned</p>
                       <Link to="/tasks" className="text-xs text-blue-400 hover:text-blue-300">
                         Create your first task →
                       </Link>
                     </div>
                   )}
                 </div>
-              </div>
+              </EnhancedCard>
 
               {/* Team Activity Widget */}
-              <div className="card-enhanced rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
+              <EnhancedCard className="rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-dark-primary">Team Activity</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Team Activity</h3>
                   <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-dark-tertiary">Live</span>
+                    <div className="w-2 h-2 bg-chart-2 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-muted-foreground">Live</span>
                   </div>
                 </div>
                 <div className="space-y-2 flex-1 overflow-hidden">
@@ -254,7 +232,7 @@ const Dashboard = () => {
                       // Get status color
                       const getStatusColor = (status) => {
                         switch (status) {
-                          case 'done': return 'from-green-500 to-emerald-600';
+                          case 'done': return 'from-primary to-chart-2';
                           case 'in_progress': return 'from-blue-500 to-blue-600';
                           case 'blocked': return 'from-red-500 to-red-600';
                           default: return 'from-gray-500 to-gray-600';
@@ -305,7 +283,7 @@ const Dashboard = () => {
                                   <span className={`text-xs px-1.5 py-0.5 rounded ${
                                     activity.priority === 'high' ? 'bg-red-500/20 text-red-400' :
                                     activity.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                    'bg-green-500/20 text-green-400'
+                                    'bg-primary/20 text-chart-2'
                                   }`}>
                                     {activity.priority}
                                   </span>
@@ -326,10 +304,10 @@ const Dashboard = () => {
                     </div>
                   )}
                 </div>
-              </div>
+              </EnhancedCard>
 
               {/* Team Members Widget */}
-              <div className="card-enhanced rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
+              <EnhancedCard className="rounded-xl p-4 lg:p-6 flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-dark-primary">Team Members</h3>
                   {membersLoading ? (
@@ -353,14 +331,14 @@ const Dashboard = () => {
                           <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${
                             member.isCurrentUser 
                               ? 'from-blue-500 to-blue-600' 
-                              : 'from-green-500 to-emerald-600'
+                              : 'from-primary to-chart-2'
                           } flex items-center justify-center`}>
                             <span className="text-sm font-bold text-white">
                               {member.avatar}
                             </span>
                           </div>
                           <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-dark-elevated ${
-                            member.online ? 'bg-green-400' : 'bg-gray-400'
+                            member.online ? 'bg-chart-2' : 'bg-gray-400'
                           }`}></div>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -392,21 +370,10 @@ const Dashboard = () => {
                     </div>
                   )}
                 </div>
-              </div>
+              </EnhancedCard>
             </div>
 
-            {/* Development Debug Panel Button */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="text-center flex-shrink-0">
-                <button
-                  onClick={() => setShowDebugPanel(true)}
-                  className="btn-secondary text-xs px-3 py-2"
-                  title="Open Real-time Debug Panel"
-                >
-                  🔧 Debug
-                </button>
-              </div>
-            )}
+
           </div>
         ) : (
           // User doesn't have a team - show team selection options
@@ -414,13 +381,7 @@ const Dashboard = () => {
         )}
       </ErrorBoundary>
       
-      {/* Debug Panel (Development Only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <RealtimeDebugPanel 
-          isOpen={showDebugPanel} 
-          onClose={() => setShowDebugPanel(false)} 
-        />
-      )}
+
       
     </Layout>
   );

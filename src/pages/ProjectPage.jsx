@@ -6,6 +6,7 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import { useTeam } from '../hooks/useTeam.jsx';
 import { useTasks } from '../hooks/useTasks.jsx';
+import { StatsCard, EnhancedCard } from '../components/ui/card.jsx';
 
 const ProjectPage = () => {
   const { projectId } = useParams();
@@ -192,7 +193,7 @@ const ProjectPage = () => {
 
           {/* Project Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="card-enhanced rounded-xl p-4">
+            <StatsCard className="rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-dark-tertiary">Total Tasks</p>
@@ -206,25 +207,25 @@ const ProjectPage = () => {
                   </svg>
                 </div>
               </div>
-            </div>
+            </StatsCard>
 
-            <div className="card-enhanced rounded-xl p-4">
+            <StatsCard className="rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-dark-tertiary">Completed</p>
-                  <p className="text-2xl font-bold text-green-400">
+                  <p className="text-2xl font-bold text-chart-2">
                     {projectData?.stats?.completedTasks || 0}
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-chart-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                 </div>
               </div>
-            </div>
+            </StatsCard>
 
-            <div className="card-enhanced rounded-xl p-4">
+            <StatsCard className="rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-dark-tertiary">Active</p>
@@ -238,9 +239,9 @@ const ProjectPage = () => {
                   </svg>
                 </div>
               </div>
-            </div>
+            </StatsCard>
 
-            <div className="card-enhanced rounded-xl p-4">
+            <StatsCard className="rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-dark-tertiary">Blocked</p>
@@ -254,7 +255,7 @@ const ProjectPage = () => {
                   </svg>
                 </div>
               </div>
-            </div>
+            </StatsCard>
           </div>
 
           {/* Main Project Overview */}
@@ -265,7 +266,7 @@ const ProjectPage = () => {
           />
 
           {/* Quick Actions */}
-          <div className="card-enhanced rounded-xl p-6">
+          <EnhancedCard className="rounded-xl p-6">
             <h3 className="text-lg font-semibold text-dark-primary mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <button className="flex items-center space-x-3 p-4 bg-dark-tertiary rounded-xl hover:bg-dark-elevated transition-colors text-left">
@@ -281,8 +282,8 @@ const ProjectPage = () => {
               </button>
 
               <button className="flex items-center space-x-3 p-4 bg-dark-tertiary rounded-xl hover:bg-dark-elevated transition-colors text-left">
-                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-chart-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -305,7 +306,7 @@ const ProjectPage = () => {
                 </div>
               </button>
             </div>
-          </div>
+          </EnhancedCard>
         </div>
       </ErrorBoundary>
     </Layout>

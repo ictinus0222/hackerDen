@@ -1,5 +1,8 @@
 import { useState, memo, useCallback } from 'react';
 import TaskCard from './TaskCard';
+import { Card, CardHeader, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
+import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 
 const TaskColumn = memo(({ title, status, tasks, className = '', onTaskDrop, draggingTask, onDragStart, touchHandlers, onTaskDelete, onTaskEdit, wipLimit }) => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -80,37 +83,50 @@ const TaskColumn = memo(({ title, status, tasks, className = '', onTaskDrop, dra
   }, [title, status, onTaskDrop]);
 
   return (
-    <div className={`kanban-column flex flex-col h-full ${className} animate-fade-in`} role="region" aria-label={`${title} tasks`}>
-      {/* Modern Column Header */}
-      <header className={`kanban-column-header px-4 py-3`}>
+    <Card className={`kanban-column flex flex-col h-full ${className} animate-fade-in`} role="region" aria-label={`${title} tasks`}>
+      {/* Modern Column Header with Shadcn Card */}
+      <CardHeader className="kanban-column-header px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className={`w-2 h-2 rounded-full ${getStatusDot(status)}`}></div>
-            <h3 className="font-medium text-gray-200 text-sm truncate" id={`column-${status}`}>
+            <h3 className="font-medium text-foreground text-sm truncate" id={`column-${status}`}>
               {title}
             </h3>
           </div>
           <div className="flex items-center space-x-2">
-            <span 
-              className={`text-xs font-medium px-2 py-1 rounded-md flex-shrink-0 min-w-[24px] text-center ${
+            <Badge 
+              variant={wipLimit && tasks.length >= wipLimit ? "destructive" : "secondary"}
+              className={`text-xs font-medium flex-shrink-0 min-w-[24px] text-center ${
                 wipLimit && tasks.length >= wipLimit 
-                  ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
-                  : 'bg-gray-700/50 text-gray-300'
+                  ? 'animate-pulse' 
+                  : ''
               }`}
               aria-label={`${tasks.length} tasks in ${title}${wipLimit ? ` (limit: ${wipLimit})` : ''}`}
             >
               {wipLimit ? `${tasks.length}/${wipLimit}` : tasks.length}
-            </span>
+            </Badge>
           </div>
         </div>
-      </header>
+        
+        {/* WIP Limit Warning Alert */}
+        {wipLimit && tasks.length >= wipLimit && (
+          <Alert variant="warning" className="mt-2">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.854-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <AlertTitle>WIP Limit Reached</AlertTitle>
+            <AlertDescription>
+              This column has reached its work-in-progress limit of {wipLimit} tasks.
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardHeader>
 
       {/* Column Content */}
-      <div 
-        className={`flex-1 p-3 backdrop-blur-sm rounded-b-xl min-h-0 transition-all duration-300 ${
+      <CardContent 
+        className={`flex-1 p-3 min-h-0 transition-all duration-300 ${
           isDragOver ? 'bg-blue-500/10 border-blue-500/50 border-2 border-dashed shadow-xl' : ''
         }`}
-        style={{ background: 'transparent' }}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -165,8 +181,8 @@ const TaskColumn = memo(({ title, status, tasks, className = '', onTaskDrop, dra
             ))
           )}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 });
 

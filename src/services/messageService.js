@@ -1,125 +1,185 @@
-import { databases, DATABASE_ID, COLLECTIONS, Query, ID } from '../lib/appwrite';
-import client from '../lib/appwrite';
+import client, { databases, DATABASE_ID, COLLECTIONS } from '../lib/appwrite';
+import { ID, Query } from 'appwrite';
+
+const MESSAGES_COLLECTION_ID = COLLECTIONS.MESSAGES;
 
 export const messageService = {
   // Send a user message
   async sendMessage(teamId, hackathonId, userId, content) {
-    // Validate input parameters
-    if (!teamId) {
-      throw new Error('Team ID is required to send a message');
-    }
-    if (!userId) {
-      throw new Error('User ID is required to send a message');
-    }
-    if (!content || !content.trim()) {
-      throw new Error('Message content cannot be empty');
-    }
-
     try {
       const messageData = {
         teamId,
         hackathonId,
         userId,
         content: content.trim(),
-        type: 'user'
+        type: 'user',
+        $createdAt: new Date().toISOString()
       };
 
-      const message = await databases.createDocument(
+      const response = await databases.createDocument(
         DATABASE_ID,
-        COLLECTIONS.MESSAGES,
+        MESSAGES_COLLECTION_ID,
         ID.unique(),
         messageData
       );
 
-      return message;
+      return response;
     } catch (error) {
       console.error('Error sending message:', error);
-      
-      // Handle specific error cases
-      if (error.code === 401) {
-        throw new Error('Unauthorized: Please check your permissions to send messages');
-      } else if (error.message.includes('Collection with the requested ID could not be found')) {
-        throw new Error('Messages collection not found. Please create the "messages" collection in your Appwrite database.');
-      } else if (error.message.includes('Attribute not found in schema')) {
-        throw new Error('Messages collection schema is incomplete. Please add the required attributes to the messages collection.');
-      } else {
-        throw new Error(error.message || 'Failed to send message');
-      }
+      throw new Error('Failed to send message. Please try again.');
     }
   },
 
-  // Send a system message (for task updates)
-  async sendSystemMessage(teamId, hackathonId, content, type = 'system', userId = 'system') {
+  // Send a system message (for task/vault updates)
+  async sendSystemMessage(teamId, hackathonId, content, type = 'system', systemData = null) {
     try {
       const messageData = {
         teamId,
         hackathonId,
-        userId: userId, // Use provided userId or 'system' as default
+        userId: 'system', // Use 'system' as a special user ID for system messages
+        userName: 'System', // Use 'System' as the display name
         content: content.trim(),
-        type
+        type,
+        systemData: systemData ? JSON.stringify(systemData) : null
       };
 
-      const message = await databases.createDocument(
+      const response = await databases.createDocument(
         DATABASE_ID,
-        COLLECTIONS.MESSAGES,
+        MESSAGES_COLLECTION_ID,
         ID.unique(),
         messageData
       );
 
-      return message;
+      return response;
     } catch (error) {
-      throw new Error(error.message || 'Failed to send system message');
+      console.error('Error sending system message:', error);
+      throw new Error('Failed to send system message.');
     }
   },
 
-  // Get all messages for a team in a specific hackathon
-  async getTeamMessages(teamId, hackathonId) {
+  // Enhanced message loading with better pagination and caching
+  async getMessages(teamId, hackathonId, limit = 50, offset = 0) {
     try {
+      // Optimize limit for better performance - don't load too many at once
+      const optimizedLimit = Math.min(limit, 100);
+      
       const response = await databases.listDocuments(
         DATABASE_ID,
-        COLLECTIONS.MESSAGES,
+        MESSAGES_COLLECTION_ID,
         [
           Query.equal('teamId', teamId),
           Query.equal('hackathonId', hackathonId),
-          Query.orderAsc('$createdAt'),
-          Query.limit(100) // Limit to last 100 messages for performance
+          Query.orderDesc('$createdAt'),
+          Query.limit(optimizedLimit),
+          Query.offset(offset)
         ]
       );
 
-      return response.documents;
+      // Parse systemData for system messages with error handling
+      const messages = response.documents.map(message => {
+        try {
+          return {
+            ...message,
+            systemData: message.systemData ? JSON.parse(message.systemData) : null
+          };
+        } catch (parseError) {
+          console.warn('Failed to parse systemData for message:', message.$id, parseError);
+          return {
+            ...message,
+            systemData: null
+          };
+        }
+      });
+
+      return {
+        messages: messages.reverse(), // Reverse to show oldest first
+        total: response.total,
+        hasMore: offset + messages.length < response.total
+      };
     } catch (error) {
-      console.error('Error fetching team messages:', error);
+      console.error('Error fetching messages:', error);
       
-      // Handle specific error cases
-      if (error.message.includes('Collection with the requested ID could not be found')) {
-        throw new Error('Messages collection not found. Please create the "messages" collection in your Appwrite database.');
-      } else if (error.message.includes('Attribute not found in schema')) {
-        throw new Error('Messages collection schema is incomplete. Please add the required attributes (teamId, userId, content, type) to the messages collection.');
-      } else if (error.code === 401) {
-        throw new Error('Unauthorized access to messages. Please check collection permissions.');
+      // Provide more specific error messages
+      if (error.code === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      } else if (error.code === 403) {
+        throw new Error('Access denied. You may not have permission to view these messages.');
+      } else if (error.code === 404) {
+        throw new Error('Messages not found. The team may no longer exist.');
       } else {
-        throw new Error(`Failed to fetch messages: ${error.message}`);
+        throw new Error('Failed to load messages. Please check your connection and try again.');
       }
     }
   },
 
-  // Subscribe to real-time message updates
+  // Subscribe to real-time message updates with enhanced filtering
   subscribeToMessages(teamId, hackathonId, callback) {
     try {
       const unsubscribe = client.subscribe(
-        `databases.${DATABASE_ID}.collections.${COLLECTIONS.MESSAGES}.documents`,
+        `databases.${DATABASE_ID}.collections.${MESSAGES_COLLECTION_ID}.documents`,
         (response) => {
+          const { events, payload } = response;
+          
           // Only process messages for this team and hackathon
-          if (response.payload.teamId === teamId && response.payload.hackathonId === hackathonId) {
-            callback(response);
+          if (payload.teamId === teamId && payload.hackathonId === hackathonId) {
+            // Parse systemData if it exists
+            const message = {
+              ...payload,
+              systemData: payload.systemData ? JSON.parse(payload.systemData) : null
+            };
+
+            callback({
+              events,
+              payload: message
+            });
           }
         }
       );
 
       return unsubscribe;
     } catch (error) {
-      console.error('Failed to subscribe to messages:', error);
-      return () => {}; // Return empty function if subscription fails
+      console.error('Error subscribing to messages:', error);
+      throw new Error('Failed to connect to real-time messages.');
     }
+  },
+
+  // Typing indicator functionality (placeholder for future implementation)
+  sendTypingIndicator(teamId, userId, userName) {
+    // This would typically send a real-time event or use a separate collection
+    // For now, we'll use a simple in-memory approach or WebSocket events
+    try {
+      // In a real implementation, this might use Appwrite's real-time channels
+      // or a separate typing indicators collection with TTL
+      console.log(`${userName} is typing in team ${teamId}`);
+      
+      // Could implement using Appwrite's real-time channels:
+      // client.subscribe(`team.${teamId}.typing`, callback);
+    } catch (error) {
+      console.warn('Failed to send typing indicator:', error);
+    }
+  },
+
+  stopTypingIndicator(teamId, userId) {
+    try {
+      console.log(`User ${userId} stopped typing in team ${teamId}`);
+      // Implementation would stop the typing indicator
+    } catch (error) {
+      console.warn('Failed to stop typing indicator:', error);
+    }
+  },
+
+  // Message type filtering helper
+  isValidMessageType(type) {
+    const validTypes = [
+      'user', 
+      'system', 
+      'task_created', 
+      'task_status_changed', 
+      'task_completed',
+      'vault_secret_added', 
+      'vault_secret_updated', 
+      'vault_secret_deleted'
+    ];
+    return validTypes.includes(type);
   }
 };

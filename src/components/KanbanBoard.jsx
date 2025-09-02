@@ -9,6 +9,11 @@ import LoadingSpinner from './LoadingSpinner';
 import { KanbanColumnSkeleton } from './SkeletonLoader';
 import AppwriteSetupGuide from './AppwriteSetupGuide';
 import { createTestTasks } from '../utils/testData';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { Badge } from './ui/badge';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from './ui/resizable';
+import FilterBar from './FilterBar';
 
 const KanbanBoard = () => {
   const { tasksByStatus, loading, error, refetch, team, hackathonId } = useHackathonTasks();
@@ -20,7 +25,10 @@ const KanbanBoard = () => {
   const [filters, setFilters] = useState({
     priority: 'all',
     label: 'all',
-    search: ''
+    search: '',
+    assignee: 'all',
+    dateRange: 'all',
+    status: 'all'
   });
   
   const touchDragDrop = useTouchDragDrop();
@@ -179,7 +187,7 @@ const KanbanBoard = () => {
     };
   }, []);
 
-  // Memoized filter function for better performance
+  // Enhanced filter function for better performance and new filter options
   const filterTasks = useCallback((tasks) => {
     return tasks.filter(task => {
       const priorityMatch = filters.priority === 'all' || task.priority === filters.priority;
@@ -187,9 +195,37 @@ const KanbanBoard = () => {
       const searchMatch = !filters.search || 
         task.title.toLowerCase().includes(filters.search.toLowerCase()) ||
         task.description.toLowerCase().includes(filters.search.toLowerCase());
-      return priorityMatch && labelMatch && searchMatch;
+      
+      // New filter logic
+      const assigneeMatch = filters.assignee === 'all' || 
+        (filters.assignee === 'me' && task.assignedTo === user?.$id) ||
+        (filters.assignee === 'unassigned' && !task.assignedTo);
+      
+      const statusMatch = filters.status === 'all' || task.status === filters.status;
+      
+      // Date range filter
+      let dateMatch = true;
+      if (filters.dateRange !== 'all') {
+        const taskDate = new Date(task.$createdAt);
+        const now = new Date();
+        switch (filters.dateRange) {
+          case 'today':
+            dateMatch = taskDate.toDateString() === now.toDateString();
+            break;
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            dateMatch = taskDate >= weekAgo;
+            break;
+          case 'month':
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            dateMatch = taskDate >= monthAgo;
+            break;
+        }
+      }
+      
+      return priorityMatch && labelMatch && searchMatch && assigneeMatch && statusMatch && dateMatch;
     });
-  }, [filters]);
+  }, [filters, user?.$id]);
 
   // Memoized labels calculation
   const allLabels = useMemo(() => {
@@ -218,15 +254,15 @@ const KanbanBoard = () => {
 
   if (loading) {
     return (
-      <div className="card p-6 h-full flex flex-col fade-in">
+      <Card className="p-6 h-full flex flex-col bg-card text-card-foreground rounded-xl border shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-200 animate-pulse"></div>
-            <div className="h-8 w-48 bg-gray-200 animate-pulse rounded-lg"></div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-muted animate-pulse"></div>
+            <div className="h-8 w-48 bg-muted animate-pulse rounded-xl"></div>
           </div>
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-lg"></div>
-            <div className="h-10 w-24 bg-gray-200 animate-pulse rounded-lg"></div>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-32 bg-muted animate-pulse rounded-xl"></div>
+            <div className="h-10 w-24 bg-muted animate-pulse rounded-xl"></div>
           </div>
         </div>
         
@@ -236,124 +272,106 @@ const KanbanBoard = () => {
           <KanbanColumnSkeleton />
           <KanbanColumnSkeleton />
         </div>
-      </div>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="card p-6 h-full">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Kanban Board</h2>
+      <Card className="p-6 h-full bg-card text-card-foreground rounded-xl border shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Kanban Board</h2>
         <div className="h-96 overflow-y-auto">
           <AppwriteSetupGuide error={error} />
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
     <section 
-      className="backdrop-blur-sm rounded-xl shadow-2xl p-6 h-full flex flex-col fade-in"
-      style={{ background: 'transparent' }}
+      className="bg-card text-card-foreground rounded-xl border shadow-sm p-6 h-full flex flex-col"
       aria-label="Kanban task board"
     >
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center ring-2 ring-green-500/20">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+            <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v10z" />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold text-slate-100">Kanban Board</h2>
+          <h2 className="text-lg font-semibold text-foreground">Kanban Board</h2>
         </div>
         
         <div className="flex items-center space-x-3" role="toolbar" aria-label="Board actions">
           {/* Professional Stats */}
           <div className="hidden sm:flex items-center space-x-6 text-sm">
             <div className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-slate-300 font-mono text-xs">
-                {tasksByStatus.in_progress?.length || 0} <span className="text-slate-400">active</span>
-              </span>
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+              <Badge variant="outline" className="font-mono text-xs">
+                {tasksByStatus.in_progress?.length || 0} <span className="text-muted-foreground">active</span>
+              </Badge>
             </div>
             <div className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-              <span className="text-slate-300 font-mono text-xs">
-                {tasksByStatus.done?.length || 0} <span className="text-slate-400">done</span>
-              </span>
+              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+              <Badge variant="outline" className="font-mono text-xs">
+                {tasksByStatus.done?.length || 0} <span className="text-muted-foreground">done</span>
+              </Badge>
             </div>
             <div className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-              <span className="text-slate-300 font-mono text-xs">
-                {(tasksByStatus.todo?.length || 0) + (tasksByStatus.blocked?.length || 0)} <span className="text-slate-400">pending</span>
-              </span>
+              <div className="w-2 h-2 rounded-full bg-slate-500"></div>
+              <Badge variant="outline" className="font-mono text-xs">
+                {(tasksByStatus.todo?.length || 0) + (tasksByStatus.blocked?.length || 0)} <span className="text-muted-foreground">pending</span>
+              </Badge>
             </div>
           </div>
-
-          {/* Search and Filters */}
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              placeholder="Search tasks..."
-              value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500 w-32 placeholder-slate-400"
-            />
-            
-            <select
-              value={filters.priority}
-              onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="all">All Priorities</option>
-              <option value="high">🔴 High</option>
-              <option value="medium">🟡 Medium</option>
-              <option value="low">🟢 Low</option>
-            </select>
-            
-            <select
-              value={filters.label}
-              onChange={(e) => setFilters(prev => ({ ...prev, label: e.target.value }))}
-              className="px-3 py-1.5 text-xs bg-slate-800/60 text-slate-300 rounded-md border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="all">All Labels</option>
-              {allLabels.map(label => (
-                <option key={label} value={label}>{label}</option>
-              ))}
-            </select>
-          </div>
-          
-
-
-
-
         </div>
       </header>
       
-      {/* Kanban Columns */}
+      {/* Advanced Filter Bar */}
+      <FilterBar 
+        filters={filters}
+        onFiltersChange={setFilters}
+        allLabels={allLabels}
+        taskStats={{
+          todo: filterTasks(tasksByStatus.todo).length,
+          in_progress: filterTasks(tasksByStatus.in_progress).length,
+          blocked: filterTasks(tasksByStatus.blocked).length,
+          done: filterTasks(tasksByStatus.done).length
+        }}
+      />
+      
+      {/* Resizable Kanban Columns */}
       <div 
-        className="flex-1 grid grid-cols-4 gap-6 min-h-0 overflow-y-auto hide-scrollbar"
+        className="flex-1 min-h-0 overflow-hidden"
         role="application"
         aria-label="Task columns"
         aria-live="polite"
         aria-atomic="false"
       >
-        {columns.map((column) => (
-          <TaskColumn
-            key={column.status}
-            title={column.title}
-            status={column.status}
-            tasks={column.tasks}
-            className="min-h-0"
-            onTaskDrop={handleTaskDrop}
-            draggingTask={draggingTask || touchDragDrop.draggedItem}
-            onDragStart={handleDragStart}
-            touchHandlers={touchDragDrop}
-            onTaskDelete={handleTaskDelete}
-            onTaskEdit={handleTaskEdit}
-            wipLimit={WIP_LIMITS[column.status]}
-          />
-        ))}
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          {columns.map((column, index) => (
+            <div key={column.status} className="contents">
+              <ResizablePanel defaultSize={25} minSize={20}>
+                <TaskColumn
+                  title={column.title}
+                  status={column.status}
+                  tasks={column.tasks}
+                  className="h-full"
+                  onTaskDrop={handleTaskDrop}
+                  draggingTask={draggingTask || touchDragDrop.draggedItem}
+                  onDragStart={handleDragStart}
+                  touchHandlers={touchDragDrop}
+                  onTaskDelete={handleTaskDelete}
+                  onTaskEdit={handleTaskEdit}
+                  wipLimit={WIP_LIMITS[column.status]}
+                />
+              </ResizablePanel>
+              {index < columns.length - 1 && (
+                <ResizableHandle withHandle />
+              )}
+            </div>
+          ))}
+        </ResizablePanelGroup>
       </div>
 
 
@@ -368,16 +386,16 @@ const KanbanBoard = () => {
       />
 
       {/* Floating Action Button */}
-      <button
+      <Button
         onClick={() => setIsTaskModalOpen(true)}
-        className="fab flex items-center justify-center"
+        className="fab flex items-center justify-center fixed bottom-6 right-6 h-14 w-14 rounded-xl bg-primary hover:bg-primary/90 shadow-xs"
         aria-label="Quick create task"
         title="Create new task"
       >
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
-      </button>
+      </Button>
     </section>
   );
 };

@@ -1,6 +1,10 @@
 import Layout from '../components/Layout.jsx';
 import ProjectOverviewDemo from '../components/ProjectOverviewDemo.jsx';
+import { ThemeTest } from '../components/ui/theme-test.jsx';
+import { ShadcnTest } from '../components/ShadcnTest.jsx';
+import { SidebarDemo } from '../components/SidebarDemo.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import { EnhancedCard } from '../components/ui/card';
 
 const DemoPage = () => {
   return (
@@ -18,11 +22,26 @@ const DemoPage = () => {
             </p>
           </div>
 
+          {/* New Shadcn UI Sidebar Demo */}
+          <div className="mb-8">
+            <SidebarDemo />
+          </div>
+
+          {/* Shadcn UI Integration Test */}
+          <div className="mb-8">
+            <ShadcnTest />
+          </div>
+
+          {/* Advanced Theme Integration Test */}
+          <div className="mb-8">
+            <ThemeTest />
+          </div>
+
           {/* Demo Component */}
           <ProjectOverviewDemo />
 
           {/* Implementation Notes */}
-          <div className="card-enhanced rounded-xl p-6">
+          <EnhancedCard className="p-6">
             <h3 className="text-lg font-semibold text-dark-primary mb-4">
               Implementation Details
             </h3>
@@ -57,7 +76,7 @@ const DemoPage = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </EnhancedCard>
         </div>
       </ErrorBoundary>
     </Layout>

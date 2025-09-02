@@ -1,20 +1,28 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
+import { cn } from '../lib/utils.ts';
 
-const MessageInput = ({ onSendMessage, disabled = false, sending = false }) => {
+const MessageInput = ({ onSendMessage, onTyping, onStopTyping, disabled = false, sending = false, className }) => {
   const [message, setMessage] = useState('');
+  const textareaRef = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validate message content
     const trimmedMessage = message.trim();
-    if (!trimmedMessage || disabled || sending) {
-      return;
+    
+    if (trimmedMessage && !sending && !disabled) {
+      // Stop typing indicator before sending
+      onStopTyping?.();
+      
+      onSendMessage(trimmedMessage);
+      setMessage('');
+      
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     }
-
-    // Send message and clear input
-    onSendMessage(trimmedMessage);
-    setMessage('');
   };
 
   const handleKeyDown = (e) => {
@@ -24,47 +32,98 @@ const MessageInput = ({ onSendMessage, disabled = false, sending = false }) => {
     }
   };
 
-  // Check if send button should be disabled
-  const isSendDisabled = !message.trim() || disabled || sending;
+  const handleTextareaChange = (e) => {
+    const newValue = e.target.value;
+    setMessage(newValue);
+    
+    // Send typing indicator when user starts typing
+    if (newValue.trim() && !sending && !disabled) {
+      onTyping?.();
+    } else if (!newValue.trim()) {
+      onStopTyping?.();
+    }
+    
+    // Auto-resize textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-2">
-      <div className="flex-1">
-        <label htmlFor="message-input" className="sr-only">
-          Type your message
-        </label>
-        <input
-          id="message-input"
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          disabled={disabled || sending}
-          className="w-full px-4 py-3 sm:py-2 text-base sm:text-sm rounded-xl bg-background-sidebar text-white placeholder-dark-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ring-1 ring-white/10 hover:ring-green-500/30 focus:ring-green-500 transition-all duration-200"
-          style={{ fontSize: '16px' }} // Prevents zoom on iOS
-          aria-describedby={sending ? "sending-status" : undefined}
-          maxLength={1000}
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={isSendDisabled}
-        className="px-5 py-3 sm:py-2 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-background-card disabled:opacity-50 disabled:cursor-not-allowed min-w-[60px] min-h-[48px] touch-manipulation font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200"
-        aria-label={sending ? "Sending message..." : "Send message"}
+    <div className={cn("border-t border-border bg-background p-3 sm:p-4", className)}>
+      <form 
+        onSubmit={handleSubmit} 
+        className="flex flex-col sm:flex-row gap-2 sm:gap-2"
+        role="form"
+        aria-label="Send message form"
       >
-        {sending ? (
-          <>
-            <div className="flex items-center justify-center" aria-hidden="true">
-              <div className="spinner w-4 h-4 text-white"></div>
-            </div>
-            <span id="sending-status" className="sr-only">Sending message...</span>
-          </>
-        ) : (
-          <span className="text-sm sm:text-base">Send</span>
-        )}
-      </button>
-    </form>
+        <div className="flex-1">
+          <Textarea
+            id="message-input"
+            ref={textareaRef}
+            value={message}
+            onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
+            placeholder={disabled ? "Chat is disabled" : "Type your message..."}
+            disabled={disabled || sending}
+            className="min-h-[44px] max-h-[120px] resize-none touch-target keyboard-focus"
+            rows={1}
+            aria-label="Message input"
+            aria-describedby="message-help"
+            aria-invalid={false}
+          />
+        </div>
+        <Button
+          type="submit"
+          disabled={!message.trim() || sending || disabled}
+          className="sm:self-end h-[44px] px-4 sm:px-6 touch-target focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 chat-transition"
+          aria-label={sending ? "Sending message" : "Send message"}
+        >
+          {sending ? (
+            <>
+              <div 
+                className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"
+                aria-hidden="true"
+              />
+              <span className="hidden sm:inline">Sending...</span>
+              <span className="sm:hidden">...</span>
+            </>
+          ) : (
+            <>
+              <svg 
+                className="w-4 h-4 mr-1 sm:mr-2" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+              <span className="hidden sm:inline">Send</span>
+              <span className="sm:hidden sr-only">Send message</span>
+            </>
+          )}
+        </Button>
+      </form>
+      
+      {/* Helper text */}
+      <p 
+        id="message-help"
+        className="text-xs text-muted-foreground mt-2 px-1 hidden sm:block"
+        aria-live="polite"
+      >
+        Press Enter to send, Shift+Enter for new line
+      </p>
+      
+      {/* Mobile helper text */}
+      <p 
+        className="text-xs text-muted-foreground mt-2 px-1 sm:hidden"
+        aria-live="polite"
+      >
+        Tap Send to send message
+      </p>
+    </div>
   );
 };
 
