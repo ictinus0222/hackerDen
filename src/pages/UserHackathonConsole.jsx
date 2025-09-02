@@ -144,6 +144,8 @@ const UserHackathonConsole = () => {
           </CardHeader>
         </Card>
 
+
+
         {/* Error Display */}
         {error && (
           <Card className="border-destructive/50 bg-destructive/10" role="alert">

@@ -109,18 +109,22 @@ export const handleAuthError = (error) => {
 
 /**
  * Check if user has an active session without making API calls
+ * Note: For OAuth sessions, this might return false even if the session is valid
+ * because OAuth sessions might not be stored in localStorage the same way
  */
 export const hasActiveSession = () => {
   try {
     // Check if there are any Appwrite session keys in localStorage
     const keys = Object.keys(localStorage);
-    const sessionKeys = keys.filter(key => 
-      key.startsWith('appwrite-') && 
-      (key.includes('session') || key.includes('cookieFallback') || key.includes('user'))
-    );
+    const appwriteKeys = keys.filter(key => key.startsWith('appwrite-'));
     
-    // Check if we have valid session data
-    const hasValidSession = sessionKeys.length > 0 && sessionKeys.some(key => {
+    // If no Appwrite keys exist, definitely no session
+    if (appwriteKeys.length === 0) {
+      return false;
+    }
+    
+    // Check if we have valid session data in any Appwrite key
+    const hasValidSession = appwriteKeys.some(key => {
       const value = localStorage.getItem(key);
       if (!value || value === 'null' || value === 'undefined' || value === '') {
         return false;

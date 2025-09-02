@@ -12,6 +12,13 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Clean up any invalid sessions first
     cleanupInvalidSessions();
+    
+    // Log session info for debugging
+    console.log('AuthContext: Checking authentication on mount...');
+    console.log('AuthContext: localStorage keys:', Object.keys(localStorage));
+    console.log('AuthContext: Appwrite keys:', Object.keys(localStorage).filter(key => key.startsWith('appwrite-')));
+    console.log('AuthContext: hasActiveSession():', hasActiveSession());
+    
     checkAuth();
   }, []);
 
@@ -20,18 +27,21 @@ const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      // Quick check - if no session data exists, don't make API call
-      if (!hasActiveSession()) {
-        setUser(null);
+      // Always try to get the current user from Appwrite first
+      // The authService now handles this properly for both OAuth and regular sessions
+      const currentUser = await authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
         setLoading(false);
         return;
       }
       
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-    } catch (authError) {
-      const errorInfo = handleAuthError(authError);
+      // No valid session found
       setUser(null);
+    } catch (authError) {
+      console.log('Authentication check failed:', authError);
+      setUser(null);
+      const errorInfo = handleAuthError(authError);
       if (errorInfo.shouldRedirect) {
         setError(errorInfo.message);
       }

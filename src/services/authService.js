@@ -1,40 +1,7 @@
-import { account, ID } from '../lib/appwrite';
+import { account } from '../lib/appwrite';
 import { clearAppStorage, hasActiveSession } from '../utils/sessionUtils';
 
 export const authService = {
-  // Register a new user
-  async register(email, password, name) {
-    try {
-      const user = await account.create(ID.unique(), email, password, name);
-      // Automatically log in after registration
-      await this.login(email, password);
-      return user;
-    } catch (error) {
-      throw new Error(error.message || 'Registration failed');
-    }
-  },
-
-  // Login user
-  async login(email, password) {
-    try {
-      // Only try to delete existing session if we detect one in localStorage
-      if (hasActiveSession()) {
-        try {
-          await account.deleteSession('current');
-        } catch (deleteError) {
-          // Session might be expired or invalid, continue with login
-          console.log('Previous session cleanup failed, continuing with new login');
-        }
-      }
-      
-      // Create new session
-      const session = await account.createEmailPasswordSession(email, password);
-      return session;
-    } catch (error) {
-      throw new Error(error.message || 'Login failed');
-    }
-  },
-
   // Logout user
   async logout() {
     try {
@@ -54,13 +21,12 @@ export const authService = {
   // Get current user
   async getCurrentUser() {
     try {
-      // Only make API call if we have indication of an active session
-      if (!hasActiveSession()) {
-        return null;
-      }
-      return await account.get();
+      // Always try to get the user from Appwrite first
+      // OAuth sessions might not be stored in localStorage the same way as email/password sessions
+      const user = await account.get();
+      return user;
     } catch (error) {
-      // Clear invalid session data on 401 errors
+      // Only clear storage on 401 errors, not on other errors
       if (error?.code === 401 || error?.message?.includes('Unauthorized')) {
         clearAppStorage();
       }
@@ -71,14 +37,11 @@ export const authService = {
   // Check if user is logged in
   async isLoggedIn() {
     try {
-      // Quick check using localStorage first
-      if (!hasActiveSession()) {
-        return false;
-      }
+      // Always try to get the user from Appwrite first
       await account.get();
       return true;
     } catch (error) {
-      // Clear invalid session data on 401 errors
+      // Only clear storage on 401 errors, not on other errors
       if (error?.code === 401 || error?.message?.includes('Unauthorized')) {
         clearAppStorage();
       }
@@ -98,15 +61,6 @@ export const authService = {
   // Google OAuth login
   async loginWithGoogle() {
     try {
-      // Clean up any existing session first
-      if (hasActiveSession()) {
-        try {
-          await account.deleteSession('current');
-        } catch (deleteError) {
-          console.log('Previous session cleanup failed, continuing with Google login');
-        }
-      }
-      
       // Create OAuth2 session with Google
       // This will redirect to Google's OAuth page
       await account.createOAuth2Session(
@@ -143,6 +97,11 @@ export const authService = {
       
       const user = await account.get();
       console.log('authService: Successfully got user from account.get():', user);
+      
+      // Log session info after successful authentication
+      console.log('authService: Session established successfully');
+      console.log('authService: Final localStorage keys:', Object.keys(localStorage));
+      console.log('authService: Final Appwrite keys:', Object.keys(localStorage).filter(key => key.startsWith('appwrite-')));
       
       return user;
     } catch (error) {
