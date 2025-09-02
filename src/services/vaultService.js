@@ -118,155 +118,13 @@ export const vaultService = {
         hasValue: !!secret.encryptedValue
       }));
     } catch (error) {
-      if (error.code === 404) {
-        // Collections don't exist yet - return empty array
-        console.warn('Vault collections not found. Please run the setup script or create collections manually.');
-        return [];
-      }
-      if (error.code === 401) {
-        // Collections exist but permissions are not set correctly
-        console.warn('Vault collections found but access denied. Please check collection permissions in Appwrite console.');
-        return [];
-      }
       throw new Error('Failed to load team secrets');
     }
   },
 
-  // Request access to a secret
-  async requestSecretAccess(secretId, requestedBy, requestedByName, justification) {
-    try {
-      const request = await databases.createDocument(
-        DATABASE_ID,
-        COLLECTIONS.VAULT_ACCESS_REQUESTS,
-        ID.unique(),
-        {
-          secretId,
-          requestedBy,
-          requestedByName,
-          justification: justification.trim(),
-          status: 'pending',
-          requestedAt: new Date().toISOString()
-          // Note: accessExpiresAt is set when request is approved, not when created
-        }
-      );
-
-      return request;
-    } catch (error) {
-      console.error('Access request error:', error);
-      throw new Error('Failed to request secret access');
-    }
-  },
-
-  // Get pending access requests for team leaders
-  async getPendingAccessRequests(teamId, hackathonId) {
-    try {
-      // First get all secrets for the team
-      const secrets = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTIONS.VAULT_SECRETS,
-        [
-          Query.equal('teamId', teamId),
-          Query.equal('hackathonId', hackathonId)
-        ]
-      );
-
-      if (secrets.documents.length === 0) {
-        return [];
-      }
-
-      const secretIds = secrets.documents.map(s => s.$id);
-      
-      // Get pending requests for these secrets
-      const requests = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTIONS.VAULT_ACCESS_REQUESTS,
-        [
-          Query.equal('status', 'pending'),
-          Query.orderDesc('requestedAt')
-        ]
-      );
-
-      // Filter requests for team's secrets and add secret info
-      const teamRequests = requests.documents
-        .filter(request => secretIds.includes(request.secretId))
-        .map(request => {
-          const secret = secrets.documents.find(s => s.$id === request.secretId);
-          return {
-            ...request,
-            secretName: secret?.name || 'Unknown Secret'
-          };
-        });
-
-      return teamRequests;
-    } catch (error) {
-      if (error.code === 404) {
-        // Collections don't exist yet - return empty array
-        console.warn('Vault collections not found. Please run the setup script or create collections manually.');
-        return [];
-      }
-      if (error.code === 401) {
-        // Collections exist but permissions are not set correctly
-        console.warn('Vault collections found but access denied. Please check collection permissions in Appwrite console.');
-        return [];
-      }
-      throw new Error('Failed to load access requests');
-    }
-  },
-
-  // Approve or deny access request
-  async handleAccessRequest(requestId, action, handledBy, handledByName, temporaryAccess = true) {
-    try {
-      const validActions = ['approved', 'denied'];
-      if (!validActions.includes(action)) {
-        throw new Error('Invalid action. Must be approved or denied.');
-      }
-
-      const expiresAt = temporaryAccess && action === 'approved' 
-        ? new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() // 2 hours
-        : null;
-
-      const updatedRequest = await databases.updateDocument(
-        DATABASE_ID,
-        COLLECTIONS.VAULT_ACCESS_REQUESTS,
-        requestId,
-        {
-          status: action,
-          handledBy,
-          handledByName,
-          handledAt: new Date().toISOString(),
-          accessExpiresAt: expiresAt
-        }
-      );
-
-      return updatedRequest;
-    } catch (error) {
-      throw new Error('Failed to handle access request');
-    }
-  },
-
-  // Get secret value (only if user has access)
+  // Get secret value (available to all team members)
   async getSecretValue(secretId, userId) {
     try {
-      // Check if user has approved access
-      const accessRequests = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTIONS.VAULT_ACCESS_REQUESTS,
-        [
-          Query.equal('secretId', secretId),
-          Query.equal('requestedBy', userId),
-          Query.equal('status', 'approved')
-        ]
-      );
-
-      const validAccess = accessRequests.documents.find(request => {
-        if (!request.accessExpiresAt) return true; // Permanent access
-        return new Date(request.accessExpiresAt) > new Date(); // Not expired
-      });
-
-      if (!validAccess) {
-        throw new Error('Access denied. Please request access to this secret.');
-      }
-
       // Get the secret
       const secret = await databases.getDocument(
         DATABASE_ID,
@@ -301,8 +159,8 @@ export const vaultService = {
     }
   },
 
-  // Update a secret (only by team leaders)
-  async updateSecret(secretId, updates, updatedBy) {
+  // Update a secret (available to all team members)
+  async updateSecret(secretId, updates, updatedBy, updatedByName) {
     try {
       const allowedUpdates = ['name', 'description', 'value'];
       const filteredUpdates = {};
@@ -338,15 +196,6 @@ export const vaultService = {
       );
 
       // Send system message for vault secret update
-      // Get the original secret to get the team ID and user name
-      const originalSecret = await databases.getDocument(
-        DATABASE_ID,
-        COLLECTIONS.VAULT_SECRETS,
-        secretId
-      );
-
-      // Get user name from the updatedBy parameter (assuming it's passed as user name)
-      const updatedByName = updatedBy; // This should be the user name, not ID
       const systemMessageContent = `🔄 ${updatedByName} updated vault secret: "${updatedSecret.name}"`;
       const systemData = {
         secretId: secretId,
@@ -356,7 +205,7 @@ export const vaultService = {
         category: 'vault'
       };
 
-      await sendVaultSystemMessage(originalSecret.teamId, originalSecret.hackathonId, 'vault_secret_updated', systemMessageContent, systemData);
+      await sendVaultSystemMessage(updatedSecret.teamId, updatedSecret.hackathonId, 'vault_secret_updated', systemMessageContent, systemData);
 
       return {
         ...updatedSecret,
@@ -367,7 +216,7 @@ export const vaultService = {
     }
   },
 
-  // Delete a secret (only by team leaders)
+  // Delete a secret (available to all team members)
   async deleteSecret(secretId, deletedBy, deletedByName) {
     try {
       // Get the secret details before deletion for system message
@@ -375,26 +224,6 @@ export const vaultService = {
         DATABASE_ID,
         COLLECTIONS.VAULT_SECRETS,
         secretId
-      );
-
-      // Delete associated access requests first
-      const accessRequests = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTIONS.VAULT_ACCESS_REQUESTS,
-        [
-          Query.equal('secretId', secretId)
-        ]
-      );
-
-      // Delete all access requests
-      await Promise.all(
-        accessRequests.documents.map(request =>
-          databases.deleteDocument(
-            DATABASE_ID,
-            COLLECTIONS.VAULT_ACCESS_REQUESTS,
-            request.$id
-          )
-        )
       );
 
       // Delete the secret
@@ -422,36 +251,8 @@ export const vaultService = {
     }
   },
 
-  // Get user's access requests
-  async getUserAccessRequests(userId) {
-    try {
-      const requests = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTIONS.VAULT_ACCESS_REQUESTS,
-        [
-          Query.equal('requestedBy', userId),
-          Query.orderDesc('requestedAt')
-        ]
-      );
-
-      return requests.documents;
-    } catch (error) {
-      if (error.code === 404) {
-        // Collections don't exist yet - return empty array
-        console.warn('Vault collections not found. Please run the setup script or create collections manually.');
-        return [];
-      }
-      if (error.code === 401) {
-        // Collections exist but permissions are not set correctly
-        console.warn('Vault collections found but access denied. Please check collection permissions in Appwrite console.');
-        return [];
-      }
-      throw new Error('Failed to load your access requests');
-    }
-  },
-
-  // Check if user can manage vault (team leader or owner)
-  async canManageVault(userId, teamId, hackathonId) {
+  // Check if user is a team member (simplified permission check)
+  async isTeamMember(userId, teamId, hackathonId) {
     try {
       const memberships = await databases.listDocuments(
         DATABASE_ID,
@@ -463,8 +264,7 @@ export const vaultService = {
         ]
       );
 
-      const membership = memberships.documents[0];
-      return membership && ['owner', 'leader'].includes(membership.role);
+      return memberships.documents.length > 0;
     } catch (error) {
       return false;
     }

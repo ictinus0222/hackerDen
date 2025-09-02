@@ -19,13 +19,21 @@ export const userNameService = {
 
     try {
       // Try to get from Appwrite Users API (this only works for the current user)
-      const userDoc = await account.get();
+      // Add timeout and better error handling
+      const userDoc = await Promise.race([
+        account.get(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 3000)
+        )
+      ]);
+      
       if (userDoc && userDoc.$id === userId && userDoc.name) {
         userNameCache.set(userId, userDoc.name);
         return userDoc.name;
       }
     } catch (error) {
-      // Users API not accessible or user not found
+      // Silently handle all errors - CORS, network issues, etc.
+      console.debug('UserNameService: Could not fetch user data, using fallback:', error.message);
     }
 
     // Generate a simple fallback name

@@ -3,9 +3,6 @@ import { Alert, AlertDescription } from './ui/alert';
 import { Button } from './ui/button';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import NotificationIndicator from './NotificationIndicator';
-import SystemMessageNotification from './SystemMessageNotification';
-import GroupedNotificationSummary from './GroupedNotificationSummary';
 import ChatKeyboardShortcuts from './ChatKeyboardShortcuts';
 import ChatErrorBoundary, { NetworkFallback } from './ChatErrorBoundary';
 import { 
@@ -19,13 +16,10 @@ import {
   AutoRetryManager 
 } from './ChatRetryMechanisms';
 import { useMessages } from '../hooks/useMessages';
-import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../hooks/useAuth';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useChatKeyboardNavigation, useChatFocusManagement } from '../hooks/useChatKeyboardNavigation';
 import { cn } from '../lib/utils';
-
-
 
 const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
   const { user } = useAuth();
@@ -58,15 +52,7 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
     testConnectionQuality
   } = useNetworkStatus();
 
-  const {
-    unreadCount,
-    notifications,
-    groupedNotifications,
-    markAsRead,
-    handleSystemMessage,
-    handleNewMessage,
-    requestNotificationPermission
-  } = useNotifications(team?.$id);
+  // COMPLETELY REMOVED: useNotifications hook and all notification logic
 
   // Focus management for accessibility
   const { 
@@ -148,11 +134,6 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
     setRetryQueue([]);
   }, []);
 
-  // Mark messages as read when chat becomes visible
-  const handleMarkAsRead = () => {
-    markAsRead();
-  };
-
   // Keyboard navigation support
   const { shortcuts } = useChatKeyboardNavigation({
     onFocusInput: focusMessageInput,
@@ -174,24 +155,11 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
         });
       }
     },
-    onMarkAsRead: handleMarkAsRead,
+    onMarkAsRead: () => {}, // No-op since we removed all notifications
     disabled: connectionStatus === 'disconnected'
   });
 
-  // Handle new messages for notifications
-  useEffect(() => {
-    if (messages.length === 0) return;
-
-    const latestMessage = messages[messages.length - 1];
-    
-    // Handle system messages
-    if (latestMessage.type !== 'user') {
-      handleSystemMessage(latestMessage);
-    } else {
-      // Handle regular user messages
-      handleNewMessage(latestMessage);
-    }
-  }, [messages, handleSystemMessage, handleNewMessage]);
+  // COMPLETELY REMOVED: All notification handling useEffect
 
   // Show comprehensive loading state during initialization
   if (loading) {
@@ -279,14 +247,6 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
                 className="hidden sm:flex"
               />
               
-              {/* Notification indicator */}
-              <NotificationIndicator
-                unreadCount={unreadCount}
-                onClick={handleMarkAsRead}
-                className="touch-target"
-                aria-label={`${unreadCount} unread messages. Click to mark as read.`}
-              />
-              
               {/* Enhanced connection status with retry */}
               <ConnectionStatusWithRetry
                 status={connectionStatus}
@@ -353,28 +313,8 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
           className="shrink-0"
         />
 
-        {/* System message notifications */}
-        <SystemMessageNotification
-          notifications={notifications.filter(n => n.type !== 'user')}
-          onDismiss={(id) => {
-            // Handle notification dismissal if needed
-          }}
-          maxVisible={3}
-          autoHideDuration={5000}
-        />
-
-        {/* Grouped notification summary */}
-        {groupedNotifications.size > 0 && (
-          <div className="fixed bottom-4 left-4 max-w-sm">
-            <GroupedNotificationSummary
-              groupedNotifications={groupedNotifications}
-              onDismissGroup={(groupKey) => {
-                // Handle group dismissal if needed
-              }}
-            />
-          </div>
-        )}
-
+        {/* COMPLETELY REMOVED: All notification components */}
+        
         {/* Retry queue manager */}
         {retryQueue.length > 0 && (
           <RetryQueueManager

@@ -22,10 +22,12 @@ The integration supports different types of system messages with distinct stylin
 - Both methods handle message service failures gracefully without affecting task operations
 
 #### MessageItem (`src/components/MessageItem.jsx`)
-- Enhanced system message styling with type-specific colors:
-  - Task creation: Blue theme (`bg-blue-50`, `text-blue-700`, `border-blue-200`)
-  - Status changes: Green theme (`bg-green-50`, `text-green-700`, `border-green-200`)
-  - Default system: Gray theme (`bg-gray-100`, `text-gray-600`, `border-gray-200`)
+- Enhanced system message styling with consistent dark theme colors:
+  - Task creation: Blue accent border (`border-l-blue-500/60`)
+  - Status changes: Yellow accent border (`border-l-yellow-500/60`)
+  - Task completion: Green accent border (`border-l-green-500/60`)
+  - Vault operations: Purple/Orange/Red accent borders
+  - All use consistent dark theme backgrounds (`bg-card/50`) and text (`text-card-foreground/80`)
 
 #### TaskModal (`src/components/TaskModal.jsx`)
 - Updated to pass the creator's name to the task service
@@ -41,7 +43,7 @@ The integration supports different types of system messages with distinct stylin
 ```
 - Type: `task_created`
 - Icon: 📝 (memo emoji)
-- Styling: Blue theme
+- Styling: Blue accent border with dark theme background
 
 #### Task Status Changes
 ```
@@ -49,7 +51,7 @@ The integration supports different types of system messages with distinct stylin
 ```
 - Type: `task_status_changed`
 - Icon: 🔄 (counterclockwise arrows)
-- Styling: Green theme
+- Styling: Yellow accent border with dark theme background
 
 #### Task Completion
 ```

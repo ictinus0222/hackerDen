@@ -24,21 +24,23 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
     }
   }, [message.userId, user, isCurrentUser, isSystemMessage]);
   
-  // System message styling based on type with enhanced themes and accessibility
+  // System message styling based on type - updated to match your dark theme
   const getSystemMessageStyle = (type) => {
+    const baseStyle = "bg-card/50 border-border/50 text-card-foreground/80";
+    
     const styles = {
-      // Task-related system messages (enhanced contrast)
-      'task_created': 'system-message-task system-message',
-      'task_status_changed': 'system-message-task system-message', 
-      'task_completed': 'system-message-task system-message',
+      // Task-related system messages
+      'task_created': `${baseStyle} border-l-4 border-l-blue-500/60`,
+      'task_status_changed': `${baseStyle} border-l-4 border-l-yellow-500/60`, 
+      'task_completed': `${baseStyle} border-l-4 border-l-green-500/60`,
       
-      // Vault-related system messages (enhanced contrast)
-      'vault_secret_added': 'system-message-vault-add system-message',
-      'vault_secret_updated': 'system-message-vault-update system-message',
-      'vault_secret_deleted': 'system-message-vault-delete system-message',
+      // Vault-related system messages
+      'vault_secret_added': `${baseStyle} border-l-4 border-l-purple-500/60`,
+      'vault_secret_updated': `${baseStyle} border-l-4 border-l-orange-500/60`,
+      'vault_secret_deleted': `${baseStyle} border-l-4 border-l-red-500/60`,
       
       // Default system message
-      'system': 'text-muted-foreground bg-muted border-border shadow-sm system-message'
+      'system': `${baseStyle} border-l-4 border-l-muted-foreground/40`
     };
     
     return styles[type] || styles.system;
@@ -47,18 +49,13 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
   // Get appropriate icon for system message type
   const getSystemMessageIcon = (type) => {
     const icons = {
-      // Task-related icons
       'task_created': '📝',
       'task_status_changed': '🔄',
       'task_completed': '✅',
-      
-      // Vault-related icons
       'vault_secret_added': '🔐',
       'vault_secret_updated': '🔄',
       'vault_secret_deleted': '🗑️',
-      
-      // Default system icon
-      'system': 'ℹ️'
+      'system': '💬'
     };
     
     return icons[type] || icons.system;
@@ -67,28 +64,16 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
   // Get accessibility label for system message type
   const getSystemMessageLabel = (type) => {
     const labels = {
-      'task_created': 'Task creation notification',
-      'task_status_changed': 'Task status update notification',
-      'task_completed': 'Task completion notification',
-      'vault_secret_added': 'Vault secret addition notification',
-      'vault_secret_updated': 'Vault secret update notification',
-      'vault_secret_deleted': 'Vault secret deletion notification',
+      'task_created': 'Task created notification',
+      'task_status_changed': 'Task status changed notification',
+      'task_completed': 'Task completed notification',
+      'vault_secret_added': 'Vault secret added notification',
+      'vault_secret_updated': 'Vault secret updated notification',
+      'vault_secret_deleted': 'Vault secret deleted notification',
       'system': 'System notification'
     };
     
     return labels[type] || labels.system;
-  };
-
-  const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
-    
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
   };
 
   if (isSystemMessage) {
@@ -98,7 +83,7 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
     return (
       <div 
         className={cn(
-          "mx-2 sm:mx-4 my-2 p-3 sm:p-4 rounded-lg border text-sm chat-transition hover:shadow-md focus-within:shadow-md",
+          "mx-2 sm:mx-4 my-2 p-3 sm:p-4 rounded-lg text-sm transition-all duration-200 hover:bg-card/70",
           getSystemMessageStyle(message.type),
           className
         )}
@@ -117,39 +102,36 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
             {messageIcon}
           </span>
           <div className="flex-1 min-w-0">
-            <p className="font-medium leading-relaxed break-words text-sm sm:text-base">
+            <p className="text-sm leading-relaxed break-words">
               {message.content}
             </p>
-            {message.systemData && (
-              <div className="mt-2 text-xs opacity-80 flex flex-wrap gap-1 sm:gap-2">
-                {message.systemData.taskTitle && (
-                  <span className="inline-block bg-white/50 px-2 py-1 rounded text-xs">
-                    Task: {message.systemData.taskTitle}
-                  </span>
-                )}
-                {message.systemData.secretName && (
-                  <span className="inline-block bg-white/50 px-2 py-1 rounded text-xs">
-                    Secret: {message.systemData.secretName}
-                  </span>
-                )}
-                {message.systemData.assignedTo && (
-                  <span className="inline-block bg-white/50 px-2 py-1 rounded text-xs">
-                    Assigned: {message.systemData.assignedTo}
-                  </span>
-                )}
-              </div>
-            )}
-            <p className="text-xs opacity-75 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-              <span>{formatTimestamp(message.$createdAt)}</span>
-              {message.systemData?.modifiedBy && (
-                <span className="text-xs">by {message.systemData.modifiedBy}</span>
-              )}
-            </p>
+            
+            {/* System message metadata */}
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
+              <span className="text-xs text-muted-foreground">
+                System
+              </span>
+              <time 
+                className="text-xs text-muted-foreground"
+                dateTime={message.$createdAt}
+              >
+                {new Date(message.$createdAt).toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </time>
+            </div>
           </div>
         </div>
       </div>
     );
   }
+
+  // Regular user message - restored to original compact bubble style
+  const messageTime = new Date(message.$createdAt).toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
 
   return (
     <div 
@@ -158,58 +140,72 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
         isCurrentUser ? "justify-end" : "justify-start",
         className
       )}
-      role="article"
-      aria-label={`Message from ${isCurrentUser ? 'you' : userName || 'team member'} at ${formatTimestamp(message.$createdAt)}`}
     >
       <div className={cn(
-        "message-max-width px-3 sm:px-4 py-2 sm:py-3 rounded-lg break-words chat-transition",
-        isCurrentUser 
-          ? "bg-primary text-primary-foreground rounded-br-sm" 
-          : "bg-muted text-foreground rounded-bl-sm"
+        "flex items-end space-x-2 max-w-xs sm:max-w-sm",
+        isCurrentUser && "flex-row-reverse space-x-reverse"
       )}>
-        {!isCurrentUser && (
-          <p className="text-xs font-medium mb-1 opacity-75" aria-label="Message sender">
-            {userName || 'Team Member'}
-          </p>
-        )}
-        <p className="text-sm leading-relaxed whitespace-pre-wrap" aria-label="Message content">
-          {message.content}
-        </p>
+        {/* User Avatar */}
         <div className={cn(
-          "text-xs mt-1 opacity-75 flex items-center gap-1 sm:gap-2",
-          isCurrentUser ? "justify-end" : "justify-start"
-        )} aria-label="Message timestamp">
-          <span>{formatTimestamp(message.$createdAt)}</span>
-          {message.isOptimistic && (
-            <span className="flex items-center gap-1" aria-label="Message sending">
-              <div 
-                className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"
-                aria-hidden="true"
-              />
-              <span className="text-xs hidden sm:inline">Sending...</span>
-              <span className="text-xs sm:hidden">...</span>
-            </span>
+          "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0",
+          isCurrentUser 
+            ? "bg-primary text-primary-foreground" 
+            : "bg-muted text-muted-foreground"
+        )}>
+          {(userName || 'U').charAt(0).toUpperCase()}
+        </div>
+        
+        {/* Message Bubble */}
+        <div className="flex flex-col">
+          {/* User Name and Time (only show for other users) */}
+          {!isCurrentUser && (
+            <div className="mb-1 px-1">
+              <span className="text-xs text-muted-foreground">
+                {userName || 'Team Member'}
+              </span>
+            </div>
           )}
-          {message.isFailed && (
-            <button
-              onClick={() => onRetry?.(message.$id)}
-              className="touch-target flex items-center gap-1 text-red-500 hover:text-red-600 focus:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:ring-offset-1 rounded transition-colors p-1 -m-1"
-              aria-label="Retry sending message"
-              title="Click to retry sending this message"
-            >
-              <svg 
-                className="w-3 h-3" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span className="text-xs underline hidden sm:inline">Retry</span>
-              <span className="sr-only sm:hidden">Retry sending message</span>
-            </button>
-          )}
+          
+          {/* Message Content */}
+          <div className={cn(
+            "px-3 py-2 rounded-lg text-sm break-words",
+            isCurrentUser 
+              ? "bg-primary text-primary-foreground rounded-br-sm" 
+              : "bg-muted text-muted-foreground rounded-bl-sm"
+          )}>
+            {message.content}
+          </div>
+          
+          {/* Time and Status */}
+          <div className={cn(
+            "mt-1 px-1 flex items-center space-x-2",
+            isCurrentUser ? "justify-end" : "justify-start"
+          )}>
+            <time className="text-xs text-muted-foreground/75">
+              {messageTime}
+            </time>
+            
+            {/* Message Status */}
+            {message.isFailed && (
+              <>
+                <span className="text-xs text-destructive">Failed</span>
+                {onRetry && (
+                  <button
+                    onClick={() => onRetry(message.$id)}
+                    className="text-xs text-primary hover:text-primary/80 underline"
+                  >
+                    Retry
+                  </button>
+                )}
+              </>
+            )}
+            
+            {message.isOptimistic && (
+              <span className="text-xs text-muted-foreground/75">
+                Sending...
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

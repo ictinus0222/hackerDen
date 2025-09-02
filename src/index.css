@@ -347,54 +347,7 @@ body {
   top: 6px;
 }
 
-/* Enhanced system message contrast */
-.system-message-task {
-  background: oklch(0.95 0.02 240);
-  border-color: oklch(0.7 0.1 240);
-  color: oklch(0.2 0.1 240);
-}
-
-.dark .system-message-task {
-  background: oklch(0.15 0.05 240);
-  border-color: oklch(0.4 0.1 240);
-  color: oklch(0.85 0.05 240);
-}
-
-.system-message-vault-add {
-  background: oklch(0.95 0.02 300);
-  border-color: oklch(0.7 0.1 300);
-  color: oklch(0.2 0.1 300);
-}
-
-.dark .system-message-vault-add {
-  background: oklch(0.15 0.05 300);
-  border-color: oklch(0.4 0.1 300);
-  color: oklch(0.85 0.05 300);
-}
-
-.system-message-vault-update {
-  background: oklch(0.95 0.02 60);
-  border-color: oklch(0.7 0.1 60);
-  color: oklch(0.2 0.1 60);
-}
-
-.dark .system-message-vault-update {
-  background: oklch(0.15 0.05 60);
-  border-color: oklch(0.4 0.1 60);
-  color: oklch(0.85 0.05 60);
-}
-
-.system-message-vault-delete {
-  background: oklch(0.95 0.02 20);
-  border-color: oklch(0.7 0.1 20);
-  color: oklch(0.2 0.1 20);
-}
-
-.dark .system-message-vault-delete {
-  background: oklch(0.15 0.05 20);
-  border-color: oklch(0.4 0.1 20);
-  color: oklch(0.85 0.05 20);
-}
+/* System message styles now use Tailwind CSS variables for consistency */
 
 /* Notification animations */
 @keyframes slide-in-right {

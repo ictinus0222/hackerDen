@@ -1,32 +1,75 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const UpdateNotification = ({ notification, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [currentNotification, setCurrentNotification] = useState(null);
+  const autoHideTimeout = useRef(null);
+  const exitTimeout = useRef(null);
 
   useEffect(() => {
-    if (notification) {
-      setIsVisible(true);
-      setIsExiting(false);
-      
-      // Auto-hide after 3 seconds
-      const timer = setTimeout(() => {
-        handleClose();
-      }, 3000);
+    if (notification && notification.id !== currentNotification?.id) {
+      // Clear any existing timeouts
+      if (autoHideTimeout.current) {
+        clearTimeout(autoHideTimeout.current);
+      }
+      if (exitTimeout.current) {
+        clearTimeout(exitTimeout.current);
+      }
 
-      return () => clearTimeout(timer);
+      // If there's already a notification showing, quickly hide it first
+      if (currentNotification && isVisible) {
+        setIsExiting(true);
+        setTimeout(() => {
+          setCurrentNotification(notification);
+          setIsVisible(true);
+          setIsExiting(false);
+          scheduleAutoHide();
+        }, 150); // Quick transition
+      } else {
+        // No current notification, show the new one immediately
+        setCurrentNotification(notification);
+        setIsVisible(true);
+        setIsExiting(false);
+        scheduleAutoHide();
+      }
     }
-  }, [notification]);
+  }, [notification, currentNotification, isVisible]);
+
+  const scheduleAutoHide = () => {
+    // Auto-hide after 4 seconds
+    autoHideTimeout.current = setTimeout(() => {
+      handleClose();
+    }, 4000);
+  };
 
   const handleClose = () => {
+    if (autoHideTimeout.current) {
+      clearTimeout(autoHideTimeout.current);
+    }
+    
     setIsExiting(true);
-    setTimeout(() => {
+    
+    exitTimeout.current = setTimeout(() => {
       setIsVisible(false);
+      setCurrentNotification(null);
       onClose();
     }, 300); // Match animation duration
   };
 
-  if (!notification || !isVisible) return null;
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (autoHideTimeout.current) {
+        clearTimeout(autoHideTimeout.current);
+      }
+      if (exitTimeout.current) {
+        clearTimeout(exitTimeout.current);
+      }
+    };
+  }, []);
+
+  if (!currentNotification || !isVisible) return null;
 
   const getNotificationIcon = (type) => {
     switch (type) {
@@ -85,9 +128,9 @@ const UpdateNotification = ({ notification, onClose }) => {
           <div className="flex items-start space-x-3">
             <div className={`
               flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm
-              ${getNotificationColor(notification.type)}
+              ${getNotificationColor(currentNotification.type)}
             `}>
-              {getNotificationIcon(notification.type)}
+              {getNotificationIcon(currentNotification.type)}
             </div>
             
             <div className="flex-1 min-w-0">
@@ -106,12 +149,12 @@ const UpdateNotification = ({ notification, onClose }) => {
               </div>
               
               <p className="text-sm text-text-secondary mt-1">
-                {notification.message}
+                {currentNotification.message}
               </p>
               
-              {notification.details && (
+              {currentNotification.details && (
                 <p className="text-xs text-text-secondary mt-1 opacity-75">
-                  {notification.details}
+                  {currentNotification.details}
                 </p>
               )}
             </div>
@@ -120,8 +163,8 @@ const UpdateNotification = ({ notification, onClose }) => {
           {/* Progress bar */}
           <div className="mt-3 w-full bg-gray-700 rounded-full h-1">
             <div 
-              className={`h-1 rounded-full ${getNotificationColor(notification.type)} animate-shrink-width`}
-              style={{ animationDuration: '3s' }}
+              className={`h-1 rounded-full ${getNotificationColor(currentNotification.type)} animate-shrink-width`}
+              style={{ animationDuration: '4s' }}
             />
           </div>
         </div>

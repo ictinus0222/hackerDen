@@ -130,32 +130,22 @@ export const taskService = {
 
 #### MessageItem Component Integration
 ```javascript
-// In MessageItem.jsx
-if (isSystemMessage) {
-  // Different styling based on system message type
-  let bgColor = 'bg-gray-100';
-  let textColor = 'text-gray-600';
+// In MessageItem.jsx - Updated with consistent dark theme
+const getSystemMessageStyle = (type) => {
+  const baseStyle = "bg-card/50 border-border/50 text-card-foreground/80";
   
-  if (message.type === 'task_created') {
-    bgColor = 'bg-blue-50';
-    textColor = 'text-blue-700';
-  } else if (message.type === 'task_status_changed') {
-    bgColor = 'bg-green-50';
-    textColor = 'text-green-700';
-  }
+  const styles = {
+    'task_created': `${baseStyle} border-l-4 border-l-blue-500/60`,
+    'task_status_changed': `${baseStyle} border-l-4 border-l-yellow-500/60`, 
+    'task_completed': `${baseStyle} border-l-4 border-l-green-500/60`,
+    'vault_secret_added': `${baseStyle} border-l-4 border-l-purple-500/60`,
+    'vault_secret_updated': `${baseStyle} border-l-4 border-l-orange-500/60`,
+    'vault_secret_deleted': `${baseStyle} border-l-4 border-l-red-500/60`,
+    'system': `${baseStyle} border-l-4 border-l-muted-foreground/40`
+  };
   
-  return (
-    <div className="flex justify-center my-3">
-      <div className={`${bgColor} ${textColor} text-sm px-4 py-2 rounded-full max-w-md text-center border border-opacity-20 ${
-        message.type === 'task_created' ? 'border-blue-200' : 
-        message.type === 'task_status_changed' ? 'border-green-200' : 
-        'border-gray-200'
-      }`}>
-        {message.content}
-      </div>
-    </div>
-  );
-}
+  return styles[type] || styles.system;
+};
 ```
 
 ### Error Handling and Resilience
