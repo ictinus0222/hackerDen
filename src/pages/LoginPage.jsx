@@ -1,36 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import Logo from '../components/Logo.jsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { AlertCircle, Construction, MessageSquare, Users } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { AlertCircle } from 'lucide-react';
 import GoogleSignInButton from '../components/GoogleSignInButton';
-import ContactForm from '../components/ContactForm';
 
 const LoginPage = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [oauthError, setOauthError] = useState(null);
-  const [showContactForm, setShowContactForm] = useState(false);
-  const [hasAttemptedOAuth, setHasAttemptedOAuth] = useState(false);
 
   const { loginWithGoogle, isAuthenticated, error } = useAuth();
   const location = useLocation();
-
-  // Check for OAuth callback errors in URL
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const errorParam = searchParams.get('error');
-    
-    if (errorParam === 'oauth_failed') {
-      setOauthError('OAuth authentication failed. This might be due to testing phase restrictions. Please contact the developer for access.');
-      setHasAttemptedOAuth(true);
-    } else if (errorParam === 'oauth_callback_failed') {
-      setOauthError('OAuth callback failed. This might be due to testing phase restrictions. Please contact the developer for access.');
-      setHasAttemptedOAuth(true);
-    }
-  }, [location]);
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -39,44 +20,18 @@ const LoginPage = () => {
   }
 
   const handleGoogleSignIn = async () => {
-    // Prevent multiple OAuth attempts if there's already an error
-    if (hasAttemptedOAuth && oauthError) {
-      return;
-    }
-
     setIsGoogleLoading(true);
-    setOauthError(null);
-    setHasAttemptedOAuth(true);
     
     try {
       await loginWithGoogle();
       // Note: This will redirect to Google, so we won't reach this point
     } catch (error) {
-      // Handle Google OAuth testing mode rejections
-      if (error.message.includes('Access denied') || 
-          error.message.includes('testing phase') ||
-          error.message.includes('not yet approved')) {
-        setOauthError(error.message);
-      } else {
-        // For other errors, let the useAuth hook handle them
-        console.error('OAuth error:', error);
-      }
+      // Let the useAuth hook handle errors
+      console.error('OAuth error:', error);
     } finally {
       setIsGoogleLoading(false);
     }
   };
-
-  const handleRetryOAuth = () => {
-    setOauthError(null);
-    setHasAttemptedOAuth(false);
-    setShowContactForm(false);
-  };
-
-  const isTestingPhaseError = oauthError && (
-    oauthError.includes('testing phase') || 
-    oauthError.includes('not yet approved') ||
-    oauthError.includes('Access denied')
-  );
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -106,36 +61,8 @@ const LoginPage = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* OAuth Error Alert - Only shown when there are OAuth issues */}
-            {oauthError && (
-              <Alert className={`${
-                isTestingPhaseError 
-                  ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30'
-                  : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30'
-              }`}>
-                {isTestingPhaseError ? (
-                  <Construction className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                )}
-                <AlertDescription className={
-                  isTestingPhaseError 
-                    ? 'text-amber-800 dark:text-amber-200'
-                    : 'text-red-800 dark:text-red-200'
-                }>
-                  {isTestingPhaseError ? (
-                    <>
-                      <span className="font-medium">Testing Phase:</span> {oauthError}
-                    </>
-                  ) : (
-                    oauthError
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
-
             {/* General Error Alert */}
-            {error && !oauthError && (
+            {error && (
               <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
@@ -147,37 +74,11 @@ const LoginPage = () => {
               <GoogleSignInButton
                 onClick={handleGoogleSignIn}
                 isLoading={isGoogleLoading}
-                disabled={isGoogleLoading || (hasAttemptedOAuth && oauthError)}
+                disabled={isGoogleLoading}
                 className="w-full"
               >
-                {hasAttemptedOAuth && oauthError ? 'OAuth Unavailable' : 'Continue with Google'}
+                Continue with Google
               </GoogleSignInButton>
-              
-              {/* Show contact developer button only when there are testing phase errors */}
-              {isTestingPhaseError && (
-                <div className="space-y-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowContactForm(true)}
-                    className="w-full"
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Contact Developer for Access
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    onClick={handleRetryOAuth}
-                    className="w-full"
-                  >
-                    Try Again
-                  </Button>
-                  
-                  <p className="text-xs text-center text-muted-foreground">
-                    Or email directly: <a href="mailto:sharmakhil1704@gmail.com" className="text-primary hover:underline">sharmakhil1704@gmail.com</a>
-                  </p>
-                </div>
-              )}
               
               <p className="text-xs text-center text-muted-foreground">
                 By continuing, you agree to our terms of service and privacy policy
@@ -192,15 +93,6 @@ const LoginPage = () => {
           </p>
         </div>
       </div>
-
-      {/* Contact Form Modal - Only shown when needed */}
-      {showContactForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-background rounded-lg shadow-2xl max-w-md w-full">
-            <ContactForm onClose={() => setShowContactForm(false)} />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

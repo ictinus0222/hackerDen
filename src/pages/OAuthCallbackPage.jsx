@@ -1,16 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Loader2, CheckCircle, AlertCircle, Construction, MessageSquare, Users } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import ContactForm from '../components/ContactForm';
 
 const OAuthCallbackPage = () => {
   const { handleOAuthCallback, isAuthenticated, user } = useAuth();
-  const [status, setStatus] = useState('processing'); // processing, success, error, testing-phase
+  const [status, setStatus] = useState('processing'); // processing, success, error
   const [error, setError] = useState(null);
-  const [showContactForm, setShowContactForm] = useState(false);
   const [hasProcessed, setHasProcessed] = useState(false);
   const navigate = useNavigate();
   const isProcessing = useRef(false);
@@ -46,23 +43,13 @@ const OAuthCallbackPage = () => {
       } catch (callbackError) {
         console.error('OAuth callback error:', callbackError);
         setError(callbackError.message);
+        setStatus('error');
         
-        // Check if this is the testing phase error (missing scopes)
-        // This happens when users reach the callback but don't have proper permissions
-        if (callbackError.message.includes('missing scopes') || 
-            callbackError.message.includes('User (role: guests)') ||
-            callbackError.message.includes('testing phase')) {
-          setStatus('testing-phase');
-          // Don't redirect for testing phase - let user stay on this page
-        } else {
-          setStatus('error');
-          
-          // Only redirect for non-testing phase errors, and add a longer delay
-          setTimeout(() => {
-            console.log('Redirecting to /login due to error...');
-            navigate('/login?error=oauth_callback_failed', { replace: true });
-          }, 5000); // Increased delay to prevent rapid redirects
-        }
+        // Redirect to login after a short delay for any errors
+        setTimeout(() => {
+          console.log('Redirecting to /login due to error...');
+          navigate('/login?error=oauth_callback_failed', { replace: true });
+        }, 3000);
       } finally {
         isProcessing.current = false;
       }
@@ -116,48 +103,6 @@ const OAuthCallbackPage = () => {
                 Redirecting you to your console...
               </p>
             </div>
-          </div>
-        );
-
-      case 'testing-phase':
-        return (
-          <div className="text-center space-y-6">
-            <div className="flex justify-center">
-              <div className="p-4 rounded-full bg-amber-100 dark:bg-amber-900/30">
-                <Construction className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-              </div>
-            </div>
-            <div className="space-y-3">
-              <h3 className="text-xl font-semibold text-amber-700 dark:text-amber-300">
-                HackerDen is in Testing Phase
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                We're currently testing our authentication system with a limited group of 100 pre-approved users. 
-                Your account has been rejected due to testing restrictions. 
-                If you'd like to try HackerDen, please contact the developer to get added to the approved users list.
-              </p>
-            </div>
-            
-            {!showContactForm ? (
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => setShowContactForm(true)}
-                  className="w-full"
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Contact Developer for Access
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/login', { replace: true })}
-                  className="w-full"
-                >
-                  Back to Login
-                </Button>
-              </div>
-            ) : (
-              <ContactForm onClose={() => setShowContactForm(false)} />
-            )}
           </div>
         );
 
