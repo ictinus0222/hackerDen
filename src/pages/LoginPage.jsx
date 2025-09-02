@@ -1,17 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import Logo from '../components/Logo.jsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Construction, MessageSquare } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import GoogleSignInButton from '../components/GoogleSignInButton';
+import ContactForm from '../components/ContactForm';
 
 const LoginPage = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [oauthError, setOauthError] = useState(null);
+  const [showContactForm, setShowContactForm] = useState(false);
 
   const { loginWithGoogle, isAuthenticated, error } = useAuth();
   const location = useLocation();
+
+  // Check for OAuth callback errors in URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const errorParam = searchParams.get('error');
+    
+    if (errorParam === 'oauth_failed') {
+      setOauthError('OAuth authentication failed. Please try again or contact the developer for access.');
+    } else if (errorParam === 'oauth_callback_failed') {
+      setOauthError('OAuth callback failed. This might be due to testing phase restrictions. Please contact the developer for access.');
+    }
+  }, [location]);
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -21,6 +37,7 @@ const LoginPage = () => {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
+    setOauthError(null); // Clear any previous OAuth errors
     try {
       await loginWithGoogle();
       // Note: This will redirect to Google, so we won't reach this point
@@ -59,7 +76,18 @@ const LoginPage = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Error Alert */}
+            {/* OAuth Error Alert - Only shown when there are OAuth issues */}
+            {oauthError && (
+              <Alert className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30">
+                <Construction className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <AlertDescription className="text-amber-800 dark:text-amber-200">
+                  <span className="font-medium">Testing Phase:</span> HackerDen is currently in limited testing. 
+                  If you encounter authentication issues, please contact the developer for access.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* General Error Alert */}
             {error && (
               <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
                 <AlertCircle className="h-4 w-4" />
@@ -78,6 +106,23 @@ const LoginPage = () => {
                 Continue with Google
               </GoogleSignInButton>
               
+              {/* Show contact developer button only when there are OAuth errors */}
+              {oauthError && (
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowContactForm(true)}
+                    className="w-full"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Contact Developer for Access
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground">
+                    Or email directly: <a href="mailto:sharmakhil1704@gmail.com" className="text-primary hover:underline">sharmakhil1704@gmail.com</a>
+                  </p>
+                </div>
+              )}
+              
               <p className="text-xs text-center text-muted-foreground">
                 By continuing, you agree to our terms of service and privacy policy
               </p>
@@ -91,6 +136,15 @@ const LoginPage = () => {
           </p>
         </div>
       </div>
+
+      {/* Contact Form Modal - Only shown when needed */}
+      {showContactForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-lg shadow-2xl max-w-md w-full">
+            <ContactForm onClose={() => setShowContactForm(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

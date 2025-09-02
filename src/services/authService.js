@@ -107,6 +107,12 @@ export const authService = {
     } catch (error) {
       console.error('authService: OAuth callback error:', error);
       
+      // Check if this is the testing phase error (missing scopes)
+      if (error?.message?.includes('missing scopes') || 
+          error?.message?.includes('User (role: guests)')) {
+        throw new Error('HackerDen is currently in testing phase. Your account has been rejected due to testing restrictions. Please contact the developer for access.');
+      }
+      
       // Check if we have session data now
       if (hasActiveSession()) {
         console.log('authService: Session data found, retrying...');
