@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HackathonWrapper from './components/HackathonWrapper';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import UserHackathonConsole from './pages/UserHackathonConsole';
 import CreateHackathonPage from './pages/CreateHackathonPage';
 import WhiteboardPage from './pages/WhiteboardPage';
@@ -31,6 +32,7 @@ function App() {
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
                 
                 {/* Protected routes */}
                 {/* Main user console - landing page */}

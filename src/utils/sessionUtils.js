@@ -17,6 +17,33 @@ export const clearAppStorage = () => {
 };
 
 /**
+ * Clean up invalid or corrupted Appwrite session data
+ */
+export const cleanupInvalidSessions = () => {
+  try {
+    const keys = Object.keys(localStorage);
+    const appwriteKeys = keys.filter(key => key.startsWith('appwrite-'));
+    
+    appwriteKeys.forEach(key => {
+      const value = localStorage.getItem(key);
+      if (!value || value === 'null' || value === 'undefined' || value === '') {
+        localStorage.removeItem(key);
+        console.log(`Removed invalid session key: ${key}`);
+      } else if (value.startsWith('{') || value.startsWith('[')) {
+        try {
+          JSON.parse(value);
+        } catch {
+          localStorage.removeItem(key);
+          console.log(`Removed corrupted session key: ${key}`);
+        }
+      }
+    });
+  } catch (error) {
+    console.warn('Error cleaning up sessions:', error);
+  }
+};
+
+/**
  * Check if there's a valid Appwrite session in localStorage
  */
 export const hasAppwriteSession = () => {
@@ -36,6 +63,17 @@ export const logSessionInfo = () => {
   try {
     const appwriteKeys = Object.keys(localStorage).filter(key => key.startsWith('appwrite-'));
     console.log('Appwrite session keys:', appwriteKeys.length > 0 ? appwriteKeys : 'None found');
+    console.log('Has active session:', hasActiveSession());
+    
+    // Log key values for debugging (but redact sensitive data)
+    appwriteKeys.forEach(key => {
+      const value = localStorage.getItem(key);
+      if (value && value.length > 10) {
+        console.log(`${key}: ${value.substring(0, 20)}...`);
+      } else {
+        console.log(`${key}: ${value}`);
+      }
+    });
   } catch (error) {
     console.warn('Error logging session info:', error);
   }
@@ -78,13 +116,29 @@ export const hasActiveSession = () => {
     const keys = Object.keys(localStorage);
     const sessionKeys = keys.filter(key => 
       key.startsWith('appwrite-') && 
-      (key.includes('session') || key.includes('cookieFallback'))
+      (key.includes('session') || key.includes('cookieFallback') || key.includes('user'))
     );
     
-    return sessionKeys.length > 0 && sessionKeys.some(key => {
+    // Check if we have valid session data
+    const hasValidSession = sessionKeys.length > 0 && sessionKeys.some(key => {
       const value = localStorage.getItem(key);
-      return value && value !== 'null' && value !== '';
+      if (!value || value === 'null' || value === 'undefined' || value === '') {
+        return false;
+      }
+      
+      // Try to parse JSON values to check validity
+      try {
+        if (value.startsWith('{') || value.startsWith('[')) {
+          const parsed = JSON.parse(value);
+          return parsed && typeof parsed === 'object';
+        }
+        return true; // Non-JSON values are considered valid if not empty
+      } catch {
+        return false; // Invalid JSON
+      }
     });
+    
+    return hasValidSession;
   } catch (error) {
     console.warn('Error checking active session:', error);
     return false;

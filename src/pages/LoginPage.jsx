@@ -3,7 +3,12 @@ import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import Logo from '../components/Logo.jsx';
 import { Button } from '../components/ui/button';
-import { InputField, PasswordInput } from '../components/ui';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { Eye, EyeOff, AlertCircle, Loader2, Mail, Lock } from 'lucide-react';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +17,10 @@ const LoginPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const { login, isAuthenticated, error } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated, error } = useAuth();
   const location = useLocation();
 
   // Redirect if already authenticated
@@ -74,101 +81,186 @@ const LoginPage = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      // Note: This will redirect to Google, so we won't reach this point
+    } catch {
+      // Error is handled by useAuth hook
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <header className="text-center">
-          <div className="flex justify-center mb-6">
-            <Logo size="xl" showText={false} />
-          </div>
-          <h1 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Sign in to HackerDen
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
-            <Link
-              to="/register"
-              className="font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm"
-            >
-              create a new account
-            </Link>
-          </p>
-        </header>
-        
-        <main>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md" role="alert">
-                <div className="flex items-center">
-                  <svg className="w-4 h-4 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <span className="sr-only">Error: </span>
-                  {error}
-                </div>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5 dark:from-background dark:via-background/95 dark:to-primary/10" />
+      
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/5 dark:bg-secondary/10 rounded-full blur-3xl animate-pulse delay-1000" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md">
+        <Card className="shadow-2xl border-border/50 backdrop-blur-sm bg-card/95 dark:bg-card/90">
+          <CardHeader className="text-center space-y-4 pb-6">
+            <div className="flex justify-center">
+              <div className="p-3 rounded-2xl bg-primary/10 dark:bg-primary/20">
+                <Logo size="lg" showText={false} />
               </div>
+            </div>
+            <div className="space-y-2">
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                Welcome back
+              </CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Sign in to your HackerDen account
+              </CardDescription>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {error && (
+              <Alert variant="destructive" className="border-destructive/20 dark:border-destructive/30">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
             
             <div className="space-y-4">
-              <InputField
-                label="Email address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                error={errors.email}
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-                className="text-gray-900"
+              <GoogleSignInButton
+                onClick={handleGoogleSignIn}
+                isLoading={isGoogleLoading}
+                disabled={isSubmitting}
               />
               
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <PasswordInput
-                  id="password"
-                  name="password"
-                  autoComplete="current-password"
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/50" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    Or continue with email
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">
+                  <Mail className="w-4 h-4" />
+                  Email address
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  error={errors.password}
-                  placeholder="Password"
-                  value={formData.password}
+                  placeholder="Enter your email"
+                  value={formData.email}
                   onChange={handleChange}
-                  className="text-gray-900"
+                  className={`transition-all duration-200 ${
+                    errors.email 
+                      ? 'border-destructive focus-visible:ring-destructive/20' 
+                      : 'focus-visible:ring-primary/20'
+                  }`}
+                  aria-invalid={!!errors.email}
                 />
+                {errors.email && (
+                  <p className="text-sm text-destructive flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  <Lock className="w-4 h-4" />
+                  Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    required
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`pr-10 transition-all duration-200 ${
+                      errors.password 
+                        ? 'border-destructive focus-visible:ring-destructive/20' 
+                        : 'focus-visible:ring-primary/20'
+                    }`}
+                    aria-invalid={!!errors.password}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-600" role="alert">
-                    <span className="sr-only">Error: </span>
+                  <p className="text-sm text-destructive flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
                     {errors.password}
                   </p>
                 )}
               </div>
-            </div>
 
-            <div>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full min-h-[44px]"
-                aria-describedby={isSubmitting ? "signin-status" : undefined}
+                className="w-full h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 {isSubmitting ? (
                   <>
-                    <span className="flex items-center">
-                      <div className="spinner w-4 h-4 mr-2 text-white" aria-hidden="true"></div>
-                      Signing in...
-                    </span>
-                    <span id="signin-status" className="sr-only">Signing in, please wait</span>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Signing in...
                   </>
                 ) : (
                   'Sign in'
                 )}
               </Button>
+            </form>
+
+            <div className="text-center space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/50" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    Don't have an account?
+                  </span>
+                </div>
+              </div>
+              
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center text-sm font-medium text-primary hover:text-primary/80 transition-colors underline-offset-4 hover:underline"
+              >
+                Create a new account
+              </Link>
             </div>
-          </form>
-        </main>
+          </CardContent>
+        </Card>
+        
+        <div className="mt-8 text-center">
+          <p className="text-xs text-muted-foreground">
+            Secure authentication powered by Appwrite
+          </p>
+        </div>
       </div>
     </div>
   );

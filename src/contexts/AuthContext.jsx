@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from 'react';
 import { authService } from '../services/authService';
-import { clearAppStorage, handleAuthError } from '../utils/sessionUtils';
+import { clearAppStorage, handleAuthError, cleanupInvalidSessions, hasActiveSession } from '../utils/sessionUtils';
 
 const AuthContext = createContext();
 
@@ -10,6 +10,8 @@ const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Clean up any invalid sessions first
+    cleanupInvalidSessions();
     checkAuth();
   }, []);
 
@@ -17,6 +19,14 @@ const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Quick check - if no session data exists, don't make API call
+      if (!hasActiveSession()) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
     } catch (authError) {
@@ -76,6 +86,43 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      setError(null);
+      setLoading(true);
+      await authService.loginWithGoogle();
+      // Note: This will redirect to Google, so we won't reach this point
+      // The user will be redirected back to our app after authentication
+    } catch (googleError) {
+      setError(googleError.message);
+      setLoading(false);
+      throw googleError;
+    }
+  };
+
+  const handleOAuthCallback = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('AuthContext: Starting OAuth callback...');
+      
+      const user = await authService.handleOAuthCallback();
+      console.log('AuthContext: OAuth callback successful, user:', user);
+      
+      setUser(user);
+      console.log('AuthContext: User state set, isAuthenticated should be:', !!user);
+      
+      return user;
+    } catch (callbackError) {
+      console.error('AuthContext: OAuth callback error:', callbackError);
+      setError(callbackError.message);
+      setUser(null);
+      throw callbackError;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -83,6 +130,8 @@ const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    loginWithGoogle,
+    handleOAuthCallback,
     isAuthenticated: !!user
   };
 
