@@ -110,6 +110,8 @@ export const authService = {
       // Check if this is the testing phase error (missing scopes)
       if (error?.message?.includes('missing scopes') || 
           error?.message?.includes('User (role: guests)')) {
+        // Clear any invalid session data to prevent loops
+        clearAppStorage();
         throw new Error('HackerDen is currently in testing phase. Your account has been rejected due to testing restrictions. Please contact the developer for access.');
       }
       
@@ -125,6 +127,8 @@ export const authService = {
         }
       }
       
+      // Clear storage for other errors to prevent loops
+      clearAppStorage();
       throw new Error('Failed to complete OAuth authentication: ' + error.message);
     }
   },

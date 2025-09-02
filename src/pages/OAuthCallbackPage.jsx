@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Loader2, CheckCircle, AlertCircle, Construction, MessageSquare } from 'lucide-react';
@@ -11,10 +11,20 @@ const OAuthCallbackPage = () => {
   const [status, setStatus] = useState('processing'); // processing, success, error, testing-phase
   const [error, setError] = useState(null);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [hasProcessed, setHasProcessed] = useState(false);
   const navigate = useNavigate();
+  const isProcessing = useRef(false);
 
   useEffect(() => {
     const processCallback = async () => {
+      // Prevent multiple processing attempts
+      if (isProcessing.current || hasProcessed) {
+        return;
+      }
+      
+      isProcessing.current = true;
+      setHasProcessed(true);
+      
       try {
         setStatus('processing');
         console.log('Processing OAuth callback...');
@@ -42,15 +52,18 @@ const OAuthCallbackPage = () => {
             callbackError.message.includes('User (role: guests)') ||
             callbackError.message.includes('testing phase')) {
           setStatus('testing-phase');
+          // Don't redirect for testing phase - let user stay on this page
         } else {
           setStatus('error');
           
-          // Redirect to login after a short delay for other errors
+          // Only redirect for non-testing phase errors, and add a longer delay
           setTimeout(() => {
             console.log('Redirecting to /login due to error...');
             navigate('/login?error=oauth_callback_failed', { replace: true });
-          }, 3000);
+          }, 5000); // Increased delay to prevent rapid redirects
         }
+      } finally {
+        isProcessing.current = false;
       }
     };
 
@@ -61,9 +74,11 @@ const OAuthCallbackPage = () => {
       return;
     }
 
-    // Process the callback
-    processCallback();
-  }, [handleOAuthCallback, isAuthenticated, user, navigate]);
+    // Process the callback only once
+    if (!hasProcessed) {
+      processCallback();
+    }
+  }, [handleOAuthCallback, isAuthenticated, user, navigate, hasProcessed]);
 
   const renderContent = () => {
     switch (status) {
@@ -117,6 +132,7 @@ const OAuthCallbackPage = () => {
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 We're currently testing our authentication system with a limited group of users. 
+                Your account has been rejected due to testing restrictions. 
                 If you'd like to try HackerDen, please contact the developer to get access.
               </p>
             </div>

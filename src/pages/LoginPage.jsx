@@ -13,6 +13,7 @@ const LoginPage = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [oauthError, setOauthError] = useState(null);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [hasAttemptedOAuth, setHasAttemptedOAuth] = useState(false);
 
   const { loginWithGoogle, isAuthenticated, error } = useAuth();
   const location = useLocation();
@@ -24,8 +25,10 @@ const LoginPage = () => {
     
     if (errorParam === 'oauth_failed') {
       setOauthError('OAuth authentication failed. Please try again or contact the developer for access.');
+      setHasAttemptedOAuth(true);
     } else if (errorParam === 'oauth_callback_failed') {
       setOauthError('OAuth callback failed. This might be due to testing phase restrictions. Please contact the developer for access.');
+      setHasAttemptedOAuth(true);
     }
   }, [location]);
 
@@ -36,8 +39,15 @@ const LoginPage = () => {
   }
 
   const handleGoogleSignIn = async () => {
+    // Prevent multiple OAuth attempts if there's already an error
+    if (hasAttemptedOAuth && oauthError) {
+      return;
+    }
+
     setIsGoogleLoading(true);
-    setOauthError(null); // Clear any previous OAuth errors
+    setOauthError(null);
+    setHasAttemptedOAuth(true);
+    
     try {
       await loginWithGoogle();
       // Note: This will redirect to Google, so we won't reach this point
@@ -46,6 +56,12 @@ const LoginPage = () => {
     } finally {
       setIsGoogleLoading(false);
     }
+  };
+
+  const handleRetryOAuth = () => {
+    setOauthError(null);
+    setHasAttemptedOAuth(false);
+    setShowContactForm(false);
   };
 
   return (
@@ -100,10 +116,10 @@ const LoginPage = () => {
               <GoogleSignInButton
                 onClick={handleGoogleSignIn}
                 isLoading={isGoogleLoading}
-                disabled={isGoogleLoading}
+                disabled={isGoogleLoading || (hasAttemptedOAuth && oauthError)}
                 className="w-full"
               >
-                Continue with Google
+                {hasAttemptedOAuth && oauthError ? 'OAuth Unavailable' : 'Continue with Google'}
               </GoogleSignInButton>
               
               {/* Show contact developer button only when there are OAuth errors */}
@@ -117,6 +133,15 @@ const LoginPage = () => {
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Contact Developer for Access
                   </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    onClick={handleRetryOAuth}
+                    className="w-full"
+                  >
+                    Try Again
+                  </Button>
+                  
                   <p className="text-xs text-center text-muted-foreground">
                     Or email directly: <a href="mailto:sharmakhil1704@gmail.com" className="text-primary hover:underline">sharmakhil1704@gmail.com</a>
                   </p>
