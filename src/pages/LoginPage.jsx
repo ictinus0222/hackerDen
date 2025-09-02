@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import Logo from '../components/Logo.jsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { AlertCircle, Construction, MessageSquare } from 'lucide-react';
+import { AlertCircle, Construction, MessageSquare, Users } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 import ContactForm from '../components/ContactForm';
@@ -24,7 +24,7 @@ const LoginPage = () => {
     const errorParam = searchParams.get('error');
     
     if (errorParam === 'oauth_failed') {
-      setOauthError('OAuth authentication failed. Please try again or contact the developer for access.');
+      setOauthError('OAuth authentication failed. This might be due to testing phase restrictions. Please contact the developer for access.');
       setHasAttemptedOAuth(true);
     } else if (errorParam === 'oauth_callback_failed') {
       setOauthError('OAuth callback failed. This might be due to testing phase restrictions. Please contact the developer for access.');
@@ -51,8 +51,16 @@ const LoginPage = () => {
     try {
       await loginWithGoogle();
       // Note: This will redirect to Google, so we won't reach this point
-    } catch {
-      // Error is handled by useAuth hook
+    } catch (error) {
+      // Handle Google OAuth testing mode rejections
+      if (error.message.includes('Access denied') || 
+          error.message.includes('testing phase') ||
+          error.message.includes('not yet approved')) {
+        setOauthError(error.message);
+      } else {
+        // For other errors, let the useAuth hook handle them
+        console.error('OAuth error:', error);
+      }
     } finally {
       setIsGoogleLoading(false);
     }
@@ -63,6 +71,12 @@ const LoginPage = () => {
     setHasAttemptedOAuth(false);
     setShowContactForm(false);
   };
+
+  const isTestingPhaseError = oauthError && (
+    oauthError.includes('testing phase') || 
+    oauthError.includes('not yet approved') ||
+    oauthError.includes('Access denied')
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -94,17 +108,34 @@ const LoginPage = () => {
           <CardContent className="space-y-6">
             {/* OAuth Error Alert - Only shown when there are OAuth issues */}
             {oauthError && (
-              <Alert className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30">
-                <Construction className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <AlertDescription className="text-amber-800 dark:text-amber-200">
-                  <span className="font-medium">Testing Phase:</span> HackerDen is currently in limited testing. 
-                  If you encounter authentication issues, please contact the developer for access.
+              <Alert className={`${
+                isTestingPhaseError 
+                  ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30'
+                  : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30'
+              }`}>
+                {isTestingPhaseError ? (
+                  <Construction className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                )}
+                <AlertDescription className={
+                  isTestingPhaseError 
+                    ? 'text-amber-800 dark:text-amber-200'
+                    : 'text-red-800 dark:text-red-200'
+                }>
+                  {isTestingPhaseError ? (
+                    <>
+                      <span className="font-medium">Testing Phase:</span> {oauthError}
+                    </>
+                  ) : (
+                    oauthError
+                  )}
                 </AlertDescription>
               </Alert>
             )}
 
             {/* General Error Alert */}
-            {error && (
+            {error && !oauthError && (
               <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
@@ -122,8 +153,8 @@ const LoginPage = () => {
                 {hasAttemptedOAuth && oauthError ? 'OAuth Unavailable' : 'Continue with Google'}
               </GoogleSignInButton>
               
-              {/* Show contact developer button only when there are OAuth errors */}
-              {oauthError && (
+              {/* Show contact developer button only when there are testing phase errors */}
+              {isTestingPhaseError && (
                 <div className="space-y-3">
                   <Button
                     variant="outline"

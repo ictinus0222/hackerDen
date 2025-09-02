@@ -63,6 +63,7 @@ export const authService = {
     try {
       // Create OAuth2 session with Google
       // This will redirect to Google's OAuth page
+      // In testing mode, Google will automatically reject unauthorized users
       await account.createOAuth2Session(
         'google',
         `${window.location.origin}/oauth/callback`, // Success redirect
@@ -70,6 +71,14 @@ export const authService = {
       );
     } catch (error) {
       console.error('Google OAuth error:', error);
+      
+      // Check if this is a Google testing mode rejection
+      if (error?.message?.includes('access_denied') || 
+          error?.message?.includes('unauthorized_client') ||
+          error?.message?.includes('invalid_client')) {
+        throw new Error('Access denied: HackerDen is in testing phase and your account is not yet approved. Please contact the developer for access.');
+      }
+      
       throw new Error(error.message || 'Google authentication failed');
     }
   },
@@ -108,11 +117,12 @@ export const authService = {
       console.error('authService: OAuth callback error:', error);
       
       // Check if this is the testing phase error (missing scopes)
+      // This happens when users reach the callback but don't have proper permissions
       if (error?.message?.includes('missing scopes') || 
           error?.message?.includes('User (role: guests)')) {
         // Clear any invalid session data to prevent loops
         clearAppStorage();
-        throw new Error('HackerDen is currently in testing phase. Your account has been rejected due to testing restrictions. Please contact the developer for access.');
+        throw new Error('HackerDen is in testing phase. Your account has been rejected due to testing restrictions. Please contact the developer for access.');
       }
       
       // Check if we have session data now

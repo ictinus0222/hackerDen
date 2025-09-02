@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Loader2, CheckCircle, AlertCircle, Construction, MessageSquare } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, Construction, MessageSquare, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import ContactForm from '../components/ContactForm';
@@ -48,6 +48,7 @@ const OAuthCallbackPage = () => {
         setError(callbackError.message);
         
         // Check if this is the testing phase error (missing scopes)
+        // This happens when users reach the callback but don't have proper permissions
         if (callbackError.message.includes('missing scopes') || 
             callbackError.message.includes('User (role: guests)') ||
             callbackError.message.includes('testing phase')) {
@@ -131,9 +132,9 @@ const OAuthCallbackPage = () => {
                 HackerDen is in Testing Phase
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                We're currently testing our authentication system with a limited group of users. 
+                We're currently testing our authentication system with a limited group of 100 pre-approved users. 
                 Your account has been rejected due to testing restrictions. 
-                If you'd like to try HackerDen, please contact the developer to get access.
+                If you'd like to try HackerDen, please contact the developer to get added to the approved users list.
               </p>
             </div>
             
@@ -144,7 +145,7 @@ const OAuthCallbackPage = () => {
                   className="w-full"
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />
-                  Contact Developer
+                  Contact Developer for Access
                 </Button>
                 <Button 
                   variant="outline" 
