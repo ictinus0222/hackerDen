@@ -16,7 +16,7 @@ const TasksPage = () => {
   const { hackathonId } = useParams();
   // TODO: Authentication removed
   // // TODO: Authentication removed
-  // const { user, ... } = useAuth();
+  const { user } = useAuth();
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);

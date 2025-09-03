@@ -11,7 +11,7 @@ import { EnhancedCard, InteractiveCard } from '../components/ui/card.jsx';
 const UserDashboard = () => {
   // TODO: Authentication removed
   // // TODO: Authentication removed
-  // const { user, ... } = useAuth();
+  const { user } = useAuth();
   const { team: currentTeam, refreshTeam } = useTeam();
   const [userTeams, setUserTeams] = useState([]);
   const [loading, setLoading] = useState(true);

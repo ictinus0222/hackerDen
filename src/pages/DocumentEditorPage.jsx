@@ -35,7 +35,7 @@ const DocumentEditorPage = () => {
   const navigate = useNavigate();
   // TODO: Authentication removed
   // // TODO: Authentication removed
-  // const { user, ... } = useAuth();
+  const { user } = useAuth();
   const { team, loading: teamLoading } = useHackathonTeam(hackathonId);
   
   // Document state

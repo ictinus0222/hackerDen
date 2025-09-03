@@ -39,8 +39,13 @@ const OAuthCallbackPage = () => {
         if (hasOAuthParams) {
           console.log('🔄 OAuth parameters found, processing callback...');
           
-          // Process the OAuth callback
+          // Process the OAuth callback and capture the user object
           const user = await auth.processOAuthCallback();
+          
+          // Validate that we received a user object
+          if (!user) {
+            throw new Error('No user object returned from OAuth callback');
+          }
           
           // Update auth context
           console.log('🔄 Updating auth context...');
@@ -58,7 +63,13 @@ const OAuthCallbackPage = () => {
           // No OAuth params, try to process anyway (might be Appwrite's automatic handling)
           console.log('🔄 No explicit OAuth params, trying automatic session check...');
           
+          // Wait for session and capture the user object
           const user = await auth.waitForSession(6, 2000);
+          
+          // Validate that we received a user object
+          if (!user) {
+            throw new Error('No user object returned from session wait');
+          }
           
           // Update auth context
           await refreshAuth();
@@ -74,6 +85,11 @@ const OAuthCallbackPage = () => {
         }
       } catch (callbackError) {
         console.error('❌ OAuth callback error:', callbackError);
+        console.error('❌ Error details:', {
+          message: callbackError.message,
+          stack: callbackError.stack,
+          name: callbackError.name
+        });
         setError(callbackError.message || 'Authentication failed. Please try again.');
         setStatus('error');
         

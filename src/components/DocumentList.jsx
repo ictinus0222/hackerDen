@@ -21,7 +21,7 @@ import DocumentCreateModal from './DocumentCreateModal';
 const DocumentList = ({ teamId, hackathonId }) => {
   // TODO: Authentication removed
   // // TODO: Authentication removed
-  // const { user, ... } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -19,7 +19,7 @@ const KanbanBoard = () => {
   const { tasksByStatus, loading, error, refetch, team, hackathonId } = useHackathonTasks();
   // TODO: Authentication removed
   // // TODO: Authentication removed
-  // const { user, ... } = useAuth();
+  const { user } = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [draggingTask, setDraggingTask] = useState(null);

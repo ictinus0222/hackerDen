@@ -43,7 +43,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = n
   const { hackathonId } = useParams();
   // TODO: Authentication removed
   // // TODO: Authentication removed
-  // const { user, ... } = useAuth();
+  const { user } = useAuth();
   const { members } = useHackathonTeamMembers();
   const [team, setTeam] = useState(null);
   const [newLabel, setNewLabel] = useState('');
