@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { simpleDocumentService } from '../services/simpleDocumentService';
-import { useAuth } from '../hooks/useAuth';
+
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
@@ -13,7 +13,9 @@ import { AlertCircle, Save, Users, Clock } from 'lucide-react';
 
 const SimpleCollaborativeDocument = () => {
   const { hackathonId } = useParams();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const { team } = useHackathonTeam(hackathonId);
   const [document, setDocument] = useState(null);
   const [content, setContent] = useState('');

@@ -1,20 +1,29 @@
-import { createContext, useEffect, useState } from 'react';
-import { authService } from '../services/authService';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '../services/auth';
 
 const AuthContext = createContext();
 
-const AuthProvider = ({ children }) => {
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Check authentication on app load
   useEffect(() => {
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const currentUser = await authService.getCurrentUser();
+      const currentUser = await auth.getUser();
       setUser(currentUser);
     } catch (error) {
       setUser(null);
@@ -23,48 +32,34 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithGoogle = async () => {
+  const login = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      await authService.loginWithGoogle();
-      // This will redirect to Google, so we won't reach this point
+      await auth.loginWithGoogle();
+      // Note: This will redirect to Google, so code below won't execute
     } catch (error) {
       setLoading(false);
       throw error;
-    }
-  };
-
-  const handleOAuthCallback = async () => {
-    try {
-      setLoading(true);
-      const user = await authService.handleOAuthCallback();
-      setUser(user);
-      return user;
-    } catch (error) {
-      setUser(null);
-      throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      await authService.logout();
+      await auth.logout();
       setUser(null);
     } catch (error) {
-      console.warn('Logout error:', error);
-      setUser(null);
+      console.error('Logout error:', error);
+      setUser(null); // Clear user state even if logout fails
     }
   };
 
   const value = {
     user,
     loading,
-    loginWithGoogle,
-    handleOAuthCallback,
+    isAuthenticated: !!user,
+    login,
     logout,
-    isAuthenticated: !!user
+    checkAuth
   };
 
   return (
@@ -73,5 +68,3 @@ const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export { AuthContext, AuthProvider };

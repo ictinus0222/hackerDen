@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { messageService } from '../services/messageService';
-import { useAuth } from './useAuth';
+
 
 export const useMessages = (teamId, hackathonId) => {
   const [messages, setMessages] = useState([]);
@@ -13,7 +13,9 @@ export const useMessages = (teamId, hackathonId) => {
   const [retryQueue, setRetryQueue] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
   
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const unsubscribeRef = useRef(null);
   const offsetRef = useRef(0);
   const typingTimeoutRef = useRef(null);

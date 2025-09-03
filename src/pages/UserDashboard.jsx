@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+
 import { useTeam } from '../hooks/useTeam';
 import { teamService } from '../services/teamService';
 import Layout from '../components/Layout';
@@ -9,7 +9,9 @@ import TeamSelector from '../components/TeamSelector';
 import { EnhancedCard, InteractiveCard } from '../components/ui/card.jsx';
 
 const UserDashboard = () => {
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const { team: currentTeam, refreshTeam } = useTeam();
   const [userTeams, setUserTeams] = useState([]);
   const [loading, setLoading] = useState(true);

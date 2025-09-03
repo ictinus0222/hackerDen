@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import BreadcrumbNavigation from './BreadcrumbNavigation.jsx';
 import HackathonSidebar from './HackathonSidebar.jsx';
-import { useAuth } from '../hooks/useAuth';
+
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import { useHackathonTasks } from '../hooks/useHackathonTasks';
 

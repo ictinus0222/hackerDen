@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+
 import { teamService } from '../services/teamService';
 
 const HackathonNotificationContext = createContext();
@@ -15,7 +15,9 @@ export const useHackathonNotifications = () => {
 
 export const HackathonNotificationProvider = ({ children }) => {
   const { hackathonId } = useParams();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [team, setTeam] = useState(null);
 
   // Disabled notification functions - no-ops

@@ -5,7 +5,6 @@ import { ThemeProvider } from './components/ThemeProvider.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import HackathonWrapper from './components/HackathonWrapper';
 import LoginPage from './pages/LoginPage';
-import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import UserHackathonConsole from './pages/UserHackathonConsole';
 import CreateHackathonPage from './pages/CreateHackathonPage';
 import WhiteboardPage from './pages/WhiteboardPage';
@@ -30,7 +29,6 @@ function App() {
               <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
                 
                 {/* Protected routes */}
                 {/* Main user console - landing page */}
@@ -105,8 +103,9 @@ function App() {
                   } 
                 />
                 
-                {/* Default redirect to console */}
-                <Route path="/" element={<Navigate to="/console" replace />} />
+                {/* Default redirect to dashboard */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Navigate to="/console" replace />} />
                 
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/console" replace />} />

@@ -1,10 +1,5 @@
-import { useContext } from 'react';
-import { AuthContext } from '../contexts/AuthContext';
+// This file is now deprecated - useAuth is exported directly from AuthContext
+// Import useAuth directly from '../contexts/AuthContext' instead
+import { useAuth } from '../contexts/AuthContext';
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export { useAuth };

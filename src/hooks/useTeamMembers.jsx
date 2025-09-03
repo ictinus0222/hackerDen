@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { teamMemberService } from '../services/teamMemberService';
 import { userNameService } from '../services/userNameService';
 import { useTeam } from './useTeam';
-import { useAuth } from './useAuth';
+
 
 export const useTeamMembers = () => {
   const { team } = useTeam();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

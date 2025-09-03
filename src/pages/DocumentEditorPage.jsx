@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+
 import { useHackathonTeam } from '../hooks/useHackathonTeam.jsx';
 import { documentService } from '../services/documentService';
 import { versionService } from '../services/versionService';
@@ -33,7 +33,9 @@ import { toast } from 'sonner';
 const DocumentEditorPage = () => {
   const { hackathonId, documentId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const { team, loading: teamLoading } = useHackathonTeam(hackathonId);
   
   // Document state

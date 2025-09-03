@@ -16,13 +16,15 @@ import {
   AutoRetryManager 
 } from './ChatRetryMechanisms';
 import { useMessages } from '../hooks/useMessages';
-import { useAuth } from '../hooks/useAuth';
+
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useChatKeyboardNavigation, useChatFocusManagement } from '../hooks/useChatKeyboardNavigation';
 import { cn } from '../lib/utils';
 
 const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [autoRetryEnabled, setAutoRetryEnabled] = useState(true);
   const [retryQueue, setRetryQueue] = useState([]);
   const [connectionRetryCount, setConnectionRetryCount] = useState(0);

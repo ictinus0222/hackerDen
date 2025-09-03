@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { vaultService } from '../services/vaultService';
-import { useAuth } from './useAuth';
+
 
 export const useVault = (teamId, hackathonId) => {
-    const { user } = useAuth();
+    // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
     const [secrets, setSecrets] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useAuth } from '../hooks/useAuth';
+
 import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
 import { taskService } from '../services/taskService';
 import { teamService } from '../services/teamService';
@@ -41,7 +41,9 @@ const priorityOptions = [
 
 const TaskModal = ({ isOpen, onClose, onTaskCreated, onTaskUpdated, editTask = null }) => {
   const { hackathonId } = useParams();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const { members } = useHackathonTeamMembers();
   const [team, setTeam] = useState(null);
   const [newLabel, setNewLabel] = useState('');

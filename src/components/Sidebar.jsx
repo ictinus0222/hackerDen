@@ -6,10 +6,12 @@ import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Card, CardContent, CardHeader } from './ui/card';
-import { useAuth } from '../hooks/useAuth';
+
 
 const Sidebar = ({ isOpen, onToggle }) => {
-  const { user, logout } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
 
   const handleLogout = async () => {
     try {

@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { teamService } from '../services/teamService';
 import { userNameService } from '../services/userNameService';
-import { useAuth } from './useAuth';
+
 
 export const useHackathonTeamMembers = () => {
   const { hackathonId } = useParams();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

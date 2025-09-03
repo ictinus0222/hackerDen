@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+
 import { documentService } from '../services/documentService';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -19,7 +19,9 @@ import DocumentCard from './DocumentCard';
 import DocumentCreateModal from './DocumentCreateModal';
 
 const DocumentList = ({ teamId, hackathonId }) => {
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const navigate = useNavigate();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
