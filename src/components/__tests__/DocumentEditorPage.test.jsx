@@ -21,7 +21,7 @@ vi.mock('../../hooks/useHackathonTeam', () => ({
   }))
 }));
 
-vi.mock('../../contexts/AuthContext', () => ({
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
     user: { $id: 'user-1', name: 'Test User' }
   }))

@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import ChatContainer from '../ChatContainer';
 
 // Mock the hooks and services
-vi.mock('../../contexts/AuthContext', () => ({
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({
     user: {
       $id: 'user123',

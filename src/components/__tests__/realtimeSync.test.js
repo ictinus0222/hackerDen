@@ -60,7 +60,7 @@ const mockUser = {
   email: 'test@example.com'
 };
 
-vi.mock('../../contexts/AuthContext', () => ({
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({
     user: mockUser,
     loading: false,

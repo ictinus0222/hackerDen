@@ -15,7 +15,7 @@ vi.mock('../../services/documentService', () => ({
 }));
 
 // Mock the auth hook
-vi.mock('../../contexts/AuthContext', () => ({
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({
     user: {
       $id: 'user123',

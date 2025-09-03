@@ -18,7 +18,7 @@ import {
 } from '../../utils/stylingProtection';
 
 // Mock hooks and services
-vi.mock('../../contexts/AuthContext', () => ({
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({
     user: { $id: 'user1', name: 'Test User', email: 'test@example.com' },
     logout: vi.fn()
