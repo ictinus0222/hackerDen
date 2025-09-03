@@ -88,7 +88,15 @@ export const AuthProvider = ({ children }) => {
     
     try {
       await checkAuth();
-      console.log('✅ Auth refresh completed successfully');
+      
+      // Double-check by getting user directly from auth service
+      const currentUser = await auth.getUser();
+      if (currentUser) {
+        console.log('✅ Auth refresh completed successfully - user authenticated:', currentUser.name || currentUser.email);
+      } else {
+        console.log('❌ Auth refresh completed but no user found');
+        throw new Error('Authentication refresh failed - no user session');
+      }
     } catch (error) {
       console.error('❌ Auth refresh failed:', error);
       throw error;

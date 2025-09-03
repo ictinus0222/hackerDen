@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { auth } from '../services/auth';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 
@@ -17,15 +18,16 @@ const OAuthCallbackPage = () => {
       try {
         setStatus('processing');
         
-        // Wait a moment for Appwrite session to be established
-        console.log('⏳ Waiting for session establishment...');
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        console.log('🔄 OAuth callback processing started');
         
-        // Force refresh authentication after OAuth
-        console.log('🔍 Checking authentication...');
+        // Use the robust session waiting method
+        const user = await auth.waitForSession(10, 1500);
+        
+        // Update auth context with the authenticated user
+        console.log('🔄 Updating auth context...');
         await refreshAuth();
         
-        console.log('✅ Authentication successful!');
+        console.log('✅ Authentication successful!', user.name || user.email);
         setStatus('success');
         
         // Redirect to console after success
