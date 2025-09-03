@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 import { hackathonService } from '../services/hackathonService';
 import ConsoleLayout from '../components/ConsoleLayout';

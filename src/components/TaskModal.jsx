@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useAuth } from '../contexts/AuthContext';
 
 import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
 import { taskService } from '../services/taskService';

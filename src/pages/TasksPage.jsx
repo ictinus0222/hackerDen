@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import KanbanBoard from '../components/KanbanBoard.jsx';
 import TaskModal from '../components/TaskModal.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';

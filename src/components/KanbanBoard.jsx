@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useHackathonTasks } from '../hooks/useHackathonTasks';
+import { useAuth } from '../contexts/AuthContext';
 
 import { useTouchDragDrop } from '../hooks/useTouchDragDrop';
 import { taskService } from '../services/taskService';

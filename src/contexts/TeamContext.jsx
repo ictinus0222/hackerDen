@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from './AuthContext';
 import { teamService } from '../services/teamService';
 
 const TeamContext = createContext();
