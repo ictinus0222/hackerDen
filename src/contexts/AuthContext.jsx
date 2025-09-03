@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { auth } from '../services/auth';
 
 const AuthContext = createContext();
@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const checkingRef = useRef(false);
 
   // Check authentication on app load
   useEffect(() => {
@@ -22,15 +23,36 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkAuth = async () => {
+    // Prevent concurrent auth checks
+    if (checkingRef.current) {
+      console.log('🔄 Auth check already in progress, skipping...');
+      return;
+    }
+    
+    console.log('🔍 Starting auth check...');
+    checkingRef.current = true;
     setLoading(true);
     setError(null);
+    
     try {
       const currentUser = await auth.getUser();
-      setUser(currentUser);
+      if (currentUser) {
+        console.log('✅ User authenticated:', currentUser.name || currentUser.email);
+        setUser(currentUser);
+      } else {
+        console.log('❌ No authenticated user found');
+        setUser(null);
+      }
     } catch (error) {
+      console.error('❌ Auth check failed:', error);
       setUser(null);
+      // Only throw error if it's not a simple 401 (unauthenticated)
+      if (error.code !== 401) {
+        throw error;
+      }
     } finally {
       setLoading(false);
+      checkingRef.current = false;
     }
   };
 
@@ -58,6 +80,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Force refresh authentication (for after OAuth)
+  const refreshAuth = async () => {
+    console.log('🔄 Refreshing authentication...');
+    auth.clearCache(); // Clear cache to force fresh check
+    checkingRef.current = false; // Reset checking flag
+    
+    try {
+      await checkAuth();
+      console.log('✅ Auth refresh completed successfully');
+    } catch (error) {
+      console.error('❌ Auth refresh failed:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -65,7 +102,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     loginWithGoogle,
     logout,
-    checkAuth
+    checkAuth,
+    refreshAuth
   };
 
   return (
