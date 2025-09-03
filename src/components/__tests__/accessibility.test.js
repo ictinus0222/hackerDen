@@ -18,7 +18,7 @@ import SkeletonLoader, { TaskCardSkeleton, MessageSkeleton } from '../SkeletonLo
 import LoginPage from '../../pages/LoginPage';
 
 // Mock hooks and services
-vi.mock('../../hooks/useAuth', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { $id: 'user1', name: 'Test User', email: 'test@example.com' },
     login: vi.fn(),
@@ -380,7 +380,7 @@ describe('Accessibility Tests', () => {
   describe('LoginPage Component', () => {
     beforeEach(() => {
       // Mock useAuth to return unauthenticated state for login page
-      vi.doMock('../../hooks/useAuth', () => ({
+      vi.doMock('../../contexts/AuthContext', () => ({
         useAuth: () => ({
           user: null,
           login: vi.fn(),

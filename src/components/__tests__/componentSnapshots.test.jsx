@@ -13,7 +13,7 @@ import MessageInput from '../MessageInput';
 import MessageItem from '../MessageItem';
 
 // Mock hooks and services
-vi.mock('../../hooks/useAuth', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { $id: 'user1', name: 'Test User', email: 'test@example.com' },
     logout: vi.fn()

@@ -10,7 +10,7 @@ import Layout from '../Layout';
 import MobileTabSwitcher from '../MobileTabSwitcher';
 
 // Mock hooks and services
-vi.mock('../../hooks/useAuth', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { $id: 'user1', name: 'Test User', email: 'test@example.com' },
     logout: vi.fn()

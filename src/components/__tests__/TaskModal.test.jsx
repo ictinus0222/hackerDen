@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import TaskModal from '../TaskModal';
 
 // Mock the hooks and services
-vi.mock('../../hooks/useAuth', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { $id: 'user1', name: 'Test User' }
   })
