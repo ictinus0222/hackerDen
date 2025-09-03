@@ -14,27 +14,64 @@ const OAuthCallbackPage = () => {
   useEffect(() => {
     const processCallback = async () => {
       console.log('🔄 OAuth callback started');
+      console.log('🔍 Full URL:', window.location.href);
+      console.log('🔍 Pathname:', window.location.pathname);
+      console.log('🔍 Search:', window.location.search);
+      console.log('🔍 Hash:', window.location.hash);
       
       try {
         setStatus('processing');
         
-        console.log('🔄 OAuth callback processing started');
+        // Check URL parameters for OAuth data
+        const urlParams = new URLSearchParams(window.location.search);
+        const fragment = new URLSearchParams(window.location.hash.substring(1));
         
-        // Use the robust session waiting method
-        const user = await auth.waitForSession(10, 1500);
+        console.log('🔍 URL params:', Object.fromEntries(urlParams));
+        console.log('🔍 Fragment params:', Object.fromEntries(fragment));
         
-        // Update auth context with the authenticated user
-        console.log('🔄 Updating auth context...');
-        await refreshAuth();
+        // Check for any parameters that might indicate OAuth success
+        const hasOAuthParams = urlParams.size > 0 || fragment.size > 0 || 
+                              window.location.search.includes('userId') ||
+                              window.location.search.includes('secret') ||
+                              window.location.hash.includes('userId') ||
+                              window.location.hash.includes('secret');
         
-        console.log('✅ Authentication successful!', user.name || user.email);
-        setStatus('success');
-        
-        // Redirect to console after success
-        setTimeout(() => {
-          console.log('🚀 Redirecting to console...');
-          navigate('/console', { replace: true });
-        }, 1000);
+        if (hasOAuthParams) {
+          console.log('🔄 OAuth parameters found, processing callback...');
+          
+          // Process the OAuth callback
+          const user = await auth.processOAuthCallback();
+          
+          // Update auth context
+          console.log('🔄 Updating auth context...');
+          await refreshAuth();
+          
+          console.log('✅ Authentication successful!', user.name || user.email);
+          setStatus('success');
+          
+          // Redirect to console after success
+          setTimeout(() => {
+            console.log('🚀 Redirecting to console...');
+            navigate('/console', { replace: true });
+          }, 1000);
+        } else {
+          // No OAuth params, try to process anyway (might be Appwrite's automatic handling)
+          console.log('🔄 No explicit OAuth params, trying automatic session check...');
+          
+          const user = await auth.waitForSession(6, 2000);
+          
+          // Update auth context
+          await refreshAuth();
+          
+          console.log('✅ Authentication successful!', user.name || user.email);
+          setStatus('success');
+          
+          // Redirect to console after success
+          setTimeout(() => {
+            console.log('🚀 Redirecting to console...');
+            navigate('/console', { replace: true });
+          }, 1000);
+        }
       } catch (callbackError) {
         console.error('❌ OAuth callback error:', callbackError);
         setError(callbackError.message || 'Authentication failed. Please try again.');

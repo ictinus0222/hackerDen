@@ -9,6 +9,11 @@ export const auth = {
   // Simple Google OAuth login
   async loginWithGoogle() {
     try {
+      console.log('🚀 Initiating Google OAuth with redirect URLs:');
+      console.log('Success URL:', `${window.location.origin}/oauth/callback`);
+      console.log('Failure URL:', `${window.location.origin}/login`);
+      
+      // Use Appwrite's OAuth2 session creation
       await account.createOAuth2Session(
         'google',
         `${window.location.origin}/oauth/callback`, // Success redirect to callback handler
@@ -17,6 +22,23 @@ export const auth = {
     } catch (error) {
       console.error('Google login failed:', error);
       throw new Error('Failed to sign in with Google');
+    }
+  },
+
+  // Test simple OAuth (for debugging)
+  async testSimpleOAuth() {
+    try {
+      console.log('🧪 Testing simple OAuth redirect to home page');
+      
+      // Try redirecting directly to home page instead of callback
+      await account.createOAuth2Session(
+        'google',
+        `${window.location.origin}/`,     // Direct to home page
+        `${window.location.origin}/login` // Failure to login
+      );
+    } catch (error) {
+      console.error('Simple OAuth test failed:', error);
+      throw error;
     }
   },
 
@@ -53,6 +75,35 @@ export const auth = {
     }
   },
 
+  // Process OAuth callback URL parameters
+  async processOAuthCallback() {
+    console.log('🔄 Processing OAuth callback URL...');
+    
+    try {
+      // Let Appwrite handle the OAuth callback automatically
+      // by just waiting for the session to be available
+      console.log('⏳ Waiting for Appwrite to process OAuth callback...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Clear any cached session data
+      this.clearCache();
+      
+      // Try to get the user session
+      const user = await account.get();
+      if (user) {
+        console.log('✅ OAuth session established via callback!', user.name || user.email);
+        userCache = user;
+        cacheTimestamp = Date.now();
+        return user;
+      } else {
+        throw new Error('No user session found after OAuth callback');
+      }
+    } catch (error) {
+      console.error('❌ OAuth callback processing failed:', error);
+      throw new Error(`OAuth callback failed: ${error.message}`);
+    }
+  },
+
   // Wait for session with retry logic (for OAuth callbacks)
   async waitForSession(maxAttempts = 10, delay = 1000) {
     console.log('⏳ Waiting for OAuth session to be established...');
@@ -73,6 +124,11 @@ export const auth = {
         }
       } catch (error) {
         console.log(`❌ Attempt ${attempt} failed:`, error.message);
+        
+        // If we get a specific "guests" role error, it means OAuth didn't work
+        if (error.message.includes('role: guests')) {
+          console.log('❌ OAuth session not properly established - user still in guest role');
+        }
       }
       
       if (attempt < maxAttempts) {
