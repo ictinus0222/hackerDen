@@ -5,7 +5,7 @@ import ProgressBar from './ProgressBar.jsx';
 import { ThemeToggle } from './ui/theme-toggle.jsx';
 import { Button } from './ui/button';
 import BreadcrumbNavigation from './BreadcrumbNavigation.jsx';
-import { useAuth } from '../hooks/useAuth';
+
 import { useTeam } from '../hooks/useTeam';
 import { useTasks } from '../hooks/useTasks';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
@@ -35,7 +35,9 @@ import {
 
 const Layout = ({ children }) => {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
-  const { user, logout } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const { team } = useTeam();
   const { tasksByStatus } = useTasks();
 

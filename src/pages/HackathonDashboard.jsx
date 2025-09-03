@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+
 import { hackathonService } from '../services/hackathonService';
 import HackathonLayout from '../components/HackathonLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -15,7 +15,9 @@ import VaultPage from './VaultPage';
 
 const HackathonDashboard = () => {
   const { hackathonId } = useParams();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [hackathon, setHackathon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

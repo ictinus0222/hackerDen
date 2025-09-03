@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useHackathonTasks } from '../hooks/useHackathonTasks';
-import { useAuth } from '../hooks/useAuth';
+
 import { useTouchDragDrop } from '../hooks/useTouchDragDrop';
 import { taskService } from '../services/taskService';
 import TaskColumn from './TaskColumn';
@@ -17,7 +17,9 @@ import FilterBar from './FilterBar';
 
 const KanbanBoard = () => {
   const { tasksByStatus, loading, error, refetch, team, hackathonId } = useHackathonTasks();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [draggingTask, setDraggingTask] = useState(null);

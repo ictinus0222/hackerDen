@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom';
 import { taskService } from '../services/taskService';
 import { realtimeService } from '../services/realtimeService';
 import { teamService } from '../services/teamService';
-import { useAuth } from './useAuth';
+
 
 export const useHackathonTasks = (onTaskUpdate = null) => {
   const { hackathonId } = useParams();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

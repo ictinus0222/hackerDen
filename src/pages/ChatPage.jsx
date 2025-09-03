@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import { ChatInitializationSkeleton } from '../components/ChatLoadingStates';
 import ChatContainer from '../components/ChatContainer';
@@ -7,7 +7,9 @@ import ChatErrorBoundary from '../components/ChatErrorBoundary';
 
 const ChatPage = () => {
   const { hackathonId } = useParams();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const { team, loading: teamLoading, hasTeam } = useHackathonTeam(hackathonId);
 
   // Show enhanced loading state while team data is being fetched

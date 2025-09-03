@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.jsx';
+
 import { useTeam } from '../hooks/useTeam.jsx';
 import { useTasks } from '../hooks/useTasks.jsx';
 import { useTeamMembers } from '../hooks/useTeamMembers.jsx';
@@ -14,7 +14,9 @@ import { InteractiveCard, EnhancedCard } from '../components/ui/card.jsx';
 
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const { team, loading: teamLoading, hasTeam } = useTeam();
   const { tasks, tasksByStatus, loading: tasksLoading } = useTasks();
   const { members: teamMembers, loading: membersLoading } = useTeamMembers();

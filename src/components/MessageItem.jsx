@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { cn } from '../lib/utils.ts';
 import { userNameService } from '../services/userNameService';
-import { useAuth } from '../hooks/useAuth';
+
 
 const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => {
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [userName, setUserName] = useState('');
   const isSystemMessage = message.type !== 'user';
 

@@ -7,10 +7,12 @@ import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader } from './ui/card';
-import { useAuth } from '../hooks/useAuth';
+
 
 const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, hackathonId }) => {
-  const { user, logout } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const location = useLocation();
 
   const handleLogout = async () => {

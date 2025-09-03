@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { taskService } from '../services/taskService';
 import { realtimeService } from '../services/realtimeService';
 import { useTeam } from './useTeam';
-import { useAuth } from './useAuth';
+
 
 export const useTasks = (onTaskUpdate = null) => {
   const { team } = useTeam();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

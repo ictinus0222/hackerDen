@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './useAuth';
+
 import { teamService } from '../services/teamService';
 
 export const useHackathonTeam = (hackathonId) => {
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

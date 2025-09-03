@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import { useHackathonTasks } from '../hooks/useHackathonTasks';
 import { useHackathonTeamMembers } from '../hooks/useHackathonTeamMembers';
@@ -16,7 +16,9 @@ import { Avatar, AvatarFallback } from './ui/avatar';
 import { Copy, Clock, Users, Activity, FileText, CheckSquare, User } from 'lucide-react';
 
 const HackathonDashboardContent = ({ hackathon }) => {
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const { team, loading: teamLoading, hasTeam } = useHackathonTeam(hackathon?.hackathonId);
   const { tasks, tasksByStatus, loading: tasksLoading } = useHackathonTasks();
   const { members: teamMembers, loading: membersLoading } = useHackathonTeamMembers();

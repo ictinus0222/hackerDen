@@ -1,135 +1,60 @@
-import { createContext, useEffect, useState } from 'react';
-import { authService } from '../services/authService';
-import { clearAppStorage, handleAuthError, cleanupInvalidSessions, hasActiveSession } from '../utils/sessionUtils';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '../services/auth';
 
 const AuthContext = createContext();
 
-const AuthProvider = ({ children }) => {
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Check authentication on app load
   useEffect(() => {
-    // Clean up any invalid sessions first
-    cleanupInvalidSessions();
-    
-    // Log session info for debugging
-    console.log('AuthContext: Checking authentication on mount...');
-    console.log('AuthContext: localStorage keys:', Object.keys(localStorage));
-    console.log('AuthContext: Appwrite keys:', Object.keys(localStorage).filter(key => key.startsWith('appwrite-')));
-    console.log('AuthContext: hasActiveSession():', hasActiveSession());
-    
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      
-      // Always try to get the current user from Appwrite first
-      // The authService now handles this properly for both OAuth and regular sessions
-      const currentUser = await authService.getCurrentUser();
-      if (currentUser) {
-        setUser(currentUser);
-        setLoading(false);
-        return;
-      }
-      
-      // No valid session found
-      setUser(null);
-    } catch (authError) {
-      console.log('Authentication check failed:', authError);
-      setUser(null);
-      const errorInfo = handleAuthError(authError);
-      if (errorInfo.shouldRedirect) {
-        setError(errorInfo.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = async (email, password) => {
-    try {
-      setError(null);
-      setLoading(true);
-      await authService.login(email, password);
-      const currentUser = await authService.getCurrentUser();
+      const currentUser = await auth.getUser();
       setUser(currentUser);
-      return currentUser;
-    } catch (loginError) {
-      setError(loginError.message);
-      throw loginError;
+    } catch (error) {
+      setUser(null);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const register = async (email, password, name) => {
-    try {
-      setError(null);
-      setLoading(true);
-      await authService.register(email, password, name);
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-      return currentUser;
-    } catch (registerError) {
-      setError(registerError.message);
-      throw registerError;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      setError(null);
-      await authService.logout();
-      setUser(null);
-    } catch (logoutError) {
-      console.warn('Logout error:', logoutError);
-      setError(logoutError.message);
-      // Even if logout fails, clear the user state
-      setUser(null);
-      throw logoutError;
     }
   };
 
   const loginWithGoogle = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setError(null);
-      setLoading(true);
-      await authService.loginWithGoogle();
-      // Note: This will redirect to Google, so we won't reach this point
-      // The user will be redirected back to our app after authentication
-    } catch (googleError) {
-      setError(googleError.message);
+      await auth.loginWithGoogle();
+      // Note: This will redirect to Google, so code below won't execute
+    } catch (error) {
       setLoading(false);
-      throw googleError;
+      setError('Failed to sign in with Google. Please try again.');
+      throw error;
     }
   };
 
-  const handleOAuthCallback = async () => {
+  const logout = async () => {
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      console.log('AuthContext: Starting OAuth callback...');
-      
-      const user = await authService.handleOAuthCallback();
-      console.log('AuthContext: OAuth callback successful, user:', user);
-      
-      setUser(user);
-      console.log('AuthContext: User state set, isAuthenticated should be:', !!user);
-      
-      return user;
-    } catch (callbackError) {
-      console.error('AuthContext: OAuth callback error:', callbackError);
-      setError(callbackError.message);
+      await auth.logout();
       setUser(null);
-      throw callbackError;
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      setUser(null); // Clear user state even if logout fails
     }
   };
 
@@ -137,12 +62,10 @@ const AuthProvider = ({ children }) => {
     user,
     loading,
     error,
-    login,
-    register,
-    logout,
+    isAuthenticated: !!user,
     loginWithGoogle,
-    handleOAuthCallback,
-    isAuthenticated: !!user
+    logout,
+    checkAuth
   };
 
   return (
@@ -151,5 +74,3 @@ const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export { AuthContext, AuthProvider };

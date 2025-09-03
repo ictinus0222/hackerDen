@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import KanbanBoard from '../components/KanbanBoard.jsx';
 import TaskModal from '../components/TaskModal.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
-import { useAuth } from '../hooks/useAuth';
+
 import { teamService } from '../services/teamService';
 import { useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
@@ -14,7 +14,9 @@ import { Plus, Users, CheckSquare, AlertCircle } from 'lucide-react';
 
 const TasksPage = () => {
   const { hackathonId } = useParams();
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);

@@ -12,7 +12,9 @@ import { Separator } from '../components/ui/separator';
 import { DateTimePicker } from '../components/ui/date-picker.jsx';
 
 const CreateHackathonPage = () => {
-  const { user } = useAuth();
+  // TODO: Authentication removed
+  // // TODO: Authentication removed
+  // const { user, ... } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
