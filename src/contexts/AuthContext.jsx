@@ -14,6 +14,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Check authentication on app load
   useEffect(() => {
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     setLoading(true);
+    setError(null);
     try {
       const currentUser = await auth.getUser();
       setUser(currentUser);
@@ -32,18 +34,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async () => {
+  const loginWithGoogle = async () => {
     setLoading(true);
+    setError(null);
     try {
       await auth.loginWithGoogle();
       // Note: This will redirect to Google, so code below won't execute
     } catch (error) {
       setLoading(false);
+      setError('Failed to sign in with Google. Please try again.');
       throw error;
     }
   };
 
   const logout = async () => {
+    setError(null);
     try {
       await auth.logout();
       setUser(null);
@@ -56,8 +61,9 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
+    error,
     isAuthenticated: !!user,
-    login,
+    loginWithGoogle,
     logout,
     checkAuth
   };
