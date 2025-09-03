@@ -6,8 +6,8 @@ export const auth = {
     try {
       await account.createOAuth2Session(
         'google',
-        `${window.location.origin}/dashboard`, // Direct redirect to dashboard
-        `${window.location.origin}/login`      // Failure redirect to login
+        `${window.location.origin}/oauth/callback`, // Success redirect to callback handler
+        `${window.location.origin}/login`           // Failure redirect to login
       );
     } catch (error) {
       console.error('Google login failed:', error);
