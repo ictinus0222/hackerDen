@@ -6,6 +6,7 @@ export const useVault = (teamId, hackathonId) => {
     // TODO: Authentication removed
   // // TODO: Authentication removed
   // const { user, ... } = useAuth();
+    const user = null; // Temporary fallback for disabled auth
     const [secrets, setSecrets] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);

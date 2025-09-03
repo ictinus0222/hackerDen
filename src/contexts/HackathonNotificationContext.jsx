@@ -18,6 +18,7 @@ export const HackathonNotificationProvider = ({ children }) => {
   // TODO: Authentication removed
   // // TODO: Authentication removed
   // const { user, ... } = useAuth();
+  const user = null; // Temporary fallback for disabled auth
   const [team, setTeam] = useState(null);
 
   // Disabled notification functions - no-ops
