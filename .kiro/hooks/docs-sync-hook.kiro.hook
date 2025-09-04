@@ -1,0 +1,28 @@
+{
+  "enabled": true,
+  "name": "Documentation Sync",
+  "description": "Monitors all source files (JSX, JS, CSS, config files) and automatically updates project documentation to keep it synchronized with code changes for open source contributors.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.jsx",
+      "src/**/*.js",
+      "src/**/*.css",
+      "scripts/*.js",
+      "*.js",
+      "*.json",
+      "*.md",
+      "components.json",
+      "tailwind.config.js",
+      "vite.config.js",
+      "vitest.config.js",
+      "eslint.config.js",
+      "postcss.config.cjs"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Source files have been modified in this React/Vite hackathon collaboration platform. Please review the changes and update the documentation accordingly:\n\n1. **README.md**: Update the main project overview, installation instructions, usage examples, and feature descriptions to reflect any new functionality or changes\n2. **docs/ folder**: If it exists, update relevant documentation files for specific features that were modified\n3. **Keep documentation concise but comprehensive** - suitable for open source contributors who need to quickly understand:\n   - What the project does (hackathon team collaboration platform)\n   - How to set it up and run it\n   - Key features and architecture\n   - How to contribute\n\nFocus on:\n- Clear, actionable setup instructions\n- Concise feature descriptions with examples\n- Updated API/component documentation if interfaces changed\n- Contribution guidelines if new patterns were introduced\n- Architecture overview if structure changed\n\nMake the documentation developer-friendly and open source ready - informative but not overwhelming."
+  }
+}

@@ -21,7 +21,9 @@
     "backup:cleanup-confirm": "node scripts/backup-utility.js --cleanup --confirm",
     "setup:whiteboard": "node scripts/setup-whiteboard.js",
     "setup:vault": "node scripts/setup-vault.js",
-    "setup:documents": "node scripts/setup-collaborative-documents.js"
+    "setup:documents": "node scripts/setup-collaborative-documents.js",
+    "setup:enhancements": "node scripts/setup-enhancements.js",
+    "check:storage": "node scripts/check-storage.js"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",

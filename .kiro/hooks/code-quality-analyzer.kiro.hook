@@ -1,0 +1,24 @@
+{
+  "enabled": true,
+  "name": "Code Quality Analyzer",
+  "description": "Monitors source code files for changes and analyzes modified code for potential improvements including code smells, design patterns, and best practices. Generates suggestions for improving code quality while maintaining existing functionality.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.js",
+      "src/**/*.jsx",
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "scripts/**/*.js",
+      "*.js",
+      "*.jsx",
+      "*.ts",
+      "*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the modified code files for potential improvements. Focus on:\n\n1. **Code Smells**: Identify long functions, duplicate code, complex conditionals, and other maintainability issues\n2. **Design Patterns**: Suggest appropriate React patterns, component composition, and architectural improvements\n3. **Best Practices**: Review for React best practices, proper hook usage, error handling, and performance optimizations\n4. **Code Quality**: Check for readability improvements, naming conventions, and code organization\n5. **Performance**: Identify potential performance bottlenecks and suggest optimizations\n6. **Maintainability**: Suggest ways to make the code more maintainable and testable\n\nFor each suggestion:\n- Explain the current issue clearly\n- Provide specific improvement recommendations\n- Show code examples where helpful\n- Prioritize suggestions by impact (high/medium/low)\n- Ensure suggestions maintain existing functionality\n\nConsider the HackerDen tech stack (React 19, Vite, Tailwind CSS, Appwrite) and project structure when making recommendations."
+  }
+}

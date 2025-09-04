@@ -1,6 +1,6 @@
-# HackerDen MVP
+# HackerDen
 
-A modern, hackathon-focused collaborative platform featuring comprehensive hackathon management, team coordination, advanced task tracking with drag-and-drop functionality, and real-time communication with a polished dark theme interface.
+A modern, hackathon-focused collaborative platform featuring comprehensive hackathon management, team coordination, advanced task tracking with drag-and-drop functionality, real-time communication, and engaging enhancement features including file sharing, gamification, and judge submissions.
 
 ## Features
 
@@ -57,24 +57,63 @@ A modern, hackathon-focused collaborative platform featuring comprehensive hacka
 - **Touch Optimization**: Mobile-friendly interactions with proper touch targets
 - **Visual Feedback**: Consistent hover states, focus indicators, and transition effects
 
-### 🚧 Future Enhancements
-- **Team Management**: Advanced member management (invite/remove members, role changes)
-- **Task Features**: Due dates, task dependencies, time tracking, and task templates
-- **Chat Features**: Message reactions, file sharing, message search, and thread replies
-- **Filtering & Search**: Advanced task filtering, search functionality, and saved filters
-- **Notifications**: Push notifications for task assignments and chat messages
-- **Analytics**: Team productivity analytics and task completion metrics
+### 🚀 Enhancement Features (In Development)
+
+#### 📁 **File Sharing & Collaboration**
+- **File Upload System**: Support for images, PDFs, text files, and code files (up to 10MB)
+- **File Library**: Team-shared file browser with preview capabilities
+- **Annotation System**: Add comments and annotations to images and documents
+- **Real-time Sync**: Live file updates and annotation notifications across team members
+
+#### 💡 **Idea Management & Voting**
+- **Idea Board**: Submit, discuss, and vote on project ideas and features
+- **Democratic Voting**: Team-based voting system with real-time results
+- **Idea Status Tracking**: Track ideas from submission to implementation
+- **Task Integration**: Convert approved ideas directly into actionable tasks
+
+#### 🎮 **Gamification & Achievements**
+- **Point System**: Earn points for task completion, chat participation, and file sharing
+- **Achievement Badges**: Unlock badges for milestones and team contributions
+- **Celebration Effects**: Confetti animations and sound effects for accomplishments
+- **Team Leaderboard**: Track individual and team progress with friendly competition
+
+#### 🏆 **Judge Submission System**
+- **Submission Builder**: Create comprehensive project submissions for judges
+- **Public Pages**: Generate shareable, judge-friendly submission URLs
+- **Auto-aggregation**: Automatically pull project data from tasks and team activity
+- **Finalization System**: Lock submissions when hackathon judging begins
+
+#### 📊 **In-App Polling**
+- **Quick Polls**: Create team polls for decision-making and consensus building
+- **Real-time Voting**: Live poll results with vote tracking and percentages
+- **Poll History**: Track past decisions and convert winning options to tasks
+- **Integration**: Seamless integration with chat and task management systems
+
+#### 🤖 **System Bot & UX Enhancements**
+- **Motivational Bot**: Friendly system bot with tips and encouragement
+- **Easter Eggs**: Hidden features and fun interactions throughout the platform
+- **Custom Reactions**: Emoji reactions for messages and tasks with custom emoji support
+- **Enhanced Mobile**: Touch-optimized interactions and mobile-specific features
+
+### 🚧 Future Roadmap
+- **Advanced Analytics**: Team productivity insights and performance metrics
+- **External Integrations**: GitHub, Slack, and other developer tool connections
+- **Advanced Notifications**: Push notifications and customizable alert preferences
+- **Team Templates**: Pre-configured team setups for different hackathon types
 
 ## Tech Stack
 
 - **Frontend**: React 19 + Vite (Latest React features with fast development)
 - **Styling**: Tailwind CSS (Custom design system with dark theme)
-- **Backend**: Appwrite (Backend-as-a-Service with real-time capabilities)
+- **UI Components**: shadcn/ui with Radix UI primitives (Accessible, customizable components)
+- **Backend**: Appwrite (Backend-as-a-Service with real-time capabilities and file storage)
 - **Routing**: React Router DOM (Client-side routing with protected routes)
 - **State Management**: React Context API (Global state for auth and team data)
-- **Real-time**: Appwrite Realtime (Live updates for tasks and messages)
-- **Icons**: Heroicons (Consistent SVG icon library)
+- **Real-time**: Appwrite Realtime (Live updates for tasks, messages, and enhancements)
+- **Icons**: Lucide React (Consistent SVG icon library)
 - **Date Handling**: date-fns (Lightweight date formatting)
+- **Rich Text**: React Markdown with syntax highlighting (For file annotations and descriptions)
+- **File Storage**: Appwrite Storage (Secure file uploads with preview generation)
 
 ## Getting Started
 
@@ -121,16 +160,35 @@ npm run dev
 
 ## Available Scripts
 
+### Development
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+
+### Testing
+- `npm run test` - Run tests in watch mode
+- `npm run test:run` - Run tests once
+- `npm run test:styling` - Run styling protection tests
+- `npm run test:responsive` - Run responsive design tests
+
+### Enhancement Setup
+- `npm run setup:enhancements` - Set up enhancement features (collections, storage)
+- `npm run setup:whiteboard` - Set up whiteboard feature
+- `npm run setup:vault` - Set up team vault feature
+- `npm run setup:documents` - Set up collaborative documents
+
+### Utilities
+- `npm run backup` - Create project backup
+- `npm run backup:restore` - Restore from backup
+- `npm run backup:cleanup` - Clean backup files
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui base components (Button, Dialog, Card, etc.)
 │   ├── AppwriteSetupGuide.jsx   # Appwrite setup instructions
 │   ├── Chat.jsx                 # Real-time team chat interface with dark theme
 │   ├── ErrorBoundary.jsx        # Error boundary for crash protection
@@ -151,21 +209,24 @@ src/
 │   ├── TaskModal.jsx            # Enhanced task creation/editing modal with custom dropdowns
 │   └── TeamSelector.jsx         # Team creation/join selector
 ├── contexts/           # React contexts
-│   ├── AuthContext.jsx
-│   └── TeamContext.jsx
+│   ├── AuthContext.jsx          # User authentication state
+│   ├── TeamContext.jsx          # Team membership and operations
+│   └── HackathonNotificationContext.jsx  # Notification system
 ├── hooks/              # Custom React hooks
-│   ├── useAuth.jsx
+│   ├── useAuth.jsx              # Authentication hook
 │   ├── useMessages.jsx          # Message data management hook
 │   ├── useTasks.jsx             # Task data management hook
-│   └── useTeam.jsx
+│   ├── useTeam.jsx              # Team operations hook
+│   ├── useNotifications.jsx     # Notification management
+│   └── useHackathonTeam.jsx     # Hackathon-specific team operations
 ├── lib/                # Third-party integrations
-│   └── appwrite.js
+│   └── appwrite.js              # Appwrite configuration and utilities
 ├── pages/              # Page components
 │   ├── Dashboard.jsx            # Main dashboard with responsive layout
-│   ├── LoginPage.jsx
-│   ├── RegisterPage.jsx
-│   ├── TeamCreationPage.jsx
-│   └── TeamJoinPage.jsx
+│   ├── LoginPage.jsx            # User authentication page
+│   ├── RegisterPage.jsx         # User registration page
+│   ├── TeamCreationPage.jsx     # Team creation interface
+│   └── TeamJoinPage.jsx         # Team joining interface
 ├── services/           # API services
 │   ├── authService.js           # Authentication operations
 │   ├── messageService.js        # Message management operations
@@ -173,12 +234,35 @@ src/
 │   ├── taskService.js           # Task management operations
 │   ├── teamMemberService.js     # Team member management with name caching
 │   ├── teamService.js           # Team operations
-│   └── userNameService.js       # User name resolution and caching
+│   ├── userNameService.js       # User name resolution and caching
+│   ├── fileService.js           # File upload and annotation system (enhancement)
+│   ├── ideaService.js           # Idea management and voting (enhancement)
+│   ├── gamificationService.js   # Points and achievements (enhancement)
+│   ├── submissionService.js     # Judge submission pages (enhancement)
+│   ├── pollService.js           # In-app polling system (enhancement)
+│   └── botService.js            # System bot and UX enhancements (enhancement)
+├── utils/              # Utility functions and helpers
+├── test/               # Test utilities and configurations
+├── assets/             # Images, icons, static files
 ├── docs/               # Documentation
-│   ├── appwrite-setup.md        # Backend setup guide
-│   ├── dashboard-components.md  # Component documentation
-│   └── development-guide.md     # Development workflow
-└── App.jsx             # Main app component
+│   ├── enhancement-foundation.md    # Enhancement setup guide
+│   ├── enhancement-features.md      # Comprehensive feature documentation
+│   ├── enhancement-setup-guide.md   # Quick setup guide for enhancements
+│   ├── appwrite-setup.md            # Backend setup guide
+│   ├── dashboard-components.md      # Component documentation
+│   └── development-guide.md         # Development workflow
+├── scripts/            # Utility scripts
+│   ├── setup-enhancements.js       # Enhancement collection and storage setup
+│   ├── backup-utility.js           # Project backup system
+│   └── workflow-demo.js            # Development workflow demonstration
+├── .kiro/              # Kiro configuration and specifications
+│   ├── specs/          # Project specifications
+│   │   ├── hackerden-mvp/          # MVP requirements, design, and tasks
+│   │   └── hackerden-enhancements/ # Enhancement requirements, design, and tasks
+│   ├── settings/       # Kiro settings and configuration
+│   └── steering/       # Development steering rules and guidelines
+├── App.jsx             # Main app component
+└── main.jsx            # Application entry point
 ```
 
 ## Modern UI/UX Design
@@ -430,7 +514,7 @@ const {
 
 ## Database Schema
 
-### Collections
+### MVP Collections
 
 #### teams
 - `name` (string): Team name
@@ -463,9 +547,124 @@ const {
 - `createdAt` (datetime): Creation timestamp
 - `updatedAt` (datetime): Last update timestamp
 
+### Enhancement Collections
+
+#### files
+- `teamId` (string): Reference to team
+- `uploadedBy` (string): User ID of uploader
+- `fileName` (string): Original file name
+- `fileType` (string): MIME type
+- `fileSize` (number): File size in bytes
+- `storageId` (string): Appwrite Storage file ID
+- `previewUrl` (string): Generated preview URL
+- `annotationCount` (number): Number of annotations
+- `createdAt` (datetime): Upload timestamp
+- `updatedAt` (datetime): Last update timestamp
+
+#### file_annotations
+- `fileId` (string): Reference to file
+- `userId` (string): User ID of annotator
+- `content` (string): Annotation text
+- `position` (object): Annotation position {x, y, width?, height?}
+- `type` (string): Annotation type ('point', 'area', 'line')
+- `createdAt` (datetime): Creation timestamp
+
+#### ideas
+- `teamId` (string): Reference to team
+- `createdBy` (string): User ID of creator
+- `title` (string): Idea title
+- `description` (string): Idea description
+- `tags` (array): Idea tags for categorization
+- `status` (string): Idea status ('submitted', 'approved', 'in_progress', 'completed', 'rejected')
+- `voteCount` (number): Total vote count
+- `createdAt` (datetime): Creation timestamp
+- `updatedAt` (datetime): Last update timestamp
+
+#### idea_votes
+- `ideaId` (string): Reference to idea
+- `userId` (string): User ID of voter
+- `createdAt` (datetime): Vote timestamp
+
+#### user_points
+- `userId` (string): Reference to user
+- `teamId` (string): Reference to team
+- `totalPoints` (number): Total points earned
+- `pointsBreakdown` (object): Points by category {tasksCompleted, messagesPosted, filesUploaded, ideasSubmitted, votesGiven}
+- `updatedAt` (datetime): Last update timestamp
+
+#### achievements
+- `userId` (string): Reference to user
+- `achievementType` (string): Type of achievement
+- `achievementName` (string): Display name
+- `description` (string): Achievement description
+- `iconUrl` (string): Achievement icon URL
+- `pointsAwarded` (number): Points awarded for achievement
+- `unlockedAt` (datetime): Unlock timestamp
+
+#### submissions
+- `teamId` (string): Reference to team
+- `title` (string): Project title
+- `description` (string): Project description
+- `techStack` (array): Technologies used
+- `challenges` (string): Challenges faced
+- `accomplishments` (string): What was accomplished
+- `futureWork` (string): Future improvements
+- `demoUrl` (string): Live demo URL
+- `repositoryUrl` (string): Code repository URL
+- `isFinalized` (boolean): Whether submission is locked
+- `publicUrl` (string): Public judge access URL
+- `createdAt` (datetime): Creation timestamp
+- `updatedAt` (datetime): Last update timestamp
+
+#### polls
+- `teamId` (string): Reference to team
+- `createdBy` (string): User ID of creator
+- `question` (string): Poll question
+- `options` (array): Poll options
+- `allowMultiple` (boolean): Allow multiple selections
+- `expiresAt` (datetime): Poll expiration time
+- `isActive` (boolean): Whether poll is active
+- `totalVotes` (number): Total vote count
+- `createdAt` (datetime): Creation timestamp
+
+#### poll_votes
+- `pollId` (string): Reference to poll
+- `userId` (string): User ID of voter
+- `selectedOptions` (array): Selected option indices
+- `createdAt` (datetime): Vote timestamp
+
+#### reactions
+- `targetId` (string): ID of target (message or task)
+- `targetType` (string): Type of target ('message', 'task')
+- `userId` (string): User ID of reactor
+- `emoji` (string): Emoji or custom emoji ID
+- `isCustom` (boolean): Whether emoji is custom
+- `createdAt` (datetime): Reaction timestamp
+
+### Storage Buckets
+
+#### team-files
+- **Purpose**: Team file uploads and sharing
+- **Size Limit**: 10MB per file
+- **Supported Types**: Images, PDFs, text files, code files
+- **Permissions**: Team-based read/write access
+
+#### custom-emoji
+- **Purpose**: Custom emoji and sticker uploads
+- **Size Limit**: 1MB per file
+- **Supported Types**: PNG, GIF, WebP images
+- **Permissions**: Team-based read/write access
+
 ## Documentation
 
 ### Additional Documentation
+
+#### Enhancement Features
+- **Enhancement Features**: `docs/enhancement-features.md` - Comprehensive guide to all enhancement features
+- **Enhancement Setup Guide**: `docs/enhancement-setup-guide.md` - Quick setup guide for enhancement features
+- **Enhancement Foundation**: `docs/enhancement-foundation.md` - Technical foundation and architecture
+
+#### MVP Documentation
 - **Appwrite Setup**: `docs/appwrite-setup.md` - Backend configuration guide
 - **Dashboard Components**: `docs/dashboard-components.md` - Detailed component documentation
 - **Development Guide**: `docs/development-guide.md` - Development workflow and best practices
@@ -486,9 +685,23 @@ const {
 ## Development Workflow
 
 This project follows a spec-driven development approach:
-- Requirements are defined in `.kiro/specs/hackerden-mvp/requirements.md`
-- Design decisions are documented in `.kiro/specs/hackerden-mvp/design.md`
-- Implementation tasks are tracked in `.kiro/specs/hackerden-mvp/tasks.md`
+
+### MVP Foundation
+- Requirements: `.kiro/specs/hackerden-mvp/requirements.md`
+- Design: `.kiro/specs/hackerden-mvp/design.md`
+- Tasks: `.kiro/specs/hackerden-mvp/tasks.md`
+
+### Enhancement Features
+- Requirements: `.kiro/specs/hackerden-enhancements/requirements.md`
+- Design: `.kiro/specs/hackerden-enhancements/design.md`
+- Tasks: `.kiro/specs/hackerden-enhancements/tasks.md`
+
+### Architecture Principles
+- **shadcn/ui First**: All new components use shadcn/ui primitives exclusively
+- **MVP Compatibility**: Enhancements integrate seamlessly without breaking existing functionality
+- **Progressive Enhancement**: Features degrade gracefully when disabled or unavailable
+- **Mobile-First**: All features optimized for mobile and desktop experiences
+- **Real-time by Default**: Live updates across all enhancement features
 
 ## License
 
