@@ -4,7 +4,7 @@
   "description": "Monitors all source files (JSX, JS, CSS, config files) and automatically updates project documentation to keep it synchronized with code changes for open source contributors.",
   "version": "1",
   "when": {
-    "type": "fileEdited",
+    "type": "userTriggered",
     "patterns": [
       "src/**/*.jsx",
       "src/**/*.js",

@@ -1,6 +1,6 @@
 # HackerDen
 
-A modern, hackathon-focused collaborative platform featuring comprehensive hackathon management, team coordination, advanced task tracking with drag-and-drop functionality, real-time communication, and engaging enhancement features including file sharing, gamification, and judge submissions.
+A modern, hackathon-focused collaborative platform featuring comprehensive hackathon management, team coordination, advanced task tracking with drag-and-drop functionality, real-time communication, and a comprehensive enhancement suite including file sharing, idea management, gamification, judge submissions, polling, and delightful UX features.
 
 ## Features
 
@@ -57,49 +57,82 @@ A modern, hackathon-focused collaborative platform featuring comprehensive hacka
 - **Touch Optimization**: Mobile-friendly interactions with proper touch targets
 - **Visual Feedback**: Consistent hover states, focus indicators, and transition effects
 
-### 🚀 Enhancement Features (In Development)
+### 🚀 Enhancement Features (Foundation Complete, Implementation In Progress)
 
-#### 📁 **File Sharing & Collaboration**
-- **File Upload System**: Support for images, PDFs, text files, and code files (up to 10MB)
-- **File Library**: Team-shared file browser with preview capabilities
-- **Annotation System**: Add comments and annotations to images and documents
-- **Real-time Sync**: Live file updates and annotation notifications across team members
+The HackerDen Enhancement Suite transforms the platform from a functional collaboration tool into an engaging, gamified hackathon experience. The foundation is complete with all Appwrite collections and storage buckets configured.
 
-#### 💡 **Idea Management & Voting**
-- **Idea Board**: Submit, discuss, and vote on project ideas and features
-- **Democratic Voting**: Team-based voting system with real-time results
-- **Idea Status Tracking**: Track ideas from submission to implementation
-- **Task Integration**: Convert approved ideas directly into actionable tasks
+#### 📁 **File Sharing & Collaboration System**
+- **File Upload & Storage**: Support for images, PDFs, text files, and code files (up to 10MB per file)
+- **Team File Library**: Shared file browser with preview capabilities and metadata tracking
+- **Interactive Annotations**: Add comments and markers to images and documents with Canvas-based positioning
+- **Real-time Synchronization**: Live file updates and annotation notifications across all team members
+- **Syntax Highlighting**: Code file preview with language-specific highlighting for development files
 
-#### 🎮 **Gamification & Achievements**
-- **Point System**: Earn points for task completion, chat participation, and file sharing
-- **Achievement Badges**: Unlock badges for milestones and team contributions
-- **Celebration Effects**: Confetti animations and sound effects for accomplishments
-- **Team Leaderboard**: Track individual and team progress with friendly competition
+#### 💡 **Idea Management & Voting Board**
+- **Democratic Idea Submission**: Create ideas with titles, descriptions, and tags for team consideration
+- **Real-time Voting System**: Team members vote on ideas with live results and duplicate prevention
+- **Status Progression**: Ideas move from submitted → approved → in progress → completed
+- **Task Integration**: Approved ideas automatically convert to actionable tasks in the Kanban board
+- **Chat Integration**: Idea activities generate notifications in team chat for visibility
+
+#### 🎮 **Gamification & Achievement System**
+- **Comprehensive Point System**: Task completion (10pts), messages (1pt), file uploads (5pts), ideas (3pts), votes (1pt)
+- **Achievement Badges**: Unlock badges for milestones with fun names and celebration effects
+- **Celebration Effects**: Confetti animations and optional sound effects for task completion and achievements
+- **Team Leaderboard**: Real-time individual and team progress tracking with friendly competition
+- **Progress Visualization**: Visual progress bars and achievement collections with tooltips
 
 #### 🏆 **Judge Submission System**
-- **Submission Builder**: Create comprehensive project submissions for judges
-- **Public Pages**: Generate shareable, judge-friendly submission URLs
-- **Auto-aggregation**: Automatically pull project data from tasks and team activity
-- **Finalization System**: Lock submissions when hackathon judging begins
+- **Comprehensive Submission Builder**: Project description, tech stack, challenges, accomplishments, future work
+- **Public Judge Pages**: Generate shareable URLs accessible without authentication for easy judge access
+- **Auto-aggregation**: Automatically pull project data from completed tasks, uploaded files, and team contributions
+- **Team Contributions**: Individual member contribution tracking and role visualization
+- **Finalization System**: Lock submissions when hackathon judging begins to prevent further edits
 
-#### 📊 **In-App Polling**
-- **Quick Polls**: Create team polls for decision-making and consensus building
-- **Real-time Voting**: Live poll results with vote tracking and percentages
-- **Poll History**: Track past decisions and convert winning options to tasks
-- **Integration**: Seamless integration with chat and task management systems
+#### 📊 **In-App Polling System**
+- **Flexible Poll Creation**: Multiple choice, yes/no, and custom option polls with expiration settings
+- **Real-time Voting**: Live poll results with vote percentages and user vote tracking
+- **Poll-to-Task Conversion**: Convert winning poll options directly into actionable tasks
+- **Poll History**: Track past team decisions with collapsible details and result exports
+- **Chat Integration**: Polls appear inline in team chat with interactive voting buttons
 
 #### 🤖 **System Bot & UX Enhancements**
-- **Motivational Bot**: Friendly system bot with tips and encouragement
-- **Easter Eggs**: Hidden features and fun interactions throughout the platform
-- **Custom Reactions**: Emoji reactions for messages and tasks with custom emoji support
-- **Enhanced Mobile**: Touch-optimized interactions and mobile-specific features
+- **Contextual Bot Messages**: Motivational messages and productivity tips based on team activity patterns
+- **Easter Egg System**: Hidden commands (/party, /celebrate) trigger team-wide special effects
+- **Enhanced Tooltips**: Witty tooltips and pop-culture references throughout the interface
+- **Custom Reactions**: Emoji reactions for messages and tasks with custom emoji upload support
+- **Discovery Features**: Hidden features and achievements for platform exploration
 
-### 🚧 Future Roadmap
+#### 📱 **Enhanced Mobile Experience**
+- **Touch-Optimized Interactions**: Large touch targets, swipe gestures, and long-press functionality
+- **Camera Integration**: Direct photo upload from mobile camera for file sharing
+- **Mobile-Optimized Animations**: Celebration effects and UI transitions designed for mobile screens
+- **Auto-Save Forms**: Prevent data loss on mobile with continuous form saving
+- **Performance Modes**: Lite modes for slower devices with reduced animations and effects
+
+## Enhancement Development Status
+
+### ✅ Foundation Complete
+- [x] **Enhancement Architecture**: All 10 Appwrite collections and 2 storage buckets configured
+- [x] **Service Layer**: Base service files created with error handling and real-time integration
+- [x] **shadcn/ui Integration**: Component library configured for consistent enhancement UI
+- [x] **Setup Scripts**: Automated enhancement setup with comprehensive testing
+- [x] **MVP Integration Points**: Chat notifications, task conversion, and team-scoped data
+
+### 🚧 Currently Implementing
+- [ ] **File Sharing System**: Upload, preview, and annotation components
+- [ ] **Idea Management Board**: Submission, voting, and status tracking interface
+- [ ] **Gamification UI**: Point tracking, achievement notifications, and celebration effects
+- [ ] **Judge Submission Pages**: Builder interface and public submission pages
+- [ ] **Polling System**: Poll creation, voting interface, and results display
+- [ ] **Bot System**: Motivational messages, easter eggs, and reaction system
+
+### 🔮 Future Roadmap
 - **Advanced Analytics**: Team productivity insights and performance metrics
 - **External Integrations**: GitHub, Slack, and other developer tool connections
 - **Advanced Notifications**: Push notifications and customizable alert preferences
 - **Team Templates**: Pre-configured team setups for different hackathon types
+- **AI Features**: Smart suggestions, automated task creation, and intelligent bot responses
 
 ## Tech Stack
 
@@ -112,8 +145,9 @@ A modern, hackathon-focused collaborative platform featuring comprehensive hacka
 - **Real-time**: Appwrite Realtime (Live updates for tasks, messages, and enhancements)
 - **Icons**: Lucide React (Consistent SVG icon library)
 - **Date Handling**: date-fns (Lightweight date formatting)
-- **Rich Text**: React Markdown with syntax highlighting (For file annotations and descriptions)
-- **File Storage**: Appwrite Storage (Secure file uploads with preview generation)
+- **Rich Text**: React Markdown with remark-gfm and rehype-highlight (For file annotations and descriptions)
+- **File Storage**: Appwrite Storage (Secure file uploads with preview generation and team-based access control)
+- **Animations**: CSS animations and Tailwind transitions (No external animation libraries for performance)
 
 ## Getting Started
 
@@ -138,22 +172,49 @@ npm install
 3. Set up environment variables:
 Copy the example environment file and add your credentials:
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Then edit `.env.local` with your actual Appwrite credentials:
+Then edit `.env` with your actual Appwrite credentials:
 ```env
-VITE_APPWRITE_ENDPOINT=https://your-appwrite-endpoint
+# Core Appwrite Configuration
+VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
 VITE_APPWRITE_PROJECT_ID=your-project-id
 VITE_APPWRITE_DATABASE_ID=your-database-id
+
+# Required for Enhancement Setup (Server API Key)
+APPWRITE_API_KEY=your-server-api-key
+
+# Optional Enhancement Feature Flags
+VITE_ENABLE_FILE_SHARING=true
+VITE_ENABLE_GAMIFICATION=true
+VITE_ENABLE_IDEA_BOARD=true
+VITE_ENABLE_POLLING=true
+VITE_ENABLE_BOT_FEATURES=true
+VITE_ENABLE_SOUND_EFFECTS=true
+VITE_ENABLE_ANIMATIONS=true
 ```
 
-**Important**: Never commit `.env.local` to version control. It's automatically ignored by git.
+**Important**: Never commit `.env` to version control. It's automatically ignored by git.
 
-4. Set up Appwrite:
-Follow the setup guide in `docs/appwrite-setup.md` to configure your Appwrite instance.
+**Development Status**: The enhancement foundation is complete with all Appwrite collections and storage buckets configured. Individual enhancement features are currently being implemented on top of this solid foundation.
 
-5. Start the development server:
+4. Set up Appwrite MVP Collections:
+Follow the setup guide in `docs/appwrite-setup.md` to configure your basic Appwrite collections.
+
+5. Set up Enhancement Features:
+```bash
+# Install enhancement dependencies
+npm install react-markdown remark-gfm rehype-highlight
+
+# Create enhancement collections and storage buckets
+npm run setup:enhancements
+
+# Verify setup with tests
+npm run test:run -- src/services/__tests__/enhancementServices.test.js
+```
+
+6. Start the development server:
 ```bash
 npm run dev
 ```
@@ -173,10 +234,10 @@ npm run dev
 - `npm run test:responsive` - Run responsive design tests
 
 ### Enhancement Setup
-- `npm run setup:enhancements` - Set up enhancement features (collections, storage)
-- `npm run setup:whiteboard` - Set up whiteboard feature
-- `npm run setup:vault` - Set up team vault feature
-- `npm run setup:documents` - Set up collaborative documents
+- `npm run setup:enhancements` - Set up all enhancement features (collections, storage buckets, permissions)
+- `npm run setup:whiteboard` - Set up whiteboard feature (future enhancement)
+- `npm run setup:vault` - Set up team vault feature (future enhancement)
+- `npm run setup:documents` - Set up collaborative documents (future enhancement)
 
 ### Utilities
 - `npm run backup` - Create project backup
@@ -235,12 +296,13 @@ src/
 │   ├── teamMemberService.js     # Team member management with name caching
 │   ├── teamService.js           # Team operations
 │   ├── userNameService.js       # User name resolution and caching
-│   ├── fileService.js           # File upload and annotation system (enhancement)
-│   ├── ideaService.js           # Idea management and voting (enhancement)
-│   ├── gamificationService.js   # Points and achievements (enhancement)
-│   ├── submissionService.js     # Judge submission pages (enhancement)
-│   ├── pollService.js           # In-app polling system (enhancement)
-│   └── botService.js            # System bot and UX enhancements (enhancement)
+│   ├── fileService.js           # File upload, storage, and annotation system (enhancement)
+│   ├── ideaService.js           # Idea management, voting, and task conversion (enhancement)
+│   ├── gamificationService.js   # Points, achievements, and celebration system (enhancement)
+│   ├── submissionService.js     # Judge submission pages and public URLs (enhancement)
+│   ├── pollService.js           # In-app polling and decision-making system (enhancement)
+│   ├── botService.js            # System bot, easter eggs, and UX enhancements (enhancement)
+│   └── reactionService.js       # Emoji reactions and custom emoji system (enhancement)
 ├── utils/              # Utility functions and helpers
 ├── test/               # Test utilities and configurations
 ├── assets/             # Images, icons, static files
@@ -252,9 +314,12 @@ src/
 │   ├── dashboard-components.md      # Component documentation
 │   └── development-guide.md         # Development workflow
 ├── scripts/            # Utility scripts
-│   ├── setup-enhancements.js       # Enhancement collection and storage setup
+│   ├── setup-enhancements.js       # Enhancement collection and storage setup (10 collections, 2 storage buckets)
 │   ├── backup-utility.js           # Project backup system
-│   └── workflow-demo.js            # Development workflow demonstration
+│   ├── workflow-demo.js            # Development workflow demonstration
+│   ├── setup-vault.js              # Team vault feature setup (future enhancement)
+│   ├── setup-whiteboard.js         # Whiteboard feature setup (future enhancement)
+│   └── setup-collaborative-documents.js  # Collaborative documents setup (future enhancement)
 ├── .kiro/              # Kiro configuration and specifications
 │   ├── specs/          # Project specifications
 │   │   ├── hackerden-mvp/          # MVP requirements, design, and tasks
@@ -568,6 +633,92 @@ const {
 - `position` (object): Annotation position {x, y, width?, height?}
 - `type` (string): Annotation type ('point', 'area', 'line')
 - `createdAt` (datetime): Creation timestamp
+
+#### ideas
+- `teamId` (string): Reference to team
+- `createdBy` (string): User ID of idea creator
+- `title` (string): Idea title
+- `description` (string): Detailed idea description
+- `tags` (array): Array of tag strings for categorization
+- `status` (string): Idea status ('submitted', 'approved', 'in_progress', 'completed', 'rejected')
+- `voteCount` (number): Total number of votes received
+- `createdAt` (datetime): Creation timestamp
+- `updatedAt` (datetime): Last update timestamp
+
+#### idea_votes
+- `ideaId` (string): Reference to idea
+- `userId` (string): User ID of voter
+- `createdAt` (datetime): Vote timestamp
+
+#### user_points
+- `userId` (string): Reference to user
+- `teamId` (string): Reference to team
+- `totalPoints` (number): Total accumulated points
+- `pointsBreakdown` (object): Points by category {tasksCompleted, messagesPosted, filesUploaded, ideasSubmitted, votesGiven}
+- `updatedAt` (datetime): Last update timestamp
+
+#### achievements
+- `userId` (string): Reference to user
+- `achievementType` (string): Type of achievement
+- `achievementName` (string): Display name of achievement
+- `description` (string): Achievement description
+- `iconUrl` (string): Achievement badge icon URL
+- `pointsAwarded` (number): Points awarded for this achievement
+- `unlockedAt` (datetime): Achievement unlock timestamp
+
+#### submissions
+- `teamId` (string): Reference to team
+- `title` (string): Project title
+- `description` (string): Project description
+- `techStack` (array): Array of technology strings
+- `challenges` (string): Challenges faced during development
+- `accomplishments` (string): Key accomplishments and features
+- `futureWork` (string): Planned future improvements
+- `demoUrl` (string): Live demo URL
+- `repositoryUrl` (string): Source code repository URL
+- `isFinalized` (boolean): Whether submission is locked for judging
+- `publicUrl` (string): Public judge-accessible URL
+- `createdAt` (datetime): Creation timestamp
+- `updatedAt` (datetime): Last update timestamp
+
+#### polls
+- `teamId` (string): Reference to team
+- `createdBy` (string): User ID of poll creator
+- `question` (string): Poll question
+- `options` (array): Array of option strings
+- `allowMultiple` (boolean): Whether multiple selections are allowed
+- `expiresAt` (datetime): Poll expiration time
+- `isActive` (boolean): Whether poll is currently active
+- `totalVotes` (number): Total number of votes cast
+- `createdAt` (datetime): Creation timestamp
+
+#### poll_votes
+- `pollId` (string): Reference to poll
+- `userId` (string): User ID of voter
+- `selectedOptions` (array): Array of selected option strings
+- `createdAt` (datetime): Vote timestamp
+
+#### reactions
+- `targetId` (string): ID of target (message or task)
+- `targetType` (string): Type of target ('message' or 'task')
+- `userId` (string): User ID of reactor
+- `emoji` (string): Emoji character or custom emoji ID
+- `isCustom` (boolean): Whether this is a custom uploaded emoji
+- `createdAt` (datetime): Reaction timestamp
+
+### Storage Buckets
+
+#### team-files
+- **Purpose**: Team file uploads and sharing
+- **Size Limit**: 10MB per file
+- **Supported Types**: Images (JPG, PNG, GIF, WebP, SVG), Documents (PDF, TXT, MD, CSV), Code (JS, TS, JSX, TSX, CSS, HTML, XML, JSON)
+- **Permissions**: Team-based read/write access
+
+#### custom-emoji
+- **Purpose**: Custom emoji and sticker uploads
+- **Size Limit**: 1MB per file
+- **Supported Types**: Images (JPG, PNG, GIF, WebP)
+- **Permissions**: Team-based read/write accesseatedAt` (datetime): Creation timestamp
 
 #### ideas
 - `teamId` (string): Reference to team

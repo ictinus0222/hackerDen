@@ -15,7 +15,10 @@ npm run dev
 # - Create and join teams
 # - Create and manage tasks
 # - Send chat messages
+# - View real-time updates
 ```
+
+**Note**: The enhancement foundation is complete with all collections and storage buckets configured. Individual enhancement features are currently being implemented on top of this foundation.
 
 ### 2. Environment Configuration
 Add enhancement-specific environment variables to your `.env` file:

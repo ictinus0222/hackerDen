@@ -13,7 +13,11 @@
   - _Requirements: All enhancement requirements depend on this foundation_
 
 - [ ] 2. File Sharing System Implementation
-- [ ] 2.1 Create file upload and storage functionality
+- [x] 2.1 Create file upload and storage functionality
+
+
+
+
   - Implement FileService with uploadFile, getTeamFiles, deleteFile methods using Appwrite Storage API
   - Create FileUpload component using shadcn/ui Card with drag-and-drop zone and Progress indicator
   - Add file type validation (images, PDFs, text files, code files) with 10MB size limit
@@ -21,7 +25,12 @@
   - Write unit tests for file upload functionality and error handling
   - _Requirements: 1.1, 1.2, 1.6_
 
-- [ ] 2.2 Build file library and preview system
+- [x] 2.2 Build file library and preview system
+
+
+
+
+
   - Create FileLibrary component using shadcn/ui Card grid layout with ScrollArea for file browsing
   - Implement FileCard component with Badge for file type, file size display, and DropdownMenu for actions
   - Build FilePreview Dialog component with file viewing capabilities and download functionality
@@ -29,7 +38,12 @@
   - Create file deletion functionality with confirmation Dialog
   - _Requirements: 1.2, 1.3_
 
-- [ ] 2.3 Implement file annotation system
+- [x] 2.3 Implement file annotation system
+
+
+
+
+
   - Create AnnotationOverlay component using Popover for adding comments to images and documents
   - Implement addAnnotation and getFileAnnotations methods in FileService
   - Build annotation display system with position tracking for images using Canvas API

@@ -242,33 +242,173 @@ class FileService extends BaseService {
   }
 
   /**
+   * Update an annotation
+   * @param {string} annotationId - Annotation document ID
+   * @param {Object} updates - Updates to apply
+   * @returns {Promise<Object>} Updated annotation document
+   */
+  async updateAnnotation(annotationId, updates) {
+    try {
+      const updateData = {
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      // If position is being updated, stringify it
+      if (updates.position) {
+        updateData.position = JSON.stringify(updates.position);
+      }
+
+      const annotation = await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.FILE_ANNOTATIONS,
+        annotationId,
+        updateData
+      );
+
+      return {
+        ...annotation,
+        position: JSON.parse(annotation.position)
+      };
+    } catch (error) {
+      console.error('Error updating annotation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an annotation
+   * @param {string} annotationId - Annotation document ID
+   * @returns {Promise<void>}
+   */
+  async deleteAnnotation(annotationId) {
+    try {
+      // Get annotation to find the file ID
+      const annotation = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.FILE_ANNOTATIONS,
+        annotationId
+      );
+
+      // Delete the annotation
+      await databases.deleteDocument(
+        DATABASE_ID,
+        COLLECTIONS.FILE_ANNOTATIONS,
+        annotationId
+      );
+
+      // Update annotation count on file
+      const fileDoc = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.FILES,
+        annotation.fileId
+      );
+
+      await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.FILES,
+        annotation.fileId,
+        {
+          annotationCount: Math.max(0, fileDoc.annotationCount - 1),
+          updatedAt: new Date().toISOString()
+        }
+      );
+    } catch (error) {
+      console.error('Error deleting annotation:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Subscribe to file changes for a team
    * @param {string} teamId - Team identifier
    * @param {Function} callback - Callback function for updates
    * @returns {Function} Unsubscribe function
    */
-  subscribeToFiles(teamId, callback) {
+  async subscribeToFiles(teamId, callback) {
     try {
+      const channelName = `databases.${DATABASE_ID}.collections.${COLLECTIONS.FILES}.documents`;
+      
+      console.log('🔔 Subscribing to files channel:', channelName, 'for team:', teamId);
+      
       // Import realtime service dynamically to avoid circular dependencies
-      import('./realtimeService.js').then(({ realtimeService }) => {
-        const channelName = `databases.${DATABASE_ID}.collections.${COLLECTIONS.FILES}.documents`;
-        
-        return realtimeService.subscribe(
-          channelName,
-          (response) => {
-            // Filter events for this team only
-            if (response.payload?.teamId === teamId) {
-              callback(response);
-            }
-          },
-          {
-            teamId,
-            collection: COLLECTIONS.FILES
+      const { realtimeService } = await import('./realtimeService.js');
+      
+      return realtimeService.subscribe(
+        channelName,
+        (response) => {
+          console.log('🔔 Raw file event received:', response);
+          // Filter events for this team only
+          if (response.payload?.teamId === teamId) {
+            console.log('🔔 File event matches team, processing:', response);
+            callback(response);
+          } else {
+            console.log('🔔 File event for different team, ignoring. Expected:', teamId, 'Got:', response.payload?.teamId);
           }
-        );
-      });
+        },
+        {
+          onError: (error, retryCount) => {
+            console.error(`🔔 File subscription error (attempt ${retryCount}):`, error);
+          },
+          onReconnect: (retryCount) => {
+            console.log(`🔔 File subscription reconnected after ${retryCount} attempts`);
+          }
+        }
+      );
     } catch (error) {
       this.handleError('subscribeToFiles', error, { teamId });
+      return () => {}; // Return no-op function on error
+    }
+  }
+
+  /**
+   * Subscribe to annotation changes for a file
+   * @param {string} fileId - File identifier
+   * @param {Function} callback - Callback function for updates
+   * @returns {Function} Unsubscribe function
+   */
+  async subscribeToAnnotations(fileId, callback) {
+    try {
+      const channelName = `databases.${DATABASE_ID}.collections.${COLLECTIONS.FILE_ANNOTATIONS}.documents`;
+      
+      console.log('🔔 Subscribing to annotations channel:', channelName, 'for file:', fileId);
+      
+      // Import realtime service dynamically to avoid circular dependencies
+      const { realtimeService } = await import('./realtimeService.js');
+      
+      return realtimeService.subscribe(
+        channelName,
+        (response) => {
+          console.log('🔔 Raw annotation event received:', response);
+          // Filter events for this file only
+          if (response.payload?.fileId === fileId) {
+            console.log('🔔 Annotation event matches file, processing:', response);
+            
+            // Parse position if it exists
+            if (response.payload?.position) {
+              try {
+                response.payload.position = JSON.parse(response.payload.position);
+              } catch (e) {
+                console.warn('Could not parse annotation position:', e);
+              }
+            }
+            
+            callback(response);
+          } else {
+            console.log('🔔 Annotation event for different file, ignoring. Expected:', fileId, 'Got:', response.payload?.fileId);
+          }
+        },
+        {
+          onError: (error, retryCount) => {
+            console.error(`🔔 Annotation subscription error (attempt ${retryCount}):`, error);
+          },
+          onReconnect: (retryCount) => {
+            console.log(`🔔 Annotation subscription reconnected after ${retryCount} attempts`);
+          }
+        }
+      );
+    } catch (error) {
+      this.handleError('subscribeToAnnotations', error, { fileId });
       return () => {}; // Return no-op function on error
     }
   }
