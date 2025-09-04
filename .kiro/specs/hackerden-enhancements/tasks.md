@@ -52,7 +52,12 @@
   - _Requirements: 1.3, 1.4_
 
 - [ ] 3. Idea Management and Voting System
-- [ ] 3.1 Create idea submission functionality
+- [x] 3.1 Create idea submission functionality
+
+
+
+
+
   - Implement IdeaService with createIdea, getTeamIdeas, updateIdeaStatus methods
   - Build IdeaModal component using shadcn/ui Dialog with Form, Input, Textarea for idea creation
   - Add idea validation (title, description required) and tag system using Input with dynamic tag addition
@@ -60,7 +65,12 @@
   - Implement idea status management (submitted, approved, in-progress, completed, rejected)
   - _Requirements: 2.1, 2.2, 2.5_
 
-- [ ] 3.2 Build idea board and voting interface
+- [x] 3.2 Build idea board and voting interface
+
+
+
+
+
   - Create IdeaBoard component using ScrollArea with Card grid layout and Select for sorting/filtering
   - Implement IdeaCard component with Badge for status, vote count display, and Button for voting
   - Build voting functionality with voteOnIdea method preventing duplicate votes per user
@@ -68,7 +78,11 @@
   - Create idea sorting options (by votes, date, status) and filtering by tags
   - _Requirements: 2.1, 2.3, 2.4_
 
-- [ ] 3.3 Integrate ideas with existing systems
+- [x] 3.3 Integrate ideas with existing systems
+
+
+
+
   - Implement convertIdeaToTask functionality to create tasks from approved ideas
   - Add chat integration to post system messages when ideas are submitted, voted on, or approved
   - Create idea status threshold system for automatic approval based on vote count

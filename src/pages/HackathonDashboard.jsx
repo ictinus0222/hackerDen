@@ -12,6 +12,7 @@ import SimpleDocumentPage from './SimpleDocumentPage';
 import ChatPage from './ChatPage';
 import WhiteboardPage from './WhiteboardPage';
 import VaultPage from './VaultPage';
+import IdeasPage from './IdeasPage';
 
 const HackathonDashboard = () => {
   const { hackathonId } = useParams();
@@ -99,6 +100,7 @@ const HackathonDashboard = () => {
         <Route path="tasks" element={<TasksPage />} />
         <Route path="documents" element={<SimpleDocumentPage />} />
         <Route path="chat" element={<ChatPage />} />
+        <Route path="ideas" element={<IdeasPage />} />
         <Route path="whiteboard" element={<WhiteboardPage />} />
         <Route path="vault" element={<VaultPage />} />
         <Route path="" element={<Navigate to="dashboard" replace />} />

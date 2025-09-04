@@ -83,6 +83,7 @@ const COLLECTIONS = {
     name: 'Ideas',
     attributes: [
       { key: 'teamId', type: 'string', size: 255, required: true },
+      { key: 'hackathonId', type: 'string', size: 255, required: true },
       { key: 'createdBy', type: 'string', size: 255, required: true },
       { key: 'title', type: 'string', size: 255, required: true },
       { key: 'description', type: 'string', size: 2000, required: true },
@@ -94,6 +95,7 @@ const COLLECTIONS = {
     ],
     indexes: [
       { key: 'teamId_idx', type: 'key', attributes: ['teamId'] },
+      { key: 'hackathonId_idx', type: 'key', attributes: ['hackathonId'] },
       { key: 'createdBy_idx', type: 'key', attributes: ['createdBy'] },
       { key: 'status_idx', type: 'key', attributes: ['status'] },
       { key: 'voteCount_idx', type: 'key', attributes: ['voteCount'], orders: ['desc'] }
