@@ -178,7 +178,12 @@ export const messageService = {
       'task_completed',
       'vault_secret_added', 
       'vault_secret_updated', 
-      'vault_secret_deleted'
+      'vault_secret_deleted',
+      'idea_created',
+      'idea_voted',
+      'idea_status_changed',
+      'idea_auto_approved',
+      'idea_converted_to_task'
     ];
     return validTypes.includes(type);
   }

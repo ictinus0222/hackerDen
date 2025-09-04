@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Git History Tracker",
+  "description": "Monitors git repository changes and creates a comprehensive version control history document that includes commit details and brief summaries of changes made to the codebase.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      ".git/logs/HEAD",
+      ".git/refs/heads/*",
+      "package.json",
+      "src/**/*",
+      "docs/**/*",
+      "scripts/**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the git repository history and create a comprehensive version control history document. Include recent commit details with timestamps, authors, commit messages, and brief summaries of the changes made. Focus on commits that affect the main codebase (src/, docs/, scripts/, package.json). Format the output as a markdown document with sections for recent commits, change summaries, and any notable patterns in the development history. Make it useful for tracking project evolution and understanding recent development activity."
+  }
+}
