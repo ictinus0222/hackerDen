@@ -1,7 +1,18 @@
 import client, { databases, DATABASE_ID, COLLECTIONS } from '../lib/appwrite';
 import { ID, Query } from 'appwrite';
+import { gamificationService } from './gamificationService';
 
 const MESSAGES_COLLECTION_ID = COLLECTIONS.MESSAGES;
+
+// Helper function to award points with error handling
+const awardPointsForAction = async (userId, teamId, action, hackathonId = null, userName = 'Team Member') => {
+  try {
+    await gamificationService.awardPoints(userId, teamId, action, null, hackathonId, userName);
+  } catch (error) {
+    console.warn('Failed to award points:', error);
+    // Don't fail the parent operation - just log the warning
+  }
+};
 
 export const messageService = {
   // Send a user message
@@ -22,6 +33,9 @@ export const messageService = {
         ID.unique(),
         messageData
       );
+
+      // Award points for sending a message
+      await awardPointsForAction(userId, teamId, 'message_sent', hackathonId, 'Team Member');
 
       return response;
     } catch (error) {
@@ -168,6 +182,333 @@ export const messageService = {
     }
   },
 
+  // Send a poll message to chat
+  async sendPollMessage(teamId, hackathonId, pollId, pollQuestion, creatorName) {
+    try {
+      const content = `📊 ${creatorName} created a poll: "${pollQuestion}"`;
+      const systemData = {
+        pollId,
+        pollQuestion,
+        createdBy: creatorName,
+        type: 'poll'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'poll_created', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending poll message:', error);
+      throw new Error('Failed to send poll message.');
+    }
+  },
+
+  // Send poll result notification
+  async sendPollResultMessage(teamId, hackathonId, pollId, pollQuestion, winners, totalVotes) {
+    try {
+      const winnerText = winners.length === 1 
+        ? `"${winners[0]}"` 
+        : `${winners.length} options tied`;
+      
+      const content = `📊 Poll "${pollQuestion}" has ended. Winner: ${winnerText} (${totalVotes} total votes)`;
+      const systemData = {
+        pollId,
+        pollQuestion,
+        winners,
+        totalVotes,
+        type: 'poll_result'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'poll_ended', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending poll result message:', error);
+      throw new Error('Failed to send poll result message.');
+    }
+  },
+
+  // Send poll vote notification
+  async sendPollVoteMessage(teamId, hackathonId, pollId, pollQuestion, voterName, selectedOptions) {
+    try {
+      const optionText = selectedOptions.length === 1 
+        ? `"${selectedOptions[0]}"` 
+        : `${selectedOptions.length} options`;
+      
+      const content = `📊 ${voterName} voted ${optionText} in poll: "${pollQuestion}"`;
+      const systemData = {
+        pollId,
+        pollQuestion,
+        voterName,
+        selectedOptions,
+        type: 'poll_vote'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'poll_voted', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending poll vote message:', error);
+      throw new Error('Failed to send poll vote message.');
+    }
+  },
+
+  // Send poll to task conversion notification
+  async sendPollToTaskMessage(teamId, hackathonId, pollId, pollQuestion, taskTitle, winningOption, creatorName) {
+    try {
+      const content = `📊➡️📝 ${creatorName} created task "${taskTitle}" from poll winner: "${winningOption}"`;
+      const systemData = {
+        pollId,
+        pollQuestion,
+        taskTitle,
+        winningOption,
+        createdBy: creatorName,
+        type: 'poll_to_task'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'poll_converted_to_task', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending poll to task message:', error);
+      throw new Error('Failed to send poll to task message.');
+    }
+  },
+
+  // Send file upload notification
+  async sendFileUploadMessage(teamId, hackathonId, fileName, uploaderName, fileType) {
+    try {
+      const content = `📁 ${uploaderName} uploaded a file: "${fileName}"`;
+      const systemData = {
+        fileName,
+        uploaderName,
+        fileType,
+        type: 'file_upload'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'file_uploaded', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending file upload message:', error);
+      throw new Error('Failed to send file upload message.');
+    }
+  },
+
+  // Send file annotation notification
+  async sendFileAnnotationMessage(teamId, hackathonId, fileName, annotatorName, annotationContent) {
+    try {
+      const content = `💬 ${annotatorName} added an annotation to "${fileName}": "${annotationContent}"`;
+      const systemData = {
+        fileName,
+        annotatorName,
+        annotationContent,
+        type: 'file_annotation'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'file_annotated', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending file annotation message:', error);
+      throw new Error('Failed to send file annotation message.');
+    }
+  },
+
+  // Send achievement unlock notification
+  async sendAchievementMessage(teamId, hackathonId, userName, achievementName, achievementDescription) {
+    try {
+      const content = `🏆 ${userName} unlocked achievement: "${achievementName}" - ${achievementDescription}`;
+      const systemData = {
+        userName,
+        achievementName,
+        achievementDescription,
+        type: 'achievement_unlock'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'achievement_unlocked', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending achievement message:', error);
+      throw new Error('Failed to send achievement message.');
+    }
+  },
+
+  // Send celebration announcement
+  async sendCelebrationMessage(teamId, hackathonId, celebrationType, triggerData) {
+    try {
+      let content;
+      let systemData;
+
+      switch (celebrationType) {
+        case 'task_completion':
+          content = `🎉 Task completed! "${triggerData.taskTitle}" is done! Great work, ${triggerData.completedBy}!`;
+          systemData = {
+            celebrationType,
+            taskTitle: triggerData.taskTitle,
+            completedBy: triggerData.completedBy,
+            type: 'celebration'
+          };
+          break;
+        case 'milestone':
+          content = `🌟 Milestone reached! ${triggerData.description}`;
+          systemData = {
+            celebrationType,
+            description: triggerData.description,
+            milestone: triggerData.milestone,
+            type: 'celebration'
+          };
+          break;
+        case 'team_achievement':
+          content = `🏆 Team achievement unlocked! ${triggerData.achievementName}`;
+          systemData = {
+            celebrationType,
+            achievementName: triggerData.achievementName,
+            teamMembers: triggerData.teamMembers,
+            type: 'celebration'
+          };
+          break;
+        default:
+          content = `🎊 Something awesome happened! Let's celebrate!`;
+          systemData = {
+            celebrationType,
+            data: triggerData,
+            type: 'celebration'
+          };
+      }
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'celebration', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending celebration message:', error);
+      throw new Error('Failed to send celebration message.');
+    }
+  },
+
+  // Send bot motivational message
+  async sendBotMotivationalMessage(teamId, hackathonId, message, context = 'general') {
+    try {
+      const systemData = {
+        botType: 'motivational',
+        context,
+        type: 'bot_message'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        `🤖 ${message}`, 
+        'bot_message', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending bot motivational message:', error);
+      throw new Error('Failed to send bot motivational message.');
+    }
+  },
+
+  // Send bot easter egg message
+  async sendBotEasterEggMessage(teamId, hackathonId, command, message, triggeredBy) {
+    try {
+      const content = `🎊 ${triggeredBy} activated ${command}! ${message}`;
+      const systemData = {
+        command,
+        triggeredBy,
+        botType: 'easter_egg',
+        type: 'bot_easter_egg'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'bot_easter_egg', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending bot easter egg message:', error);
+      throw new Error('Failed to send bot easter egg message.');
+    }
+  },
+
+  // Send bot contextual tip
+  async sendBotTipMessage(teamId, hackathonId, tip, context = 'general') {
+    try {
+      const content = `💡 ${tip}`;
+      const systemData = {
+        botType: 'tip',
+        context,
+        type: 'bot_tip'
+      };
+
+      const response = await this.sendSystemMessage(
+        teamId, 
+        hackathonId, 
+        content, 
+        'bot_tip', 
+        systemData
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending bot tip message:', error);
+      throw new Error('Failed to send bot tip message.');
+    }
+  },
+
   // Message type filtering helper
   isValidMessageType(type) {
     const validTypes = [
@@ -179,11 +520,25 @@ export const messageService = {
       'vault_secret_added', 
       'vault_secret_updated', 
       'vault_secret_deleted',
+      'file_uploaded',
+      'file_annotated',
       'idea_created',
       'idea_voted',
       'idea_status_changed',
       'idea_auto_approved',
-      'idea_converted_to_task'
+      'idea_converted_to_task',
+      'achievement_unlocked',
+      'celebration',
+      'poll_created',
+      'poll_voted',
+      'poll_ended',
+      'poll_converted_to_task',
+      'bot_message',
+      'bot_tip',
+      'bot_easter_egg',
+      'bot_contextual',
+      'bot_help',
+      'bot_reminder_scheduled'
     ];
     return validTypes.includes(type);
   }

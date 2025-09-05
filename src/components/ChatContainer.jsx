@@ -19,6 +19,8 @@ import { useMessages } from '../hooks/useMessages';
 import { useAuth } from '../hooks/useAuth';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useChatKeyboardNavigation, useChatFocusManagement } from '../hooks/useChatKeyboardNavigation';
+import { useBot } from '../hooks/useBot';
+import EasterEggEffects, { useEasterEggEffects } from './EasterEggEffects';
 import { cn } from '../lib/utils';
 
 const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
@@ -51,6 +53,20 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
     retryConnection,
     testConnectionQuality
   } = useNetworkStatus();
+
+  // Bot integration
+  const {
+    processMessage,
+    sendMotivationalMessage,
+    sendContextualMessage,
+    getContextualTips,
+    onTaskCompleted,
+    onFirstMessage,
+    enabled: botEnabled
+  } = useBot(team?.$id, hackathonId, true);
+
+  // Easter egg effects
+  const { currentEffect, triggerEffect, clearEffect } = useEasterEggEffects();
 
   // COMPLETELY REMOVED: useNotifications hook and all notification logic
 
@@ -133,6 +149,18 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
   const handleClearRetryQueue = useCallback(() => {
     setRetryQueue([]);
   }, []);
+
+  // Handle poll vote updates
+  const handlePollVoteUpdate = useCallback((pollId, vote) => {
+    // Refresh messages to show updated poll state
+    refreshMessages();
+  }, [refreshMessages]);
+
+  // Handle task creation from polls
+  const handleTaskCreated = useCallback((task, source) => {
+    // Refresh messages to show task creation notification
+    refreshMessages();
+  }, [refreshMessages]);
 
   // Keyboard navigation support
   const { shortcuts } = useChatKeyboardNavigation({
@@ -300,12 +328,31 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
           currentUserId={user?.$id}
           typingUsers={typingUsers}
           onRetryMessage={retryFailedMessage}
+          onPollVoteUpdate={handlePollVoteUpdate}
+          onTaskCreated={handleTaskCreated}
           className="flex-1 min-h-0"
         />
 
         {/* Message Input */}
         <MessageInput
-          onSendMessage={sendMessage}
+          onSendMessage={async (messageContent) => {
+            // Process message for bot commands first
+            if (botEnabled && user?.name) {
+              try {
+                const easterEggResult = await processMessage(messageContent, user.name);
+                
+                // Trigger visual effects if easter egg was found
+                if (easterEggResult?.found && easterEggResult.effect) {
+                  triggerEffect(easterEggResult.effect);
+                }
+              } catch (error) {
+                console.warn('Bot message processing failed:', error);
+              }
+            }
+            
+            // Send the original message
+            await sendMessage(messageContent);
+          }}
           onTyping={sendTypingIndicator}
           onStopTyping={stopTypingIndicator}
           disabled={connectionStatus === 'disconnected'}
@@ -334,6 +381,12 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
             className="fixed bottom-4 right-4"
           />
         )}
+
+        {/* Easter egg effects */}
+        <EasterEggEffects
+          effect={currentEffect}
+          onComplete={clearEffect}
+        />
       </div>
     </ChatErrorBoundary>
   );

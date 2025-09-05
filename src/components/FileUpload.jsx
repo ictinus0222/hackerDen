@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, File, Image, FileText, Code, Archive } from 'lucide-react';
+import { Upload, X, File, Image, FileText, Code, Archive, Camera } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -171,6 +171,14 @@ const FileUpload = ({
     }
   }, [disabled]);
 
+  // Open camera for mobile
+  const openCamera = useCallback(() => {
+    if (!disabled && fileInputRef.current) {
+      fileInputRef.current.setAttribute('capture', 'environment');
+      fileInputRef.current.click();
+    }
+  }, [disabled]);
+
   // Remove uploading file
   const removeUploadingFile = useCallback((fileId) => {
     setUploadingFiles(prev => prev.filter(f => f.id !== fileId));
@@ -208,18 +216,36 @@ const FileUpload = ({
             </p>
           </div>
 
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mt-4"
-            disabled={disabled}
-            onClick={(e) => {
-              e.stopPropagation();
-              openFileDialog();
-            }}
-          >
-            Choose Files
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="min-h-[44px] touch-manipulation"
+              disabled={disabled}
+              onClick={(e) => {
+                e.stopPropagation();
+                openFileDialog();
+              }}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Choose Files
+            </Button>
+            
+            {/* Mobile camera button */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="min-h-[44px] touch-manipulation sm:hidden"
+              disabled={disabled}
+              onClick={(e) => {
+                e.stopPropagation();
+                openCamera();
+              }}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Take Photo
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -279,7 +305,7 @@ const FileUpload = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => removeUploadingFile(file.id)}
-                      className="h-6 w-6 p-0"
+                      className="h-8 w-8 p-0 min-h-[44px] min-w-[44px] touch-manipulation"
                     >
                       <X className="h-4 w-4" />
                     </Button>

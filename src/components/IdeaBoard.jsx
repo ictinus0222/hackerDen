@@ -240,7 +240,7 @@ const IdeaBoard = () => {
         </div>
         <Button
           onClick={() => setIsIdeaModalOpen(true)}
-          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white min-h-[44px] touch-manipulation"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -249,12 +249,12 @@ const IdeaBoard = () => {
         </Button>
       </div>
 
-      {/* Filters and Sorting */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Filters and Sorting - Mobile Optimized */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Sort by:</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Sort by:</span>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-full sm:w-32 min-h-[44px] touch-manipulation">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -267,9 +267,9 @@ const IdeaBoard = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Status:</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Status:</span>
           <Select value={filterByStatus} onValueChange={setFilterByStatus}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-full sm:w-32 min-h-[44px] touch-manipulation">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -285,9 +285,9 @@ const IdeaBoard = () => {
 
         {allTags.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Tag:</span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">Tag:</span>
             <Select value={filterByTag} onValueChange={setFilterByTag}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full sm:w-32 min-h-[44px] touch-manipulation">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -319,7 +319,7 @@ const IdeaBoard = () => {
           {ideas.length === 0 && (
             <Button
               onClick={() => setIsIdeaModalOpen(true)}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white min-h-[44px] touch-manipulation"
             >
               Submit First Idea
             </Button>
@@ -327,7 +327,7 @@ const IdeaBoard = () => {
         </div>
       ) : (
         <ScrollArea className="h-[600px]">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
             {filteredIdeas.map((idea) => (
               <IdeaCard
                 key={idea.$id}

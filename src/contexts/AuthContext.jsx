@@ -100,6 +100,20 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGitHub = async () => {
+    try {
+      setError(null);
+      setLoading(true);
+      await authService.loginWithGitHub();
+      // Note: This will redirect to GitHub, so we won't reach this point
+      // The user will be redirected back to our app after authentication
+    } catch (githubError) {
+      setError(githubError.message);
+      setLoading(false);
+      throw githubError;
+    }
+  };
+
   const handleOAuthCallback = async () => {
     try {
       setLoading(true);
@@ -131,6 +145,7 @@ const AuthProvider = ({ children }) => {
     register,
     logout,
     loginWithGoogle,
+    loginWithGitHub,
     handleOAuthCallback,
     isAuthenticated: !!user
   };

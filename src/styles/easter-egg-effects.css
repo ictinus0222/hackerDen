@@ -1,0 +1,503 @@
+/**
+ * Easter Egg Visual Effects
+ * CSS animations and effects for easter egg commands and special themes
+ */
+
+/* Confetti Effect */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti-effect::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: 
+    radial-gradient(circle, #ff6b6b 2px, transparent 2px),
+    radial-gradient(circle, #4ecdc4 2px, transparent 2px),
+    radial-gradient(circle, #45b7d1 2px, transparent 2px),
+    radial-gradient(circle, #96ceb4 2px, transparent 2px),
+    radial-gradient(circle, #feca57 2px, transparent 2px);
+  background-size: 50px 50px, 80px 80px, 40px 40px, 60px 60px, 70px 70px;
+  background-position: 0 0, 20px 20px, 40px 40px, 60px 60px, 80px 80px;
+  animation: confetti-fall 3s ease-out;
+}
+
+/* Fireworks Effect */
+@keyframes firework-burst {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.5) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.fireworks-effect::before,
+.fireworks-effect::after {
+  content: '';
+  position: fixed;
+  top: 20%;
+  left: 20%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 
+    0 0 0 4px #ff9ff3,
+    0 0 0 8px #54a0ff,
+    0 0 0 12px #5f27cd,
+    0 0 0 16px #00d2d3,
+    0 0 0 20px #ff9f43;
+  animation: firework-burst 2s ease-out infinite;
+}
+
+.fireworks-effect::after {
+  top: 60%;
+  left: 70%;
+  animation-delay: 1s;
+}
+
+/* Matrix Effect */
+@keyframes matrix-rain {
+  0% {
+    transform: translateY(-100vh);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.matrix-effect::before {
+  content: '01001000 01100001 01100011 01101011 01100101 01110010';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 20px;
+  pointer-events: none;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.8);
+  animation: matrix-rain 5s linear;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Hacker Effect */
+@keyframes hacker-glitch {
+  0%, 100% {
+    transform: translateX(0);
+    filter: hue-rotate(0deg);
+  }
+  20% {
+    transform: translateX(-2px);
+    filter: hue-rotate(90deg);
+  }
+  40% {
+    transform: translateX(2px);
+    filter: hue-rotate(180deg);
+  }
+  60% {
+    transform: translateX(-1px);
+    filter: hue-rotate(270deg);
+  }
+  80% {
+    transform: translateX(1px);
+    filter: hue-rotate(360deg);
+  }
+}
+
+.hacker-effect {
+  animation: hacker-glitch 0.3s ease-in-out infinite;
+}
+
+.hacker-effect::before {
+  content: 'HACKERMAN MODE ACTIVATED';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 10px #00ff00;
+  pointer-events: none;
+  z-index: 9999;
+  animation: hacker-glitch 0.5s ease-in-out;
+}
+
+/* Universe Effect */
+@keyframes universe-expand {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(2) rotate(180deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(4) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.universe-effect::before {
+  content: '🌌';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 100px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: universe-expand 6s ease-out;
+}
+
+/* Generic Celebration Effect */
+@keyframes celebration-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-30px) scale(1.1);
+  }
+  60% {
+    transform: translateY(-15px) scale(1.05);
+  }
+}
+
+.celebration-effect {
+  animation: celebration-bounce 2s ease-in-out;
+}
+
+/* Special Theme Effects */
+
+/* Halloween Theme */
+.halloween-theme {
+  filter: hue-rotate(30deg) saturate(1.2);
+}
+
+.halloween-theme::before {
+  content: '🎃 👻 🕷️ 🦇 🕸️';
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: celebration-bounce 3s ease-in-out infinite;
+}
+
+/* Christmas Theme */
+.christmas-theme {
+  filter: hue-rotate(-30deg) saturate(1.3);
+}
+
+.christmas-theme::before {
+  content: '🎄 🎅 ❄️ ⭐ 🎁';
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: celebration-bounce 3s ease-in-out infinite;
+}
+
+/* New Year Theme */
+.new_year-theme {
+  filter: brightness(1.2) saturate(1.4);
+}
+
+.new_year-theme::before {
+  content: '🎊 🎆 🥳 ✨ 🍾';
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: celebration-bounce 3s ease-in-out infinite;
+}
+
+/* April Fools Theme */
+.april_fools-theme {
+  filter: hue-rotate(45deg) saturate(1.5);
+}
+
+.april_fools-theme::before {
+  content: '🃏 😄 🎭 🤡 🎪';
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: celebration-bounce 3s ease-in-out infinite;
+}
+
+/* Steam Effect (for coffee command) */
+@keyframes steam-rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-50px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.steam-effect::before {
+  content: '☕';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: steam-rise 2s ease-out;
+}
+
+/* Bounce Effect (for pizza command) */
+@keyframes pizza-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-20px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(0) rotate(180deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(270deg);
+  }
+}
+
+.bounce-effect::before {
+  content: '🍕';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: pizza-bounce 2s ease-in-out;
+}
+
+/* Launch Effect (for rocket command) */
+@keyframes rocket-launch {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.launch-effect::before {
+  content: '🚀';
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 60px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: rocket-launch 4s ease-out;
+}
+
+/* Sparkle Effect (for magic command) */
+@keyframes sparkle-twinkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5) rotate(180deg);
+    opacity: 0.5;
+  }
+}
+
+.sparkle-effect::before {
+  content: '✨ 🪄 ✨';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: sparkle-twinkle 3s ease-in-out infinite;
+}
+
+/* Stealth Effect (for ninja command) */
+@keyframes ninja-stealth {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+
+.stealth-effect {
+  animation: ninja-stealth 2s ease-in-out;
+}
+
+.stealth-effect::before {
+  content: '🥷';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: ninja-stealth 2s ease-in-out;
+}
+
+/* Rainbow Effect (for unicorn command) */
+@keyframes rainbow-cycle {
+  0% { filter: hue-rotate(0deg); }
+  25% { filter: hue-rotate(90deg); }
+  50% { filter: hue-rotate(180deg); }
+  75% { filter: hue-rotate(270deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+.rainbow-effect {
+  animation: rainbow-cycle 4s ease-in-out;
+}
+
+.rainbow-effect::before {
+  content: '🦄 ✨ 🌈 ✨ 🦄';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: rainbow-cycle 4s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .confetti-effect::before,
+  .fireworks-effect::before,
+  .fireworks-effect::after,
+  .matrix-effect::before {
+    font-size: 10px;
+  }
+  
+  .hacker-effect::before,
+  .universe-effect::before,
+  .steam-effect::before,
+  .bounce-effect::before,
+  .launch-effect::before,
+  .stealth-effect::before {
+    font-size: 40px;
+  }
+  
+  .sparkle-effect::before,
+  .rainbow-effect::before {
+    font-size: 30px;
+  }
+  
+  .halloween-theme::before,
+  .christmas-theme::before,
+  .new_year-theme::before,
+  .april_fools-theme::before {
+    font-size: 18px;
+    top: 5px;
+  }
+}
+
+/* Accessibility: Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .confetti-effect::before,
+  .fireworks-effect::before,
+  .fireworks-effect::after,
+  .matrix-effect::before,
+  .hacker-effect,
+  .hacker-effect::before,
+  .universe-effect::before,
+  .celebration-effect,
+  .halloween-theme::before,
+  .christmas-theme::before,
+  .new_year-theme::before,
+  .april_fools-theme::before,
+  .steam-effect::before,
+  .bounce-effect::before,
+  .launch-effect::before,
+  .sparkle-effect::before,
+  .stealth-effect,
+  .stealth-effect::before,
+  .rainbow-effect,
+  .rainbow-effect::before {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  
+  /* Show static versions for reduced motion */
+  .confetti-effect::before {
+    content: '🎉 Celebration! 🎉';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #ff6b6b;
+  }
+  
+  .fireworks-effect::before {
+    content: '🎆 Fireworks! 🎆';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #54a0ff;
+  }
+}

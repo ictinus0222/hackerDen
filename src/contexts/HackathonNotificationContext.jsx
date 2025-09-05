@@ -59,6 +59,22 @@ export const HackathonNotificationProvider = ({ children }) => {
     // Notifications disabled
   }, []);
 
+  const notifyPollCreated = useCallback(() => {
+    // Notifications disabled
+  }, []);
+
+  const notifyPollVoted = useCallback(() => {
+    // Notifications disabled
+  }, []);
+
+  const notifyPollEnded = useCallback(() => {
+    // Notifications disabled
+  }, []);
+
+  const notifyPollConverted = useCallback(() => {
+    // Notifications disabled
+  }, []);
+
   // Get user's team for this hackathon (keep this for other functionality)
   const fetchTeam = useCallback(async () => {
     if (!user?.$id || !hackathonId) {
@@ -96,6 +112,10 @@ export const HackathonNotificationProvider = ({ children }) => {
     notifyIdeaVoted,
     notifyIdeaApproved,
     notifyIdeaConverted,
+    notifyPollCreated,
+    notifyPollVoted,
+    notifyPollEnded,
+    notifyPollConverted,
     team,
     hackathonId
   };

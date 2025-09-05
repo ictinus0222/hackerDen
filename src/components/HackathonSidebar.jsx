@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo.jsx';
 import ProgressBar from './ProgressBar.jsx';
+import { Leaderboard } from './Leaderboard.jsx';
+import { GamificationDisplay } from './GamificationDisplay.jsx';
 import { ThemeToggle } from './ui/theme-toggle.jsx';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
@@ -50,6 +52,15 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
       )
     },
     {
+      name: 'Files',
+      href: `/hackathon/${hackathonId}/files`,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      )
+    },
+    {
       name: 'Chat',
       href: `/hackathon/${hackathonId}/chat`,
       icon: (
@@ -82,6 +93,15 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+        </svg>
+      )
+    },
+    {
+      name: 'Submission',
+      href: `/hackathon/${hackathonId}/submission`,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
         </svg>
       )
     }
@@ -196,6 +216,20 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
                   </div>
                 </>
               )}
+
+              {/* Gamification Section */}
+              <Separator className="mx-4 my-3" />
+              <div className="px-4 py-3 flex-shrink-0 space-y-3">
+                {/* User Points Display */}
+                <GamificationDisplay compact={true} />
+                
+                {/* Team Leaderboard */}
+                <Leaderboard 
+                  teamId={team?.$id} 
+                  compact={true}
+                  limit={3}
+                />
+              </div>
 
               {/* User Profile Section */}
               <div className="p-4 flex-shrink-0">

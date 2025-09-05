@@ -2,6 +2,8 @@ import { memo, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
 import { StatusBadge, PriorityBadge, TaskIdBadge, LabelBadge } from './ui/status-badge';
+import ReactionButton from './ReactionButton';
+import { useHackathonTeam } from '../hooks/useHackathonTeam';
 
 const TaskCard = memo(({
   task,
@@ -15,6 +17,7 @@ const TaskCard = memo(({
   'aria-posinset': ariaPosinset,
   'aria-setsize': ariaSetsize
 }) => {
+  const { team } = useHackathonTeam(task.hackathonId);
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -215,6 +218,17 @@ const TaskCard = memo(({
                 }`}
             ></div>
           </div>
+        </div>
+
+        {/* Task Reactions */}
+        <div className="pt-2 border-t border-border/30">
+          <ReactionButton
+            targetId={task.$id}
+            targetType="task"
+            teamId={team?.$id}
+            compact={true}
+            className="justify-start"
+          />
         </div>
       </CardContent>
 

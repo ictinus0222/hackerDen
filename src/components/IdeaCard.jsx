@@ -99,7 +99,7 @@ const IdeaCard = ({
   const isOwnIdea = idea.createdBy === currentUser?.$id;
 
   return (
-    <Card className="bg-[#1E2B29] border-dark-primary/20 hover:border-blue-500/30 transition-all duration-200 h-full flex flex-col">
+    <Card className="bg-[#1E2B29] border-dark-primary/20 hover:border-blue-500/30 transition-all duration-200 h-full flex flex-col touch-manipulation select-none">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2">
@@ -153,36 +153,36 @@ const IdeaCard = ({
 
       <CardFooter className="pt-3 border-t border-dark-primary/20">
         <div className="flex items-center justify-between w-full gap-2">
-          {/* Vote Button */}
+          {/* Vote Button - Mobile Optimized */}
           <Button
             variant={hasUserVoted ? "secondary" : "outline"}
             size="sm"
             onClick={handleVote}
             disabled={hasUserVoted || isVoting}
-            className={`flex items-center gap-1 ${
+            className={`flex items-center gap-2 min-h-[44px] min-w-[60px] touch-manipulation active:scale-95 transition-transform ${
               hasUserVoted 
                 ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' 
                 : 'hover:bg-blue-500/10 hover:border-blue-500/30'
             }`}
           >
             {isVoting ? (
-              <div className="spinner w-3 h-3" />
+              <div className="spinner w-4 h-4" />
             ) : (
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
             )}
-            <span className="text-xs">{idea.voteCount || 0}</span>
+            <span className="text-sm font-medium">{idea.voteCount || 0}</span>
           </Button>
 
-          {/* Status Change (for team leaders/owners) */}
+          {/* Status Change (for team leaders/owners) - Mobile Optimized */}
           {canChangeStatus && (
             <Select 
               value={idea.status} 
               onValueChange={handleStatusChange}
               disabled={isChangingStatus}
             >
-              <SelectTrigger className="w-24 h-8 text-xs">
+              <SelectTrigger className="w-28 min-h-[44px] text-xs touch-manipulation">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

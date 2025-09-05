@@ -17,6 +17,8 @@ const MessageList = ({
   currentUserId,
   typingUsers = new Set(),
   onRetryMessage,
+  onPollVoteUpdate,
+  onTaskCreated,
   className,
   enableVirtualization = true // New prop to enable/disable virtualization
 }) => {
@@ -257,6 +259,8 @@ const MessageList = ({
                     message={message}
                     isCurrentUser={message.userId === currentUserId}
                     onRetry={onRetryMessage}
+                    onPollVoteUpdate={onPollVoteUpdate}
+                    onTaskCreated={onTaskCreated}
                   />
                 ))}
               </div>

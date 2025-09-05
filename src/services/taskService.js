@@ -1,6 +1,7 @@
 import { databases, DATABASE_ID, COLLECTIONS, Query, ID } from '../lib/appwrite';
 import client from '../lib/appwrite';
 import { messageService } from './messageService';
+import { gamificationService } from './gamificationService';
 
 // Helper function to send task system messages with error handling
 const sendTaskSystemMessage = async (teamId, hackathonId, messageType, content, systemData) => {
@@ -8,6 +9,16 @@ const sendTaskSystemMessage = async (teamId, hackathonId, messageType, content, 
     await messageService.sendSystemMessage(teamId, hackathonId, content, messageType, systemData);
   } catch (error) {
     console.warn('Failed to send task system message:', error);
+    // Don't fail the parent operation - just log the warning
+  }
+};
+
+// Helper function to award points with error handling
+const awardPointsForAction = async (userId, teamId, action) => {
+  try {
+    await gamificationService.awardPoints(userId, teamId, action);
+  } catch (error) {
+    console.warn('Failed to award points:', error);
     // Don't fail the parent operation - just log the warning
   }
 };
@@ -44,6 +55,10 @@ export const taskService = {
           // Store labels as array (now that we have string array attribute)
           labels: taskData.labels && Array.isArray(taskData.labels) ? 
             taskData.labels : 
+            [],
+          // Store attached file IDs as array for file attachment functionality
+          attachedFiles: taskData.attachedFiles && Array.isArray(taskData.attachedFiles) ? 
+            taskData.attachedFiles : 
             []
         }
       );
@@ -221,6 +236,11 @@ export const taskService = {
           // Task completion message
           systemMessageContent = `✅ ${userName} completed task: "${taskTitle || task.title}"`;
           messageType = 'task_completed';
+          
+          // Award points for task completion
+          if (userId && userId !== 'system') {
+            await awardPointsForAction(userId, teamId, 'task_completion');
+          }
         } else {
           // General status change message
           const statusEmoji = {
@@ -297,6 +317,11 @@ export const taskService = {
           // Task completion message
           systemMessageContent = `✅ ${userName} completed task: "${task.title}"`;
           messageType = 'task_completed';
+          
+          // Award points for task completion
+          if (currentTask.assignedTo && currentTask.assignedTo !== 'system') {
+            await awardPointsForAction(currentTask.assignedTo, teamId, 'task_completion');
+          }
         } else {
           // General status change message
           const statusEmoji = {
@@ -325,6 +350,254 @@ export const taskService = {
     } catch (error) {
       console.error('Error updating task fields:', error);
       throw new Error('Failed to update task fields');
+    }
+  },
+
+  // Attach files to a task
+  async attachFilesToTask(taskId, fileIds, teamId, hackathonId, userId = 'system', userName = 'System') {
+    try {
+      // Get current task to check existing attachments
+      const currentTask = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId
+      );
+
+      // Merge new file IDs with existing ones (avoid duplicates)
+      const existingFiles = currentTask.attachedFiles || [];
+      const newFiles = Array.isArray(fileIds) ? fileIds : [fileIds];
+      const updatedFiles = [...new Set([...existingFiles, ...newFiles])];
+
+      const task = await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId,
+        {
+          attachedFiles: updatedFiles
+        }
+      );
+
+      // Send system message for file attachment
+      const systemMessageContent = `📎 ${userName} attached ${newFiles.length} file(s) to task: "${currentTask.title}"`;
+      const systemData = {
+        taskId: taskId,
+        taskTitle: currentTask.title,
+        attachedBy: userName,
+        fileCount: newFiles.length,
+        newFileIds: newFiles
+      };
+
+      await sendTaskSystemMessage(teamId, hackathonId, 'task_files_attached', systemMessageContent, systemData);
+
+      return task;
+    } catch (error) {
+      console.error('Error attaching files to task:', error);
+      throw new Error('Failed to attach files to task');
+    }
+  },
+
+  // Remove files from a task
+  async removeFilesFromTask(taskId, fileIds, teamId, hackathonId, userId = 'system', userName = 'System') {
+    try {
+      // Get current task to check existing attachments
+      const currentTask = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId
+      );
+
+      // Remove specified file IDs from existing attachments
+      const existingFiles = currentTask.attachedFiles || [];
+      const filesToRemove = Array.isArray(fileIds) ? fileIds : [fileIds];
+      const updatedFiles = existingFiles.filter(fileId => !filesToRemove.includes(fileId));
+
+      const task = await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId,
+        {
+          attachedFiles: updatedFiles
+        }
+      );
+
+      // Send system message for file removal
+      const systemMessageContent = `📎 ${userName} removed ${filesToRemove.length} file(s) from task: "${currentTask.title}"`;
+      const systemData = {
+        taskId: taskId,
+        taskTitle: currentTask.title,
+        removedBy: userName,
+        fileCount: filesToRemove.length,
+        removedFileIds: filesToRemove
+      };
+
+      await sendTaskSystemMessage(teamId, hackathonId, 'task_files_removed', systemMessageContent, systemData);
+
+      return task;
+    } catch (error) {
+      console.error('Error removing files from task:', error);
+      throw new Error('Failed to remove files from task');
+    }
+  },
+
+  // Get files attached to a task
+  async getTaskFiles(taskId) {
+    try {
+      const task = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        taskId
+      );
+
+      if (!task.attachedFiles || task.attachedFiles.length === 0) {
+        return [];
+      }
+
+      // Import fileService dynamically to avoid circular dependency
+      const { fileService } = await import('./fileService');
+      
+      // Get file documents for attached file IDs
+      const filePromises = task.attachedFiles.map(async (fileId) => {
+        try {
+          return await databases.getDocument(
+            DATABASE_ID,
+            COLLECTIONS.FILES,
+            fileId
+          );
+        } catch (error) {
+          console.warn(`Failed to get file ${fileId}:`, error);
+          return null;
+        }
+      });
+
+      const files = await Promise.all(filePromises);
+      return files.filter(file => file !== null);
+    } catch (error) {
+      console.error('Error getting task files:', error);
+      throw new Error('Failed to get task files');
+    }
+  },
+
+  // Create task from idea (integration with idea service)
+  async createTaskFromIdea(ideaId, teamId, hackathonId, assignedTo, createdBy, creatorName = 'System', assignedToName = 'System') {
+    try {
+      // Import ideaService dynamically to avoid circular dependency
+      const { ideaService } = await import('./ideaService');
+      
+      // Get idea details
+      const idea = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.IDEAS,
+        ideaId
+      );
+
+      // Create task from idea
+      const taskData = {
+        title: idea.title,
+        description: `Converted from idea: ${idea.description}`,
+        assignedTo: assignedTo,
+        createdBy: createdBy,
+        priority: 'medium',
+        labels: [...(idea.tags || []), 'idea-conversion']
+      };
+
+      const task = await this.createTask(
+        teamId,
+        hackathonId,
+        taskData,
+        creatorName,
+        assignedToName
+      );
+
+      // Update idea status to in_progress
+      await ideaService.updateIdeaStatus(ideaId, 'in_progress', teamId, hackathonId, createdBy);
+
+      // Send system message
+      const systemMessageContent = `💡➡️📝 Idea "${idea.title}" was converted to task: "${task.title}"`;
+      const systemData = {
+        ideaId: ideaId,
+        ideaTitle: idea.title,
+        taskId: task.$id,
+        taskTitle: task.title,
+        convertedBy: creatorName
+      };
+
+      await sendTaskSystemMessage(teamId, hackathonId, 'idea_converted_to_task', systemMessageContent, systemData);
+
+      return task;
+    } catch (error) {
+      console.error('Error creating task from idea:', error);
+      throw new Error('Failed to create task from idea');
+    }
+  },
+
+  // Create task from poll result (integration with poll service)
+  async createTaskFromPoll(pollId, winningOption, teamId, hackathonId, createdBy, creatorName = 'System') {
+    try {
+      // Get poll details
+      const poll = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.POLLS,
+        pollId
+      );
+
+      if (!poll.options.includes(winningOption)) {
+        throw new Error('Invalid winning option');
+      }
+
+      // Import pollService dynamically to get poll results
+      const pollServiceModule = await import('./pollService');
+      const results = await pollServiceModule.default.getPollResults(pollId);
+      const winningResult = results.results.find(r => r.option === winningOption);
+      
+      // Create detailed task description
+      const description = [
+        `Task created from team poll decision.`,
+        ``,
+        `**Poll Question:** ${poll.question}`,
+        `**Winning Option:** ${winningOption} (${winningResult?.votes || 0} votes, ${winningResult?.percentage || 0}%)`,
+        `**Total Votes:** ${results.totalVotes} from ${results.uniqueVoters} team members`,
+        ``,
+        `**Implementation Notes:**`,
+        `- This task represents the team's collective decision`,
+        `- Consider the poll discussion context when implementing`,
+        `- Update task status to keep the team informed of progress`
+      ].join('\n');
+
+      const taskTitle = `Implement: ${winningOption}`;
+
+      // Create the actual task
+      const task = await this.createTask(
+        teamId,
+        hackathonId,
+        {
+          title: taskTitle,
+          description,
+          assignedTo: null, // Unassigned initially
+          createdBy: createdBy,
+          priority: 'medium',
+          labels: ['poll-decision']
+        },
+        creatorName,
+        null
+      );
+
+      // Send system message
+      const systemMessageContent = `📊➡️📝 Poll "${poll.question}" result converted to task: "${taskTitle}"`;
+      const systemData = {
+        pollId: pollId,
+        pollQuestion: poll.question,
+        taskId: task.$id,
+        taskTitle: taskTitle,
+        winningOption: winningOption,
+        convertedBy: creatorName
+      };
+
+      await sendTaskSystemMessage(teamId, hackathonId, 'poll_converted_to_task', systemMessageContent, systemData);
+
+      return task;
+    } catch (error) {
+      console.error('Error creating task from poll:', error);
+      throw new Error('Failed to create task from poll');
     }
   },
 

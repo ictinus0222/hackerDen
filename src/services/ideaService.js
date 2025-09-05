@@ -1,8 +1,24 @@
+/**
+ * @fileoverview Idea Service for HackerDen Enhancement Features
+ * Handles idea submission, voting, status management, and task conversion
+ */
+
 import { databases, DATABASE_ID, COLLECTIONS, Query, ID } from '../lib/appwrite';
 import client from '../lib/appwrite';
+import { gamificationService } from './gamificationService';
 import { messageService } from './messageService';
 
-// Helper function to send idea system messages with error handling
+// Helper function to award points with error handling
+const awardPointsForAction = async (userId, teamId, action, hackathonId = null, userName = 'Team Member') => {
+  try {
+    await gamificationService.awardPoints(userId, teamId, action, null, hackathonId, userName);
+  } catch (error) {
+    console.warn('Failed to award points:', error);
+    // Don't fail the parent operation - just log the warning
+  }
+};
+
+// Helper function to send system messages with error handling
 const sendIdeaSystemMessage = async (teamId, hackathonId, messageType, content, systemData) => {
   try {
     await messageService.sendSystemMessage(teamId, hackathonId, content, messageType, systemData);
@@ -13,15 +29,15 @@ const sendIdeaSystemMessage = async (teamId, hackathonId, messageType, content, 
 };
 
 export const ideaService = {
-  // Create a new idea
-  async createIdea(teamId, hackathonId, ideaData, creatorName) {
+  /**
+   * Create a new idea
+   * @param {string} teamId - The team ID
+   * @param {string} hackathonId - The hackathon ID
+   * @param {Object} ideaData - Idea data
+   * @returns {Promise<Object>} Idea document
+   */
+  async createIdea(teamId, hackathonId, ideaData) {
     try {
-      // Store user name in the userNameService cache when creating ideas
-      if (ideaData.createdBy && creatorName) {
-        const { userNameService } = await import('./userNameService');
-        userNameService.setUserName(ideaData.createdBy, creatorName);
-      }
-
       const idea = await databases.createDocument(
         DATABASE_ID,
         COLLECTIONS.IDEAS,
@@ -29,25 +45,27 @@ export const ideaService = {
         {
           teamId,
           hackathonId,
-          title: ideaData.title,
-          description: ideaData.description || '',
-          tags: ideaData.tags && Array.isArray(ideaData.tags) ? ideaData.tags : [],
-          status: 'submitted',
           createdBy: ideaData.createdBy,
+          title: ideaData.title,
+          description: ideaData.description,
+          tags: ideaData.tags || [],
+          status: 'submitted',
           voteCount: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
       );
 
-      // Send system message for idea creation
-      const systemMessageContent = `💡 ${creatorName} submitted a new idea: "${ideaData.title}"`;
-      
+      // Award points for idea submission
+      await awardPointsForAction(ideaData.createdBy, teamId, 'idea_submission', hackathonId, 'Team Member');
+
+      // Send system message
+      const systemMessageContent = `💡 New idea submitted: "${ideaData.title}"`;
       const systemData = {
         ideaId: idea.$id,
         ideaTitle: ideaData.title,
-        createdBy: creatorName,
-        status: 'submitted'
+        createdBy: ideaData.createdBy,
+        tags: ideaData.tags || []
       };
 
       await sendIdeaSystemMessage(teamId, hackathonId, 'idea_created', systemMessageContent, systemData);
@@ -55,96 +73,65 @@ export const ideaService = {
       return idea;
     } catch (error) {
       console.error('Error creating idea:', error);
-      console.error('Idea data being sent:', {
-        teamId,
-        hackathonId,
-        title: ideaData.title,
-        description: ideaData.description || '',
-        tags: ideaData.tags || [],
-        status: 'submitted',
-        createdBy: ideaData.createdBy,
-        voteCount: 0
-      });
-      
-      // Provide more specific error messages
-      if (error.code === 400) {
-        throw new Error(`Database validation error: ${error.message}`);
-      } else if (error.code === 401) {
-        throw new Error('Permission denied. Check your Appwrite permissions.');
-      } else if (error.code === 404) {
-        throw new Error('Ideas collection not found. Please check your database setup.');
-      } else if (error.message.includes('Attribute not found')) {
-        throw new Error(`Missing database attribute: ${error.message}`);
-      } else {
-        throw new Error(`Failed to create idea: ${error.message || 'Unknown error'}`);
-      }
+      throw new Error(`Failed to create idea: ${error.message}`);
     }
   },
 
-  // Get all ideas for a team in a specific hackathon
-  async getTeamIdeas(teamId, hackathonId) {
-    // Validate parameters
-    if (!teamId) {
-      throw new Error('Team ID is required to fetch ideas');
-    }
-    if (!hackathonId) {
-      throw new Error('Hackathon ID is required to fetch ideas');
-    }
-
+  /**
+   * Get all ideas for a team
+   * @param {string} teamId - The team ID
+   * @param {string} hackathonId - The hackathon ID (optional)
+   * @returns {Promise<Array>} Array of idea documents
+   */
+  async getTeamIdeas(teamId, hackathonId = null) {
     try {
-      console.log('Fetching ideas for team:', teamId, 'in hackathon:', hackathonId);
+      const queries = [Query.equal('teamId', teamId)];
       
+      if (hackathonId) {
+        queries.push(Query.equal('hackathonId', hackathonId));
+      }
+      
+      queries.push(Query.orderDesc('createdAt'));
+
       const response = await databases.listDocuments(
         DATABASE_ID,
         COLLECTIONS.IDEAS,
-        [
-          Query.equal('teamId', teamId),
-          Query.equal('hackathonId', hackathonId),
-          Query.orderDesc('$createdAt')
-        ]
+        queries
       );
-      
-      console.log('Ideas response:', response);
+
       return response.documents;
     } catch (error) {
       console.error('Error fetching team ideas:', error);
-      console.error('Error details:', {
-        message: error.message,
-        code: error.code,
-        type: error.type
-      });
-      
-      // Handle specific error cases
-      if (error.message.includes('Collection with the requested ID could not be found')) {
-        throw new Error('Ideas collection not found. Please create the "ideas" collection in your Appwrite database.');
-      } else if (error.message.includes('Attribute not found in schema')) {
-        throw new Error('Ideas collection schema is incomplete. Please add the required attributes to the ideas collection.');
-      } else if (error.code === 401) {
-        throw new Error('Unauthorized access to ideas. Please check collection permissions.');
-      } else {
-        throw new Error(`Failed to fetch ideas: ${error.message}`);
-      }
+      throw new Error(`Failed to fetch team ideas: ${error.message}`);
     }
   },
 
-  // Vote on an idea
-  async voteOnIdea(ideaId, userId, userName = 'User') {
+  /**
+   * Vote on an idea
+   * @param {string} ideaId - The idea ID
+   * @param {string} userId - The user ID
+   * @param {string} teamId - The team ID
+   * @param {string} hackathonId - The hackathon ID
+   * @returns {Promise<Object>} Vote document
+   */
+  async voteOnIdea(ideaId, userId, teamId, hackathonId) {
     try {
-      // Check if user has already voted on this idea
-      const existingVotes = await databases.listDocuments(
+      // Check if user already voted
+      const existingVote = await databases.listDocuments(
         DATABASE_ID,
         COLLECTIONS.IDEA_VOTES,
         [
           Query.equal('ideaId', ideaId),
-          Query.equal('userId', userId)
+          Query.equal('userId', userId),
+          Query.limit(1)
         ]
       );
 
-      if (existingVotes.documents.length > 0) {
-        throw new Error('You have already voted on this idea');
+      if (existingVote.documents.length > 0) {
+        throw new Error('User has already voted on this idea');
       }
 
-      // Create the vote
+      // Create vote
       const vote = await databases.createDocument(
         DATABASE_ID,
         COLLECTIONS.IDEA_VOTES,
@@ -156,63 +143,65 @@ export const ideaService = {
         }
       );
 
-      // Get current idea to update vote count
+      // Update idea vote count
       const idea = await databases.getDocument(
         DATABASE_ID,
         COLLECTIONS.IDEAS,
         ideaId
       );
 
-      // Update idea vote count
       const updatedIdea = await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.IDEAS,
         ideaId,
         {
-          voteCount: (idea.voteCount || 0) + 1,
+          voteCount: idea.voteCount + 1,
           updatedAt: new Date().toISOString()
         }
       );
 
-      // Send system message for vote
-      const systemMessageContent = `👍 ${userName} voted on idea: "${idea.title}" (${updatedIdea.voteCount} votes)`;
-      
+      // Award points for voting
+      await awardPointsForAction(userId, teamId, 'vote_given', hackathonId, 'Team Member');
+
+      // Send system message
+      const systemMessageContent = `👍 "${idea.title}" received a vote (${updatedIdea.voteCount} total)`;
       const systemData = {
         ideaId: ideaId,
         ideaTitle: idea.title,
-        votedBy: userName,
+        votedBy: userId,
         newVoteCount: updatedIdea.voteCount
       };
 
-      await sendIdeaSystemMessage(idea.teamId, idea.hackathonId, 'idea_voted', systemMessageContent, systemData);
+      await sendIdeaSystemMessage(teamId, hackathonId, 'idea_voted', systemMessageContent, systemData);
 
-      // Check for auto-approval after voting
-      const finalIdea = await this.checkAutoApproval(ideaId);
+      // Check for auto-approval (e.g., 5 votes)
+      if (updatedIdea.voteCount >= 5 && idea.status === 'submitted') {
+        await this.updateIdeaStatus(ideaId, 'approved', teamId, hackathonId, 'system');
+      }
 
-      return { vote, updatedIdea: finalIdea };
+      return vote;
     } catch (error) {
       console.error('Error voting on idea:', error);
-      throw new Error(error.message || 'Failed to vote on idea');
+      throw new Error(`Failed to vote on idea: ${error.message}`);
     }
   },
 
-  // Update idea status
-  async updateIdeaStatus(ideaId, status, userName = 'System') {
+  /**
+   * Update idea status
+   * @param {string} ideaId - The idea ID
+   * @param {string} status - New status
+   * @param {string} teamId - The team ID
+   * @param {string} hackathonId - The hackathon ID
+   * @param {string} updatedBy - User ID updating status
+   * @returns {Promise<Object>} Updated idea document
+   */
+  async updateIdeaStatus(ideaId, status, teamId, hackathonId, updatedBy = 'system') {
     try {
-      // Validate status
-      const validStatuses = ['submitted', 'approved', 'in_progress', 'completed', 'rejected'];
-      if (!validStatuses.includes(status)) {
-        throw new Error('Invalid status. Must be submitted, approved, in_progress, completed, or rejected.');
-      }
-
-      // Get the current idea to check the old status
-      const currentIdea = await databases.getDocument(
+      const idea = await databases.getDocument(
         DATABASE_ID,
         COLLECTIONS.IDEAS,
         ideaId
       );
-
-      const oldStatus = currentIdea.status;
 
       const updatedIdea = await databases.updateDocument(
         DATABASE_ID,
@@ -225,193 +214,185 @@ export const ideaService = {
       );
 
       // Send system message for status change
-      if (oldStatus !== status) {
-        let systemMessageContent;
-        let messageType;
+      let systemMessageContent;
+      let messageType;
 
-        const statusEmoji = {
-          'submitted': '💡',
-          'approved': '✅',
-          'in_progress': '🔄',
-          'completed': '🎉',
-          'rejected': '❌'
-        };
-        
-        systemMessageContent = `${statusEmoji[status] || '🔄'} ${userName} changed idea "${currentIdea.title}" from ${oldStatus} to ${status}`;
-        messageType = 'idea_status_changed';
-
-        const systemData = {
-          ideaId: ideaId,
-          ideaTitle: currentIdea.title,
-          oldStatus: oldStatus,
-          newStatus: status,
-          changedBy: userName
-        };
-
-        await sendIdeaSystemMessage(currentIdea.teamId, currentIdea.hackathonId, messageType, systemMessageContent, systemData);
+      switch (status) {
+        case 'approved':
+          systemMessageContent = updatedBy === 'system' 
+            ? `🎉 "${idea.title}" was auto-approved with ${idea.voteCount} votes!`
+            : `✅ "${idea.title}" was approved`;
+          messageType = updatedBy === 'system' ? 'idea_auto_approved' : 'idea_status_changed';
+          break;
+        case 'in_progress':
+          systemMessageContent = `🔄 "${idea.title}" is now in progress`;
+          messageType = 'idea_status_changed';
+          break;
+        case 'completed':
+          systemMessageContent = `✅ "${idea.title}" has been completed`;
+          messageType = 'idea_status_changed';
+          break;
+        case 'rejected':
+          systemMessageContent = `❌ "${idea.title}" was rejected`;
+          messageType = 'idea_status_changed';
+          break;
+        default:
+          systemMessageContent = `📝 "${idea.title}" status changed to ${status}`;
+          messageType = 'idea_status_changed';
       }
+
+      const systemData = {
+        ideaId: ideaId,
+        ideaTitle: idea.title,
+        oldStatus: idea.status,
+        newStatus: status,
+        updatedBy: updatedBy
+      };
+
+      await sendIdeaSystemMessage(teamId, hackathonId, messageType, systemMessageContent, systemData);
 
       return updatedIdea;
     } catch (error) {
       console.error('Error updating idea status:', error);
-      throw new Error(error.message || 'Failed to update idea status');
+      throw new Error(`Failed to update idea status: ${error.message}`);
     }
   },
 
-  // Convert idea to task with enhanced integration
-  async convertIdeaToTask(ideaId, userName = 'System') {
+  /**
+   * Convert idea to task
+   * @param {string} ideaId - The idea ID
+   * @param {string} teamId - The team ID
+   * @param {string} hackathonId - The hackathon ID
+   * @param {string} assignedTo - User ID to assign task to
+   * @param {string} createdBy - User ID creating the task
+   * @param {string} creatorName - Creator name for display
+   * @param {string} assignedToName - Assigned user name for display
+   * @returns {Promise<Object>} Created task document
+   */
+  async convertIdeaToTask(ideaId, teamId, hackathonId, assignedTo, createdBy, creatorName = 'System', assignedToName = 'System') {
     try {
-      // Get the idea details
-      const idea = await databases.getDocument(
-        DATABASE_ID,
-        COLLECTIONS.IDEAS,
-        ideaId
-      );
-
-      // Get creator name from userNameService
-      let creatorName = userName;
-      let assignedToName = userName;
-      
-      try {
-        const { userNameService } = await import('./userNameService');
-        creatorName = await userNameService.getUserName(idea.createdBy) || userName;
-        assignedToName = creatorName;
-      } catch (error) {
-        console.warn('Could not get creator name from userNameService:', error);
-      }
-
-      // Import task service
+      // Import taskService dynamically to avoid circular dependency
       const { taskService } = await import('./taskService');
-      
-      const taskData = {
-        title: idea.title,
-        description: `${idea.description}\n\n_Converted from idea with ${idea.voteCount} votes_`,
-        assignedTo: idea.createdBy,
-        createdBy: idea.createdBy,
-        priority: idea.voteCount >= 5 ? 'high' : 'medium', // Higher priority for popular ideas
-        labels: [...(idea.tags || []), 'from-idea']
-      };
 
-      // Create the task using proper creator and assignee names
-      const task = await taskService.createTask(
-        idea.teamId, 
-        idea.hackathonId, 
-        taskData, 
+      // Use the new integrated method in taskService
+      const task = await taskService.createTaskFromIdea(
+        ideaId,
+        teamId,
+        hackathonId,
+        assignedTo,
+        createdBy,
         creatorName,
         assignedToName
       );
 
-      // Update idea status to in_progress
-      const updatedIdea = await this.updateIdeaStatus(ideaId, 'in_progress', userName);
-
-      // Send enhanced system message
-      const systemMessageContent = `🔄 ${userName} converted idea "${idea.title}" to a task (${idea.voteCount} votes)`;
-      
-      const systemData = {
-        ideaId: ideaId,
-        taskId: task.$id,
-        ideaTitle: idea.title,
-        taskTitle: task.title,
-        voteCount: idea.voteCount,
-        convertedBy: userName
-      };
-
-      await sendIdeaSystemMessage(idea.teamId, idea.hackathonId, 'idea_converted_to_task', systemMessageContent, systemData);
-
-      return { task, updatedIdea };
+      return task;
     } catch (error) {
       console.error('Error converting idea to task:', error);
-      throw new Error(error.message || 'Failed to convert idea to task');
+      throw new Error(`Failed to convert idea to task: ${error.message}`);
     }
   },
 
-  // Check and auto-approve ideas based on vote threshold
-  async checkAutoApproval(ideaId, voteThreshold = 3) {
+  /**
+   * Check if user has voted on an idea
+   * @param {string} ideaId - The idea ID
+   * @param {string} userId - The user ID
+   * @returns {Promise<boolean>} Whether user has voted
+   */
+  async hasUserVoted(ideaId, userId) {
     try {
-      const idea = await databases.getDocument(
-        DATABASE_ID,
-        COLLECTIONS.IDEAS,
-        ideaId
-      );
-
-      // Only auto-approve if idea is still in submitted status and meets threshold
-      if (idea.status === 'submitted' && idea.voteCount >= voteThreshold) {
-        const updatedIdea = await this.updateIdeaStatus(ideaId, 'approved', 'System');
-        
-        // Send special system message for auto-approval
-        const systemMessageContent = `🎉 Idea "${idea.title}" was automatically approved with ${idea.voteCount} votes!`;
-        
-        const systemData = {
-          ideaId: ideaId,
-          ideaTitle: idea.title,
-          voteCount: idea.voteCount,
-          threshold: voteThreshold,
-          autoApproved: true
-        };
-
-        await sendIdeaSystemMessage(idea.teamId, idea.hackathonId, 'idea_auto_approved', systemMessageContent, systemData);
-        
-        return updatedIdea;
-      }
-
-      return idea;
-    } catch (error) {
-      console.error('Error checking auto-approval:', error);
-      throw new Error(error.message || 'Failed to check auto-approval');
-    }
-  },
-
-  // Get user's vote status for ideas
-  async getUserVoteStatus(ideaIds, userId) {
-    try {
-      if (!ideaIds || ideaIds.length === 0) {
-        return {};
-      }
-
-      const votes = await databases.listDocuments(
+      const response = await databases.listDocuments(
         DATABASE_ID,
         COLLECTIONS.IDEA_VOTES,
         [
+          Query.equal('ideaId', ideaId),
           Query.equal('userId', userId),
-          Query.equal('ideaId', ideaIds)
+          Query.limit(1)
         ]
       );
 
-      // Create a map of ideaId -> hasVoted
-      const voteStatus = {};
-      votes.documents.forEach(vote => {
-        voteStatus[vote.ideaId] = true;
-      });
-
-      return voteStatus;
+      return response.documents.length > 0;
     } catch (error) {
-      console.error('Error getting user vote status:', error);
-      return {};
+      console.error('Error checking user vote:', error);
+      return false;
     }
   },
 
-  // Subscribe to real-time idea updates
-  subscribeToIdeas(teamId, hackathonId, callback) {
-    const unsubscribe = client.subscribe(
-      `databases.${DATABASE_ID}.collections.${COLLECTIONS.IDEAS}.documents`,
-      (response) => {
-        // Only process events for ideas belonging to this team and hackathon
-        if (response.payload.teamId === teamId && response.payload.hackathonId === hackathonId) {
-          callback(response);
-        }
-      }
-    );
+  /**
+   * Get ideas with user vote status
+   * @param {string} teamId - The team ID
+   * @param {string} userId - The user ID
+   * @param {string} hackathonId - The hackathon ID (optional)
+   * @returns {Promise<Array>} Array of ideas with vote status
+   */
+  async getIdeasWithVoteStatus(teamId, userId, hackathonId = null) {
+    try {
+      const ideas = await this.getTeamIdeas(teamId, hackathonId);
+      
+      // Check vote status for each idea
+      const ideasWithVoteStatus = await Promise.all(
+        ideas.map(async (idea) => {
+          const hasVoted = await this.hasUserVoted(idea.$id, userId);
+          return {
+            ...idea,
+            hasUserVoted: hasVoted
+          };
+        })
+      );
 
-    return unsubscribe;
+      return ideasWithVoteStatus;
+    } catch (error) {
+      console.error('Error fetching ideas with vote status:', error);
+      throw new Error(`Failed to fetch ideas with vote status: ${error.message}`);
+    }
   },
 
-  // Subscribe to real-time vote updates
-  subscribeToVotes(callback) {
-    const unsubscribe = client.subscribe(
-      `databases.${DATABASE_ID}.collections.${COLLECTIONS.IDEA_VOTES}.documents`,
-      callback
-    );
+  /**
+   * Subscribe to real-time idea updates
+   * @param {string} teamId - The team ID
+   * @param {Function} callback - Callback function for updates
+   * @returns {Function} Unsubscribe function
+   */
+  subscribeToIdeas(teamId, callback) {
+    try {
+      const unsubscribe = client.subscribe(
+        `databases.${DATABASE_ID}.collections.${COLLECTIONS.IDEAS}.documents`,
+        (response) => {
+          // Only process events for this team
+          if (response.payload.teamId === teamId) {
+            callback(response);
+          }
+        }
+      );
 
-    return unsubscribe;
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error subscribing to ideas:', error);
+      throw new Error('Failed to subscribe to idea updates');
+    }
+  },
+
+  /**
+   * Subscribe to real-time vote updates
+   * @param {string} ideaId - The idea ID
+   * @param {Function} callback - Callback function for updates
+   * @returns {Function} Unsubscribe function
+   */
+  subscribeToVotes(ideaId, callback) {
+    try {
+      const unsubscribe = client.subscribe(
+        `databases.${DATABASE_ID}.collections.${COLLECTIONS.IDEA_VOTES}.documents`,
+        (response) => {
+          // Only process events for this idea
+          if (response.payload.ideaId === ideaId) {
+            callback(response);
+          }
+        }
+      );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error subscribing to votes:', error);
+      throw new Error('Failed to subscribe to vote updates');
+    }
   }
 };

@@ -120,6 +120,31 @@ export const authService = {
     }
   },
 
+  // GitHub OAuth login
+  async loginWithGitHub() {
+    try {
+      // Clean up any existing session first
+      if (hasActiveSession()) {
+        try {
+          await account.deleteSession('current');
+        } catch (deleteError) {
+          console.log('Previous session cleanup failed, continuing with GitHub login');
+        }
+      }
+      
+      // Create OAuth2 session with GitHub
+      // This will redirect to GitHub's OAuth page
+      await account.createOAuth2Session(
+        'github',
+        `${window.location.origin}/oauth/callback`, // Success redirect
+        `${window.location.origin}/login?error=oauth_failed` // Failure redirect
+      );
+    } catch (error) {
+      console.error('GitHub OAuth error:', error);
+      throw new Error(error.message || 'GitHub authentication failed');
+    }
+  },
+
   // Handle OAuth callback and get user session
   async handleOAuthCallback() {
     try {

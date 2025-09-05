@@ -1,6 +1,6 @@
 # HackerDen
 
-A modern, hackathon-focused collaborative platform featuring comprehensive hackathon management, team coordination, advanced task tracking with drag-and-drop functionality, real-time communication, and a comprehensive enhancement suite including file sharing, idea management, gamification, judge submissions, polling, and delightful UX features.
+A modern, hackathon-focused collaborative platform that transforms team coordination from functional to delightful. Built with React 19 and Appwrite, HackerDen provides comprehensive hackathon management, real-time team collaboration, advanced task tracking, and an engaging enhancement suite featuring file sharing, idea management, gamification, polling, and intelligent bot interactions.
 
 ## Features
 
@@ -57,9 +57,9 @@ A modern, hackathon-focused collaborative platform featuring comprehensive hacka
 - **Touch Optimization**: Mobile-friendly interactions with proper touch targets
 - **Visual Feedback**: Consistent hover states, focus indicators, and transition effects
 
-### 🚀 Enhancement Features (Foundation Complete, Implementation In Progress)
+### 🚀 Enhancement Features (Foundation Complete, Core Features Implemented)
 
-The HackerDen Enhancement Suite transforms the platform from a functional collaboration tool into an engaging, gamified hackathon experience. The foundation is complete with all Appwrite collections and storage buckets configured.
+The HackerDen Enhancement Suite transforms the platform from a functional collaboration tool into an engaging, gamified hackathon experience. The foundation is complete with all Appwrite collections and storage buckets configured, and core enhancement features are now implemented and ready for use.
 
 #### 📁 **File Sharing & Collaboration System**
 - **File Upload & Storage**: Support for images, PDFs, text files, and code files (up to 10MB per file)
@@ -114,40 +114,70 @@ The HackerDen Enhancement Suite transforms the platform from a functional collab
 
 ### ✅ Foundation Complete
 - [x] **Enhancement Architecture**: All 10 Appwrite collections and 2 storage buckets configured
-- [x] **Service Layer**: Base service files created with error handling and real-time integration
-- [x] **shadcn/ui Integration**: Component library configured for consistent enhancement UI
-- [x] **Setup Scripts**: Automated enhancement setup with comprehensive testing
+- [x] **Service Layer**: Complete service files with comprehensive error handling and real-time integration
+- [x] **shadcn/ui Integration**: Component library fully configured for consistent enhancement UI
+- [x] **Setup Scripts**: Automated enhancement setup with comprehensive testing and validation
 - [x] **MVP Integration Points**: Chat notifications, task conversion, and team-scoped data
 
+### ✅ Core Features Implemented
+- [x] **File Sharing System**: Complete upload, preview, and annotation system with EnhancedFileService
+- [x] **Idea Management Board**: Full submission, voting, and status tracking with task conversion
+- [x] **Gamification System**: Point tracking, achievement system, and celebration effects
+- [x] **Judge Submission Pages**: Builder interface and public submission pages with auto-save
+- [x] **Polling System**: Complete poll creation, voting interface, and results display
+- [x] **Bot System**: Motivational messages, easter eggs, and reaction system
+- [x] **Error Handling**: Comprehensive error boundaries, retry mechanisms, and offline support
+- [x] **Feature Flags**: Dynamic feature management with user-level controls
+
 ### 🚧 Currently Implementing
-- [ ] **File Sharing System**: Upload, preview, and annotation components
-- [ ] **Idea Management Board**: Submission, voting, and status tracking interface
-- [ ] **Gamification UI**: Point tracking, achievement notifications, and celebration effects
-- [ ] **Judge Submission Pages**: Builder interface and public submission pages
-- [ ] **Polling System**: Poll creation, voting interface, and results display
-- [ ] **Bot System**: Motivational messages, easter eggs, and reaction system
+- [ ] **Real-time Integration**: Appwrite subscriptions for live updates across all features
+- [ ] **Mobile Optimization**: Touch interactions and responsive enhancement components
+- [ ] **Advanced Analytics**: Team productivity insights and performance metrics
+- [ ] **Chat Integration**: Enhancement activity notifications in team chat
 
 ### 🔮 Future Roadmap
-- **Advanced Analytics**: Team productivity insights and performance metrics
 - **External Integrations**: GitHub, Slack, and other developer tool connections
 - **Advanced Notifications**: Push notifications and customizable alert preferences
 - **Team Templates**: Pre-configured team setups for different hackathon types
 - **AI Features**: Smart suggestions, automated task creation, and intelligent bot responses
+- **Advanced File Preview**: PDF viewer, 3D model support, and collaborative editing
 
 ## Tech Stack
 
-- **Frontend**: React 19 + Vite (Latest React features with fast development)
-- **Styling**: Tailwind CSS (Custom design system with dark theme)
+### Core Framework
+- **Frontend**: React 19 + Vite (Latest React features with fast development and HMR)
+- **Styling**: Tailwind CSS 4.x (Custom design system with dark theme and animations)
 - **UI Components**: shadcn/ui with Radix UI primitives (Accessible, customizable components)
 - **Backend**: Appwrite (Backend-as-a-Service with real-time capabilities and file storage)
-- **Routing**: React Router DOM (Client-side routing with protected routes)
-- **State Management**: React Context API (Global state for auth and team data)
+
+### State & Data Management
+- **Routing**: React Router DOM 7.x (Client-side routing with protected routes)
+- **State Management**: React Context API (Global state for auth, team, and feature data)
 - **Real-time**: Appwrite Realtime (Live updates for tasks, messages, and enhancements)
-- **Icons**: Lucide React (Consistent SVG icon library)
-- **Date Handling**: date-fns (Lightweight date formatting)
-- **Rich Text**: React Markdown with remark-gfm and rehype-highlight (For file annotations and descriptions)
-- **File Storage**: Appwrite Storage (Secure file uploads with preview generation and team-based access control)
-- **Animations**: CSS animations and Tailwind transitions (No external animation libraries for performance)
+- **Forms**: React Hook Form (Performant forms with validation)
+- **Error Handling**: React Error Boundary (Comprehensive error management)
+
+### Enhancement Features
+- **File Storage**: Appwrite Storage (Secure file uploads with preview generation)
+- **Rich Text**: React Markdown with remark-gfm and rehype-highlight (Markdown rendering)
+- **Syntax Highlighting**: highlight.js (Code file preview with language detection)
+- **Notifications**: Sonner (Toast notifications with dark theme support)
+- **Icons**: Lucide React (Consistent SVG icon library with 1000+ icons)
+- **Date Handling**: date-fns (Lightweight date formatting and manipulation)
+
+### Development & Testing
+- **Build Tool**: Vite 7.x (Fast build tool with React plugin and path aliases)
+- **Testing**: Vitest + React Testing Library (Unit and integration testing)
+- **Linting**: ESLint 9.x (Code quality with React hooks and refresh plugins)
+- **Package Manager**: npm (Dependency management with package-lock.json)
+- **Environment**: dotenv (Environment variable management)
+
+### Performance & UX
+- **Animations**: CSS animations and Tailwind transitions (Performance-optimized)
+- **Responsive Design**: Mobile-first with Tailwind breakpoints
+- **Accessibility**: WCAG compliant with proper ARIA implementation
+- **Progressive Enhancement**: Features degrade gracefully
+- **Offline Support**: Local storage caching with sync capabilities
 
 ## Getting Started
 
@@ -158,34 +188,34 @@ The HackerDen Enhancement Suite transforms the platform from a functional collab
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository:**
 ```bash
 git clone <repository-url>
 cd hackerden
 ```
 
-2. Install dependencies:
+2. **Install dependencies:**
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
-Copy the example environment file and add your credentials:
+3. **Set up environment variables:**
+Copy the example environment file and configure your Appwrite credentials:
 ```bash
 cp .env.example .env
 ```
 
-Then edit `.env` with your actual Appwrite credentials:
+Edit `.env` with your Appwrite project details:
 ```env
-# Core Appwrite Configuration
+# Core Appwrite Configuration (Required)
 VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
 VITE_APPWRITE_PROJECT_ID=your-project-id
 VITE_APPWRITE_DATABASE_ID=your-database-id
 
-# Required for Enhancement Setup (Server API Key)
+# Server API Key (Required for setup scripts)
 APPWRITE_API_KEY=your-server-api-key
 
-# Optional Enhancement Feature Flags
+# Enhancement Feature Flags (Optional)
 VITE_ENABLE_FILE_SHARING=true
 VITE_ENABLE_GAMIFICATION=true
 VITE_ENABLE_IDEA_BOARD=true
@@ -195,29 +225,94 @@ VITE_ENABLE_SOUND_EFFECTS=true
 VITE_ENABLE_ANIMATIONS=true
 ```
 
-**Important**: Never commit `.env` to version control. It's automatically ignored by git.
+**Security Note**: Never commit `.env` to version control. It's automatically ignored by git.
 
-**Development Status**: The enhancement foundation is complete with all Appwrite collections and storage buckets configured. Individual enhancement features are currently being implemented on top of this solid foundation.
-
-4. Set up Appwrite MVP Collections:
-Follow the setup guide in `docs/appwrite-setup.md` to configure your basic Appwrite collections.
-
-5. Set up Enhancement Features:
+4. **Set up Appwrite backend:**
+Create the required database collections and storage buckets:
 ```bash
-# Install enhancement dependencies
-npm install react-markdown remark-gfm rehype-highlight
+# Set up core MVP collections (teams, tasks, messages, etc.)
+# Follow the guide in docs/appwrite-setup.md
 
-# Create enhancement collections and storage buckets
+# Set up enhancement collections and storage buckets
 npm run setup:enhancements
 
-# Verify setup with tests
-npm run test:run -- src/services/__tests__/enhancementServices.test.js
+# Verify database schema
+npm run validate:schema
+
+# Test database connectivity
+npm run test:database
 ```
 
-6. Start the development server:
+5. **Verify installation:**
+Run tests to ensure everything is working correctly:
+```bash
+# Run all tests
+npm run test:run
+
+# Test enhancement services specifically
+npm run test:run -- src/services/__tests__/enhancementServices.test.js
+
+# Test UI components
+npm run test:run -- src/components/__tests__/
+```
+
+6. **Start development server:**
 ```bash
 npm run dev
 ```
+
+The application will be available at `http://localhost:5173` with hot module replacement enabled.
+
+### Quick Start Guide
+
+1. **Register an account** at `/register`
+2. **Create or join a hackathon** from the console
+3. **Create or join a team** using the team selector
+4. **Start collaborating** with tasks, chat, and enhancement features
+
+### Troubleshooting Installation
+
+**Common Issues:**
+- **Appwrite connection errors**: Verify your endpoint and project ID
+- **Permission errors**: Ensure your API key has database and storage permissions
+- **Setup script failures**: Check that your database exists in Appwrite Console
+- **Missing collections**: Run `npm run setup:enhancements` to create required collections
+
+**Getting Help:**
+- Check `docs/enhancement-setup-guide.md` for detailed setup instructions
+- Review `docs/troubleshooting-*.md` files for specific issues
+- Ensure Node.js version 18+ is installed
+- Verify npm dependencies are correctly installed
+
+## Feature Flag System
+
+HackerDen includes a dynamic feature flag system that allows for controlled rollout and testing of enhancement features:
+
+### Feature Management
+- **Dynamic Control**: Enable/disable features without code changes
+- **User-Level Flags**: Individual user feature preferences
+- **Team-Level Flags**: Team-specific feature availability
+- **Gradual Rollout**: Controlled feature deployment and testing
+- **A/B Testing**: Support for feature experimentation
+- **Performance Modes**: Lite modes for slower devices or connections
+
+### Available Feature Flags
+```env
+VITE_ENABLE_FILE_SHARING=true      # File upload and annotation system
+VITE_ENABLE_GAMIFICATION=true      # Points, achievements, and celebrations
+VITE_ENABLE_IDEA_BOARD=true        # Idea submission and voting
+VITE_ENABLE_POLLING=true           # Team polling and decision-making
+VITE_ENABLE_BOT_FEATURES=true      # System bot and easter eggs
+VITE_ENABLE_SOUND_EFFECTS=true     # Audio feedback for achievements
+VITE_ENABLE_ANIMATIONS=true        # Celebration effects and transitions
+```
+
+### Feature Flag Management
+Access the feature flag management interface at `/feature-flags` to:
+- View current feature status
+- Toggle features for testing
+- Monitor feature usage and performance
+- Configure user-specific preferences
 
 ## Available Scripts
 
@@ -235,6 +330,9 @@ npm run dev
 
 ### Enhancement Setup
 - `npm run setup:enhancements` - Set up all enhancement features (collections, storage buckets, permissions)
+- `npm run check:storage` - Verify storage bucket configuration and permissions
+- `npm run validate:schema` - Validate database schema and collection setup
+- `npm run test:database` - Test database operations and connectivity
 - `npm run setup:whiteboard` - Set up whiteboard feature (future enhancement)
 - `npm run setup:vault` - Set up team vault feature (future enhancement)
 - `npm run setup:documents` - Set up collaborative documents (future enhancement)
@@ -244,50 +342,125 @@ npm run dev
 - `npm run backup:restore` - Restore from backup
 - `npm run backup:cleanup` - Clean backup files
 
+## Architecture & Design Patterns
+
+### Service Layer Architecture
+HackerDen follows a clean service layer pattern for maintainable and testable code:
+
+- **BaseService**: Common functionality for all services (error handling, validation)
+- **Feature Services**: Specialized services for each major feature (tasks, files, ideas, etc.)
+- **Error Handling**: Comprehensive error boundaries and retry mechanisms
+- **Offline Support**: Local caching and sync capabilities for resilient operation
+
+### Component Architecture
+- **Atomic Design**: Components organized by complexity (atoms, molecules, organisms)
+- **shadcn/ui Foundation**: Consistent design system with Radix UI primitives
+- **Responsive First**: Mobile-first design with progressive enhancement
+- **Accessibility**: WCAG 2.1 AA compliance with proper ARIA implementation
+
+### State Management Patterns
+- **Context Providers**: Global state for authentication, teams, and notifications
+- **Custom Hooks**: Encapsulated business logic with reusable state management
+- **Real-time Integration**: Appwrite subscriptions with automatic cleanup
+- **Error Boundaries**: Graceful error handling with recovery mechanisms
+
+### Development Patterns
+- **Feature Flags**: Dynamic feature control for gradual rollouts
+- **Progressive Enhancement**: Core functionality works without enhancements
+- **Offline-First**: Local storage with background sync capabilities
+- **Performance Optimization**: Lazy loading, code splitting, and efficient rendering
+
 ## Project Structure
 
 ```
 src/
-├── components/          # Reusable UI components
+├── components/          # Reusable UI components (80+ components)
 │   ├── ui/             # shadcn/ui base components (Button, Dialog, Card, etc.)
 │   ├── AppwriteSetupGuide.jsx   # Appwrite setup instructions
-│   ├── Chat.jsx                 # Real-time team chat interface with dark theme
-│   ├── ErrorBoundary.jsx        # Error boundary for crash protection
-│   ├── KanbanBoard.jsx          # Kanban board with full task management and hidden scrollbars
+│   ├── KanbanBoard.jsx          # Kanban board with full task management
 │   ├── Layout.jsx               # Main layout with fixed sidebar and responsive design
+│   ├── HackathonLayout.jsx      # Hackathon-specific layout with navigation
+│   ├── ConsoleLayout.jsx        # User console layout for hackathon management
+│   ├── ErrorBoundary.jsx        # Error boundary for crash protection
+│   ├── EnhancementErrorBoundary.jsx # Advanced error handling for enhancements
 │   ├── LoadingSpinner.jsx       # Loading state component with animations
+│   ├── EnhancementLoadingStates.jsx # Feature-specific skeleton loaders
 │   ├── Logo.jsx                 # HackerDen logo component with gradient styling
 │   ├── MessageInput.jsx         # Message input form with dark theme styling
 │   ├── MessageItem.jsx          # Individual message display with avatars and real names
 │   ├── MessageList.jsx          # Scrollable message list with hidden scrollbars
-│   ├── MessagesSetupGuide.jsx   # Messages collection setup guide
 │   ├── MobileTabSwitcher.jsx    # Mobile tab navigation component
 │   ├── ProgressBar.jsx          # Task completion progress bar component
 │   ├── ProtectedRoute.jsx       # Route protection component
 │   ├── Sidebar.jsx              # Fixed sidebar navigation with progress tracking
+│   ├── HackathonSidebar.jsx     # Hackathon-specific sidebar with enhancement features
 │   ├── TaskCard.jsx             # Individual task display with edit/delete actions
 │   ├── TaskColumn.jsx           # Kanban column component with hidden scrollbars
-│   ├── TaskModal.jsx            # Enhanced task creation/editing modal with custom dropdowns
-│   └── TeamSelector.jsx         # Team creation/join selector
+│   ├── TaskModal.jsx            # Enhanced task creation/editing modal
+│   ├── TeamSelector.jsx         # Team creation/join selector
+│   ├── HackathonTeamSelector.jsx # Hackathon-specific team selection
+│   ├── FileUpload.jsx           # File upload with progress and validation
+│   ├── FileLibrary.jsx          # Team file browser and management
+│   ├── FilePreview.jsx          # File preview with annotation support
+│   ├── AnnotationOverlay.jsx    # Interactive file annotation system
+│   ├── IdeaBoard.jsx            # Idea submission and voting interface
+│   ├── IdeaCard.jsx             # Individual idea display with voting
+│   ├── IdeaModal.jsx            # Idea creation and editing modal
+│   ├── GamificationDisplay.jsx  # Points, achievements, and leaderboard
+│   ├── AchievementNotification.jsx # Achievement unlock notifications
+│   ├── CelebrationEffects.jsx   # Confetti and celebration animations
+│   ├── Leaderboard.jsx          # Team and individual rankings
+│   ├── BadgeCollection.jsx      # Achievement badge display
+│   ├── PollCreator.jsx          # Poll creation form
+│   ├── PollDisplay.jsx          # Poll voting interface
+│   ├── QuickPoll.jsx            # Yes/no quick polls
+│   ├── PollHistory.jsx          # Historical poll view
+│   ├── PollManager.jsx          # Main poll management interface
+│   ├── SubmissionBuilder.jsx    # Judge submission form builder
+│   ├── SubmissionPreview.jsx    # Submission preview and finalization
+│   ├── ReactionButton.jsx       # Emoji reaction interface
+│   ├── ReactionPicker.jsx       # Emoji selection component
+│   ├── EasterEggSystem.jsx      # Bot easter eggs and special effects
+│   ├── BotSettings.jsx          # Bot personality and settings
+│   ├── FeatureFlagManager.jsx   # Dynamic feature flag controls
+│   ├── EnhancementRetryMechanisms.jsx # Advanced retry and error recovery
+│   └── ThemeProvider.jsx        # Dark theme provider with system detection
 ├── contexts/           # React contexts
 │   ├── AuthContext.jsx          # User authentication state
 │   ├── TeamContext.jsx          # Team membership and operations
 │   └── HackathonNotificationContext.jsx  # Notification system
-├── hooks/              # Custom React hooks
+├── hooks/              # Custom React hooks (15+ hooks)
 │   ├── useAuth.jsx              # Authentication hook
 │   ├── useMessages.jsx          # Message data management hook
 │   ├── useTasks.jsx             # Task data management hook
 │   ├── useTeam.jsx              # Team operations hook
 │   ├── useNotifications.jsx     # Notification management
-│   └── useHackathonTeam.jsx     # Hackathon-specific team operations
+│   ├── useHackathonTeam.jsx     # Hackathon-specific team operations
+│   ├── useFeatureFlags.jsx      # Dynamic feature flag management
+│   ├── useEnhancementErrorHandling.jsx # Comprehensive error handling
+│   ├── useNetworkErrorHandling.jsx # Network-specific error handling
+│   ├── useValidationErrorHandling.jsx # Form validation with custom rules
+│   ├── useFileUpload.jsx        # File upload with progress tracking
+│   ├── useIdeas.jsx             # Idea management and voting
+│   ├── useGamification.jsx      # Points, achievements, and celebrations
+│   ├── usePolls.jsx             # Poll creation and voting
+│   ├── useSubmissions.jsx       # Judge submission management
+│   └── useReactions.jsx         # Emoji reactions and custom emoji
 ├── lib/                # Third-party integrations
 │   └── appwrite.js              # Appwrite configuration and utilities
-├── pages/              # Page components
-│   ├── Dashboard.jsx            # Main dashboard with responsive layout
+├── pages/              # Page components (20+ pages)
 │   ├── LoginPage.jsx            # User authentication page
 │   ├── RegisterPage.jsx         # User registration page
+│   ├── OAuthCallbackPage.jsx    # OAuth authentication callback
+│   ├── UserHackathonConsole.jsx # Main hackathon console (landing page)
+│   ├── CreateHackathonPage.jsx  # Hackathon creation interface
+│   ├── HackathonDashboardContent.jsx # Individual hackathon dashboard
 │   ├── TeamCreationPage.jsx     # Team creation interface
-│   └── TeamJoinPage.jsx         # Team joining interface
+│   ├── TeamJoinPage.jsx         # Team joining interface
+│   ├── WhiteboardPage.jsx       # Collaborative whiteboard (future)
+│   ├── PublicSubmissionPage.jsx # Public judge submission pages
+│   ├── FeatureFlagPage.jsx      # Feature flag management interface
+│   └── [Demo Pages]             # Various demo and test pages
 ├── services/           # API services
 │   ├── authService.js           # Authentication operations
 │   ├── messageService.js        # Message management operations
@@ -296,13 +469,20 @@ src/
 │   ├── teamMemberService.js     # Team member management with name caching
 │   ├── teamService.js           # Team operations
 │   ├── userNameService.js       # User name resolution and caching
-│   ├── fileService.js           # File upload, storage, and annotation system (enhancement)
-│   ├── ideaService.js           # Idea management, voting, and task conversion (enhancement)
-│   ├── gamificationService.js   # Points, achievements, and celebration system (enhancement)
-│   ├── submissionService.js     # Judge submission pages and public URLs (enhancement)
-│   ├── pollService.js           # In-app polling and decision-making system (enhancement)
-│   ├── botService.js            # System bot, easter eggs, and UX enhancements (enhancement)
-│   └── reactionService.js       # Emoji reactions and custom emoji system (enhancement)
+│   ├── hackathonService.js      # Hackathon management and operations
+│   ├── vaultService.js          # Team vault and credential management
+│   ├── fileService.js           # File upload, storage, and annotation system
+│   ├── EnhancedFileService.js   # Advanced file operations with error handling
+│   ├── ideaService.js           # Idea management, voting, and task conversion
+│   ├── gamificationService.js   # Points, achievements, and celebration system
+│   ├── submissionService.js     # Judge submission pages and public URLs
+│   ├── pollService.js           # In-app polling and decision-making system
+│   ├── botService.js            # System bot, easter eggs, and UX enhancements
+│   ├── reactionService.js       # Emoji reactions and custom emoji system
+│   ├── featureFlagService.js    # Dynamic feature flag management
+│   ├── EnhancementErrorReporting.js # Comprehensive error reporting system
+│   ├── EnhancementOfflineService.js # Offline support and caching
+│   └── BaseService.js           # Base service class with common functionality
 ├── utils/              # Utility functions and helpers
 ├── test/               # Test utilities and configurations
 ├── assets/             # Images, icons, static files
@@ -476,6 +656,26 @@ The application implements smart routing based on user team membership:
 - **Real-time Updates**: Status changes sync immediately across all team members
 - **Error Handling**: Failed drag operations are handled gracefully
 - **Touch Optimization**: Proper touch event handling prevents scrolling during drag
+
+## Comprehensive Error Handling System
+
+### Advanced Error Management
+HackerDen includes a sophisticated error handling system that ensures graceful degradation and excellent user experience even when things go wrong:
+
+- **Feature-Specific Error Boundaries**: Intelligent error categorization for file sharing, idea management, gamification, polling, and submissions
+- **Retry Mechanisms**: Exponential backoff with user-controlled retry options and progress visualization
+- **Offline Resilience**: Local storage caching with operation queueing for sync when back online
+- **User-Friendly Feedback**: Clear error messages with recovery suggestions and actionable steps
+- **Error Analytics**: Comprehensive error reporting and monitoring with health metrics
+- **Graceful Fallbacks**: Basic functionality preservation when enhancement features fail
+
+### Error Handling Features
+- **Network Error Recovery**: Intelligent connection testing and retry logic
+- **File Upload Validation**: Size and type validation with detailed error feedback
+- **Form Validation**: Real-time validation with custom rules and error display
+- **Batch Operation Support**: Individual error tracking for multiple operations
+- **Performance Monitoring**: Memory management and resource optimization
+- **Security Features**: Sensitive data filtering and user privacy protection
 
 ## Enhanced Chat System
 
@@ -827,11 +1027,132 @@ const {
 
 ## Contributing
 
-1. Follow the existing code style and patterns
-2. Run `npm run lint` before committing
-3. Ensure all builds pass with `npm run build`
-4. Update documentation for new features
-5. Refer to component documentation in `docs/` for implementation details
+We welcome contributions to HackerDen! This project is designed to be developer-friendly and follows clear patterns for easy contribution.
+
+### Quick Start for Contributors
+
+1. **Fork and Clone**
+```bash
+git clone https://github.com/your-username/hackerden.git
+cd hackerden
+npm install
+```
+
+2. **Set Up Development Environment**
+```bash
+cp .env.example .env
+# Add your Appwrite credentials
+npm run setup:enhancements
+npm run test:run
+```
+
+3. **Start Development**
+```bash
+npm run dev
+```
+
+### Development Guidelines
+
+#### Code Style
+- **Components**: Use functional components with hooks exclusively
+- **UI Library**: Use shadcn/ui components only - no other UI libraries
+- **Styling**: Tailwind CSS with existing design tokens and dark theme
+- **State Management**: React Context for global state, local state for components
+- **Error Handling**: Always wrap async operations with proper error boundaries
+- **Testing**: Add tests for new features and maintain existing test coverage
+
+#### Architecture Patterns
+- **Service Layer**: Follow existing service patterns with BaseService inheritance
+- **Progressive Enhancement**: Core functionality must work without enhancements
+- **Mobile-First**: Design for mobile, enhance for desktop
+- **Accessibility**: Maintain WCAG 2.1 AA compliance
+- **Performance**: Use React.memo, useMemo, and lazy loading appropriately
+
+#### Feature Development
+- **Feature Flags**: Use feature flags for new enhancement features
+- **Real-time**: Integrate with Appwrite subscriptions for live updates
+- **Offline Support**: Consider offline scenarios and local caching
+- **Error Recovery**: Implement retry mechanisms and graceful fallbacks
+
+### Testing Requirements
+
+```bash
+# Run all tests
+npm run test
+
+# Test specific areas
+npm run test:run -- src/services/__tests__/
+npm run test:run -- src/components/__tests__/
+
+# Test styling and responsiveness
+npm run test:styling
+npm run test:responsive
+
+# Lint code
+npm run lint
+
+# Build for production
+npm run build
+```
+
+### Contribution Areas
+
+**High Priority:**
+- Real-time integration for enhancement features
+- Mobile touch interactions and gestures
+- Performance optimizations
+- Accessibility improvements
+- Cross-browser compatibility
+
+**Enhancement Features:**
+- Advanced file preview (PDF viewer, code editor)
+- Team analytics and productivity insights
+- External integrations (GitHub, Slack, Discord)
+- AI-powered suggestions and automation
+- Advanced notification system
+
+**Documentation:**
+- API documentation improvements
+- Component usage examples
+- Setup and deployment guides
+- Troubleshooting guides
+
+### Pull Request Process
+
+1. **Create Feature Branch**
+```bash
+git checkout -b feature/your-feature-name
+```
+
+2. **Development Checklist**
+- [ ] Follow existing code patterns and style
+- [ ] Add or update tests for your changes
+- [ ] Ensure all tests pass (`npm run test`)
+- [ ] Lint your code (`npm run lint`)
+- [ ] Test mobile responsiveness
+- [ ] Verify accessibility compliance
+- [ ] Update documentation if needed
+
+3. **Submit Pull Request**
+- Clear description of changes
+- Screenshots for UI changes
+- Test results and coverage
+- Breaking changes noted
+
+### Getting Help
+
+- **Documentation**: Check `docs/` folder for detailed guides
+- **Issues**: Search existing issues before creating new ones
+- **Discussions**: Use GitHub Discussions for questions and ideas
+- **Code Examples**: Review existing components and services for patterns
+
+### Development Resources
+
+- **Component Library**: [shadcn/ui documentation](https://ui.shadcn.com/)
+- **Backend**: [Appwrite documentation](https://appwrite.io/docs)
+- **Styling**: [Tailwind CSS documentation](https://tailwindcss.com/docs)
+- **Testing**: [Vitest documentation](https://vitest.dev/)
+- **React**: [React 19 documentation](https://react.dev/)
 
 ## Development Workflow
 
@@ -854,6 +1175,32 @@ This project follows a spec-driven development approach:
 - **Mobile-First**: All features optimized for mobile and desktop experiences
 - **Real-time by Default**: Live updates across all enhancement features
 
+## Project Vision
+
+HackerDen aims to transform hackathon collaboration from functional to delightful. We believe that great tools should not only work well but also inspire creativity and foster team bonding. Our enhancement suite adds personality, gamification, and intelligent features that make hackathon participation more engaging and productive.
+
+### Core Values
+- **Developer Experience**: Tools should be intuitive and powerful
+- **Accessibility**: Everyone should be able to participate fully
+- **Performance**: Fast, responsive, and reliable operation
+- **Community**: Open source collaboration and knowledge sharing
+- **Innovation**: Pushing the boundaries of what collaboration tools can be
+
+## Acknowledgments
+
+- **[shadcn/ui](https://ui.shadcn.com/)**: For the excellent component library and design system that makes our UI consistent and accessible
+- **[Appwrite](https://appwrite.io/)**: For the powerful backend-as-a-service platform that handles our data, authentication, and real-time features
+- **[React Team](https://react.dev/)**: For React 19's amazing new features and performance improvements
+- **[Tailwind CSS](https://tailwindcss.com/)**: For the utility-first CSS framework that powers our responsive design
+- **[Vite](https://vitejs.dev/)**: For the lightning-fast build tool that makes development a joy
+- **Contributors**: Thanks to all contributors who help make HackerDen better for the hackathon community
+
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Built with ❤️ for the hackathon community**
+
+*Transform your hackathon experience from functional to delightful with HackerDen's comprehensive collaboration platform.*

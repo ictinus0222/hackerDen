@@ -74,6 +74,12 @@ class SubmissionService {
         throw new Error('Cannot update finalized submission');
       }
 
+      // Check if hackathon has ended
+      const hackathonEnded = await this.checkHackathonEnded(submission.teamId);
+      if (hackathonEnded) {
+        throw new Error('Cannot update submission after hackathon has ended');
+      }
+
       const updatedSubmission = await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.SUBMISSIONS,
@@ -144,18 +150,140 @@ class SubmissionService {
    */
   async getTeamDataForSubmission(teamId) {
     try {
-      // This will integrate with existing team and task services
-      // For now, return placeholder structure
+      // Import services dynamically to avoid circular dependencies
+      const { teamService } = await import('./teamService');
+      const { taskService } = await import('./taskService');
+      
+      let teamData = { teamName: 'Unknown Team', members: [] };
+      let tasks = [];
+      let files = [];
+      
+      // Get team information
+      try {
+        const team = await databases.getDocument(DATABASE_ID, COLLECTIONS.TEAMS, teamId);
+        teamData.teamName = team.name;
+        
+        // Get team members (use legacy method for backward compatibility)
+        const members = await teamService.getLegacyTeamMembers(teamId);
+        teamData.members = members;
+      } catch (error) {
+        console.warn('Could not fetch team data:', error);
+      }
+
+      // Get tasks for progress calculation
+      try {
+        tasks = await taskService.getLegacyTeamTasks(teamId);
+      } catch (error) {
+        console.warn('Could not fetch tasks:', error);
+      }
+
+      // Get files if file service is available
+      try {
+        const { fileService } = await import('./fileService');
+        files = await fileService.getTeamFiles(teamId);
+      } catch (error) {
+        console.warn('Could not fetch files:', error);
+      }
+
+      // Get enhancement data if services are available
+      let ideas = [];
+      let polls = [];
+      let achievements = [];
+      let userPoints = [];
+      
+      // Get ideas if idea service is available
+      try {
+        const { ideaService } = await import('./ideaService');
+        ideas = await ideaService.getTeamIdeas(teamId);
+      } catch (error) {
+        console.warn('Could not fetch ideas:', error);
+      }
+
+      // Get polls if poll service is available
+      try {
+        const pollServiceModule = await import('./pollService');
+        polls = await pollServiceModule.default.getTeamPolls(teamId, { includeExpired: true });
+      } catch (error) {
+        console.warn('Could not fetch polls:', error);
+      }
+
+      // Get achievements and points if gamification service is available
+      try {
+        const { gamificationService } = await import('./gamificationService');
+        
+        // Get achievements for all team members
+        for (const member of teamData.members) {
+          try {
+            const memberProgress = await gamificationService.getUserProgress(member.userId, teamId);
+            achievements.push(...memberProgress.achievements);
+            if (memberProgress.teamPoints.length > 0) {
+              userPoints.push({
+                userId: member.userId,
+                userName: member.userName,
+                ...memberProgress.teamPoints[0]
+              });
+            }
+          } catch (error) {
+            console.warn(`Could not fetch progress for member ${member.userId}:`, error);
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch gamification data:', error);
+      }
+
+      // Calculate enhanced progress metrics
+      const completedTasks = tasks.filter(task => task.status === 'completed').length;
+      const totalTasks = tasks.length;
+      const filesShared = files.length;
+      
+      // Calculate ideas implemented (from tasks that might have been converted from ideas)
+      const ideasImplemented = tasks.filter(task => 
+        task.labels && task.labels.includes('idea-conversion')
+      ).length;
+
+      // Calculate poll decisions implemented
+      const pollDecisionsImplemented = tasks.filter(task => 
+        task.labels && task.labels.includes('poll-decision')
+      ).length;
+
+      // Calculate team collaboration metrics
+      const totalIdeas = ideas.length;
+      const approvedIdeas = ideas.filter(idea => idea.status === 'approved').length;
+      const totalPolls = polls.length;
+      const totalAchievements = achievements.length;
+      const totalPoints = userPoints.reduce((sum, up) => sum + up.totalPoints, 0);
+
+      // Calculate file attachments to tasks
+      const tasksWithFiles = tasks.filter(task => 
+        task.attachedFiles && task.attachedFiles.length > 0
+      ).length;
+
       return {
-        teamName: 'Team Name',
-        members: [],
-        completedTasks: 0,
-        totalTasks: 0,
-        files: [],
+        teamName: teamData.teamName,
+        members: teamData.members,
+        completedTasks,
+        totalTasks,
+        files,
+        ideas,
+        polls,
+        achievements,
+        userPoints,
         progress: {
-          tasksCompleted: 0,
-          filesShared: 0,
-          ideasImplemented: 0
+          tasksCompleted: completedTasks,
+          filesShared,
+          ideasSubmitted: totalIdeas,
+          ideasImplemented,
+          pollsCreated: totalPolls,
+          pollDecisionsImplemented,
+          achievementsUnlocked: totalAchievements,
+          totalPointsEarned: totalPoints,
+          tasksWithAttachments: tasksWithFiles
+        },
+        collaboration: {
+          teamEngagement: Math.min(100, Math.round((totalIdeas + totalPolls + filesShared) / Math.max(1, teamData.members.length) * 20)),
+          taskCompletion: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+          ideaToImplementation: totalIdeas > 0 ? Math.round((ideasImplemented / totalIdeas) * 100) : 0,
+          fileCollaboration: Math.round((tasksWithFiles / Math.max(1, totalTasks)) * 100)
         }
       };
     } catch (error) {
@@ -166,10 +294,26 @@ class SubmissionService {
         completedTasks: 0,
         totalTasks: 0,
         files: [],
+        ideas: [],
+        polls: [],
+        achievements: [],
+        userPoints: [],
         progress: {
           tasksCompleted: 0,
           filesShared: 0,
-          ideasImplemented: 0
+          ideasSubmitted: 0,
+          ideasImplemented: 0,
+          pollsCreated: 0,
+          pollDecisionsImplemented: 0,
+          achievementsUnlocked: 0,
+          totalPointsEarned: 0,
+          tasksWithAttachments: 0
+        },
+        collaboration: {
+          teamEngagement: 0,
+          taskCompletion: 0,
+          ideaToImplementation: 0,
+          fileCollaboration: 0
         }
       };
     }
@@ -272,6 +416,31 @@ class SubmissionService {
   }
 
   /**
+   * Check if hackathon has ended for a team
+   * @param {string} teamId - Team identifier
+   * @returns {Promise<boolean>} True if hackathon has ended
+   */
+  async checkHackathonEnded(teamId) {
+    try {
+      // Get team to find hackathon
+      const team = await databases.getDocument(DATABASE_ID, COLLECTIONS.TEAMS, teamId);
+      
+      // Get hackathon details
+      const hackathon = await databases.getDocument(DATABASE_ID, COLLECTIONS.HACKATHONS, team.hackathonId);
+      
+      // Check if hackathon has ended
+      const now = new Date();
+      const endDate = new Date(hackathon.endDate);
+      
+      return now > endDate;
+    } catch (error) {
+      console.warn('Could not check hackathon end date:', error);
+      // If we can't determine, allow editing (fail open)
+      return false;
+    }
+  }
+
+  /**
    * Get submission statistics for team
    * @param {string} teamId - Team identifier
    * @returns {Promise<Object>} Submission statistics
@@ -285,19 +454,22 @@ class SubmissionService {
           exists: false,
           completeness: 0,
           isFinalized: false,
-          lastUpdated: null
+          lastUpdated: null,
+          hackathonEnded: false
         };
       }
 
       const validation = this.validateSubmission(submission);
       const totalFields = 8; // Total number of submission fields
       const completedFields = totalFields - validation.missing.required.length - validation.missing.recommended.length;
+      const hackathonEnded = await this.checkHackathonEnded(submission.teamId);
       
       return {
         exists: true,
         completeness: Math.round((completedFields / totalFields) * 100),
         isFinalized: submission.isFinalized,
         lastUpdated: submission.updatedAt,
+        hackathonEnded,
         validation
       };
     } catch (error) {
@@ -306,7 +478,8 @@ class SubmissionService {
         exists: false,
         completeness: 0,
         isFinalized: false,
-        lastUpdated: null
+        lastUpdated: null,
+        hackathonEnded: false
       };
     }
   }

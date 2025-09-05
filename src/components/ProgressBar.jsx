@@ -1,68 +1,153 @@
-import { useMemo } from 'react';
+/**
+ * @fileoverview Enhanced ProgressBar Component
+ * Uses shadcn/ui Progress component with gamification features
+ */
+
+import React, { useMemo } from 'react';
+import { Progress } from './ui/progress';
+import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
 
 const ProgressBar = ({ 
   completedTasks = 0, 
   totalTasks = 0, 
   showPercentage = true, 
   showLabel = true,
+  showBadge = false,
   size = 'md',
-  className = '' 
+  variant = 'default',
+  className = '',
+  label = 'Task Progress',
+  // Gamification props
+  points = null,
+  maxPoints = null,
+  showPoints = false,
+  animated = true
 }) => {
   const percentage = useMemo(() => {
+    if (showPoints && points !== null && maxPoints !== null) {
+      if (maxPoints === 0) return 0;
+      return Math.round((points / maxPoints) * 100);
+    }
     if (totalTasks === 0) return 0;
     return Math.round((completedTasks / totalTasks) * 100);
-  }, [completedTasks, totalTasks]);
+  }, [completedTasks, totalTasks, points, maxPoints, showPoints]);
 
   const sizeClasses = {
-    sm: 'h-2',
-    md: 'h-3',
-    lg: 'h-4'
+    sm: 'h-1',
+    md: 'h-2',
+    lg: 'h-3',
+    xl: 'h-4'
   };
 
-  const getProgressColor = (percentage) => {
+  const getVariantColor = (percentage, variant) => {
+    if (variant === 'success') return 'bg-green-500';
+    if (variant === 'warning') return 'bg-yellow-500';
+    if (variant === 'danger') return 'bg-red-500';
+    
+    // Default dynamic coloring
     if (percentage >= 80) return 'bg-primary';
-    if (percentage >= 60) return 'bg-accent';
+    if (percentage >= 60) return 'bg-blue-500';
     if (percentage >= 40) return 'bg-yellow-500';
     if (percentage >= 20) return 'bg-orange-500';
-    return 'bg-destructive';
+    return 'bg-red-500';
   };
 
+  const getBadgeVariant = (percentage) => {
+    if (percentage >= 80) return 'default';
+    if (percentage >= 60) return 'secondary';
+    if (percentage >= 40) return 'outline';
+    return 'destructive';
+  };
+
+  const displayValue = showPoints && points !== null ? points : completedTasks;
+  const displayMax = showPoints && maxPoints !== null ? maxPoints : totalTasks;
+  const displayRemaining = displayMax - displayValue;
+
   return (
-    <div className={`w-full ${className}`}>
+    <div className={cn("w-full space-y-2", className)}>
       {showLabel && (
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-muted-foreground">
-            Task Progress
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-muted-foreground">
+            {label}
           </span>
-          {showPercentage && (
-            <span className="text-xs font-mono text-foreground">
-              {percentage}%
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {showPercentage && (
+              <span className="text-sm font-mono text-foreground">
+                {percentage}%
+              </span>
+            )}
+            {showBadge && (
+              <Badge variant={getBadgeVariant(percentage)} className="text-xs">
+                {showPoints ? `${points} pts` : `${completedTasks}/${totalTasks}`}
+              </Badge>
+            )}
+          </div>
         </div>
       )}
       
-      <div className={`w-full bg-muted/50 rounded-full overflow-hidden ${sizeClasses[size]} border border-border/30`}>
-        <div
-          className={`${sizeClasses[size]} rounded-full transition-all duration-500 ease-out ${getProgressColor(percentage)}`}
-          style={{ width: `${percentage}%` }}
-        >
-          <div className="h-full bg-gradient-to-r from-transparent to-white/20 rounded-full"></div>
-        </div>
-      </div>
+      <Progress 
+        value={percentage} 
+        className={cn(
+          sizeClasses[size],
+          animated && "transition-all duration-700 ease-out"
+        )}
+      />
       
       {showLabel && (
-        <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-muted-foreground">
-          {completedTasks} of {totalTasks} completed
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {totalTasks - completedTasks} remaining
-        </span>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>
+            {showPoints 
+              ? `${points || 0} of ${maxPoints || 0} points`
+              : `${completedTasks} of ${totalTasks} completed`
+            }
+          </span>
+          {displayRemaining > 0 && (
+            <span>
+              {showPoints 
+                ? `${displayRemaining} points remaining`
+                : `${displayRemaining} remaining`
+              }
+            </span>
+          )}
         </div>
       )}
     </div>
   );
 };
+
+// Specialized progress bars for gamification
+export const PointsProgressBar = ({ points, maxPoints, label = "Points Progress", ...props }) => (
+  <ProgressBar 
+    points={points}
+    maxPoints={maxPoints}
+    showPoints={true}
+    label={label}
+    {...props}
+  />
+);
+
+export const AchievementProgressBar = ({ current, target, label, ...props }) => (
+  <ProgressBar 
+    completedTasks={current}
+    totalTasks={target}
+    label={label}
+    showBadge={true}
+    variant="success"
+    {...props}
+  />
+);
+
+export const TeamProgressBar = ({ teamPoints, targetPoints, ...props }) => (
+  <ProgressBar 
+    points={teamPoints}
+    maxPoints={targetPoints}
+    showPoints={true}
+    label="Team Progress"
+    size="lg"
+    showBadge={true}
+    {...props}
+  />
+);
 
 export default ProgressBar;

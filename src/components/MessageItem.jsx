@@ -2,11 +2,18 @@ import { useState, useEffect } from 'react';
 import { cn } from '../lib/utils.ts';
 import { userNameService } from '../services/userNameService';
 import { useAuth } from '../hooks/useAuth';
+import { Badge } from './ui/badge';
+import PollDisplay from './PollDisplay';
+import ReactionButton from './ReactionButton';
+import { useHackathonTeam } from '../hooks/useHackathonTeam';
 
-const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => {
+const MessageItem = ({ message, isCurrentUser = false, className, onRetry, onPollVoteUpdate, onTaskCreated }) => {
   const { user } = useAuth();
+  const { team } = useHackathonTeam(message.hackathonId);
   const [userName, setUserName] = useState('');
+  const [pollData, setPollData] = useState(null);
   const isSystemMessage = message.type !== 'user';
+  const isPollMessage = message.type === 'poll_created' && message.systemData?.type === 'poll';
 
   // Resolve user name from userId
   useEffect(() => {
@@ -23,6 +30,23 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
       setUserName('Team Member');
     }
   }, [message.userId, user, isCurrentUser, isSystemMessage]);
+
+  // Load poll data for poll messages
+  useEffect(() => {
+    if (isPollMessage && message.systemData?.pollId) {
+      const loadPollData = async () => {
+        try {
+          const pollService = (await import('../services/pollService')).default;
+          const poll = await pollService.getPollResults(message.systemData.pollId);
+          setPollData(poll);
+        } catch (error) {
+          console.error('Error loading poll data for message:', error);
+        }
+      };
+
+      loadPollData();
+    }
+  }, [isPollMessage, message.systemData?.pollId]);
   
   // System message styling based on type - updated to match your dark theme
   const getSystemMessageStyle = (type) => {
@@ -38,6 +62,20 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
       'vault_secret_added': `${baseStyle} border-l-4 border-l-purple-500/60`,
       'vault_secret_updated': `${baseStyle} border-l-4 border-l-orange-500/60`,
       'vault_secret_deleted': `${baseStyle} border-l-4 border-l-red-500/60`,
+      
+      // Poll-related system messages
+      'poll_created': `${baseStyle} border-l-4 border-l-purple-500/60`,
+      'poll_voted': `${baseStyle} border-l-4 border-l-indigo-500/60`,
+      'poll_ended': `${baseStyle} border-l-4 border-l-green-500/60`,
+      'poll_converted_to_task': `${baseStyle} border-l-4 border-l-blue-500/60`,
+      
+      // Bot-related system messages
+      'bot_message': `${baseStyle} border-l-4 border-l-emerald-500/60 bg-emerald-50/5`,
+      'bot_tip': `${baseStyle} border-l-4 border-l-blue-500/60 bg-blue-50/5`,
+      'bot_easter_egg': `${baseStyle} border-l-4 border-l-pink-500/60 bg-pink-50/5`,
+      'bot_contextual': `${baseStyle} border-l-4 border-l-amber-500/60 bg-amber-50/5`,
+      'bot_help': `${baseStyle} border-l-4 border-l-cyan-500/60 bg-cyan-50/5`,
+      'bot_reminder_scheduled': `${baseStyle} border-l-4 border-l-violet-500/60 bg-violet-50/5`,
       
       // Default system message
       'system': `${baseStyle} border-l-4 border-l-muted-foreground/40`
@@ -55,6 +93,16 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
       'vault_secret_added': '🔐',
       'vault_secret_updated': '🔄',
       'vault_secret_deleted': '🗑️',
+      'poll_created': '📊',
+      'poll_voted': '🗳️',
+      'poll_ended': '📊',
+      'poll_converted_to_task': '📊➡️📝',
+      'bot_message': '🤖',
+      'bot_tip': '💡',
+      'bot_easter_egg': '🎉',
+      'bot_contextual': '🌟',
+      'bot_help': '❓',
+      'bot_reminder_scheduled': '📅',
       'system': '💬'
     };
     
@@ -70,6 +118,16 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
       'vault_secret_added': 'Vault secret added notification',
       'vault_secret_updated': 'Vault secret updated notification',
       'vault_secret_deleted': 'Vault secret deleted notification',
+      'poll_created': 'Poll created notification',
+      'poll_voted': 'Poll vote notification',
+      'poll_ended': 'Poll ended notification',
+      'poll_converted_to_task': 'Poll converted to task notification',
+      'bot_message': 'Bot message',
+      'bot_tip': 'Bot tip',
+      'bot_easter_egg': 'Bot easter egg',
+      'bot_contextual': 'Bot contextual message',
+      'bot_help': 'Bot help message',
+      'bot_reminder_scheduled': 'Bot reminder scheduled',
       'system': 'System notification'
     };
     
@@ -106,11 +164,34 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
               {message.content}
             </p>
             
+            {/* Interactive poll display for poll creation messages */}
+            {isPollMessage && pollData && (
+              <div className="mt-4 pt-4 border-t border-border/30">
+                <PollDisplay
+                  poll={pollData.poll}
+                  onVoteUpdate={onPollVoteUpdate}
+                  onTaskCreated={onTaskCreated}
+                  showResults={pollData.isExpired}
+                  showExport={false}
+                  showTaskConversion={true}
+                  compact={true}
+                />
+              </div>
+            )}
+            
             {/* System message metadata */}
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
-              <span className="text-xs text-muted-foreground">
-                System
-              </span>
+              <div className="flex items-center space-x-2">
+                {message.type?.startsWith('bot_') ? (
+                  <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                    🤖 Bot
+                  </Badge>
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    System
+                  </span>
+                )}
+              </div>
               <time 
                 className="text-xs text-muted-foreground"
                 dateTime={message.$createdAt}
@@ -174,6 +255,17 @@ const MessageItem = ({ message, isCurrentUser = false, className, onRetry }) => 
               : "bg-muted text-muted-foreground rounded-bl-sm"
           )}>
             {message.content}
+          </div>
+          
+          {/* Reactions */}
+          <div className="mt-1 px-1">
+            <ReactionButton
+              targetId={message.$id}
+              targetType="message"
+              teamId={team?.$id}
+              compact={true}
+              className="justify-start"
+            />
           </div>
           
           {/* Time and Status */}

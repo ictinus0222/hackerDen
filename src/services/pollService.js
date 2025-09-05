@@ -1,4 +1,5 @@
 import { databases, DATABASE_ID, COLLECTIONS, Query, ID } from '@/lib/appwrite';
+import { messageService } from './messageService';
 
 /**
  * Poll Service for managing team polls and voting
@@ -10,9 +11,11 @@ class PollService {
    * @param {string} teamId - Team identifier
    * @param {string} createdBy - User ID of poll creator
    * @param {Object} pollData - Poll content (question, options, settings)
+   * @param {string} hackathonId - Hackathon identifier for chat integration
+   * @param {string} creatorName - Creator name for chat messages
    * @returns {Promise<Object>} Poll document
    */
-  async createPoll(teamId, createdBy, pollData) {
+  async createPoll(teamId, createdBy, pollData, hackathonId = null, creatorName = 'Team Member') {
     try {
       // Validate required fields
       if (!pollData.question || !pollData.options || pollData.options.length < 2) {
@@ -40,6 +43,22 @@ class PollService {
         }
       );
 
+      // Send poll creation message to chat
+      if (hackathonId) {
+        try {
+          await messageService.sendPollMessage(
+            teamId, 
+            hackathonId, 
+            poll.$id, 
+            poll.question, 
+            creatorName
+          );
+        } catch (chatError) {
+          console.warn('Failed to send poll creation message to chat:', chatError);
+          // Don't fail poll creation if chat message fails
+        }
+      }
+
       return poll;
     } catch (error) {
       console.error('Error creating poll:', error);
@@ -52,9 +71,11 @@ class PollService {
    * @param {string} pollId - Poll document ID
    * @param {string} userId - User ID voting
    * @param {Array|string} selectedOptions - Selected option(s)
+   * @param {string} hackathonId - Hackathon identifier for chat integration
+   * @param {string} voterName - Voter name for chat messages
    * @returns {Promise<Object>} Vote document
    */
-  async voteOnPoll(pollId, userId, selectedOptions) {
+  async voteOnPoll(pollId, userId, selectedOptions, hackathonId = null, voterName = 'Team Member') {
     try {
       // Get poll to check if it's active and get settings
       const poll = await databases.getDocument(
@@ -95,6 +116,8 @@ class PollService {
       );
 
       let vote;
+      let isNewVote = false;
+      
       if (existingVote.documents.length > 0) {
         // Update existing vote
         vote = await databases.updateDocument(
@@ -120,6 +143,8 @@ class PollService {
           }
         );
 
+        isNewVote = true;
+
         // Update total vote count
         await databases.updateDocument(
           DATABASE_ID,
@@ -129,6 +154,23 @@ class PollService {
             totalVotes: poll.totalVotes + 1
           }
         );
+      }
+
+      // Send vote notification to chat (only for new votes, not updates)
+      if (hackathonId && isNewVote) {
+        try {
+          await messageService.sendPollVoteMessage(
+            poll.teamId, 
+            hackathonId, 
+            pollId, 
+            poll.question, 
+            voterName, 
+            validOptions
+          );
+        } catch (chatError) {
+          console.warn('Failed to send poll vote message to chat:', chatError);
+          // Don't fail vote if chat message fails
+        }
       }
 
       return vote;
@@ -228,10 +270,18 @@ class PollService {
   /**
    * Close a poll manually
    * @param {string} pollId - Poll document ID
+   * @param {string} hackathonId - Hackathon identifier for chat integration
    * @returns {Promise<Object>} Updated poll document
    */
-  async closePoll(pollId) {
+  async closePoll(pollId, hackathonId = null) {
     try {
+      // Get poll data before closing
+      const poll = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.POLLS,
+        pollId
+      );
+
       const updatedPoll = await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.POLLS,
@@ -241,6 +291,24 @@ class PollService {
           closedAt: new Date().toISOString()
         }
       );
+
+      // Send poll result notification to chat
+      if (hackathonId) {
+        try {
+          const results = await this.getPollResults(pollId);
+          await messageService.sendPollResultMessage(
+            poll.teamId,
+            hackathonId,
+            pollId,
+            poll.question,
+            results.winners,
+            results.totalVotes
+          );
+        } catch (chatError) {
+          console.warn('Failed to send poll result message to chat:', chatError);
+          // Don't fail poll closure if chat message fails
+        }
+      }
 
       return updatedPoll;
     } catch (error) {
@@ -330,9 +398,12 @@ class PollService {
    * Convert poll winning option to task (integration point)
    * @param {string} pollId - Poll document ID
    * @param {string} winningOption - Winning poll option
-   * @returns {Promise<Object>} Task creation data
+   * @param {string} hackathonId - Hackathon identifier for task creation
+   * @param {string} creatorId - User ID creating the task
+   * @param {string} creatorName - Creator name for chat messages
+   * @returns {Promise<Object>} Created task document
    */
-  async convertPollToTask(pollId, winningOption) {
+  async convertPollToTask(pollId, winningOption, hackathonId, creatorId, creatorName = 'Team Member') {
     try {
       const poll = await databases.getDocument(
         DATABASE_ID,
@@ -344,19 +415,144 @@ class PollService {
         throw new Error('Invalid winning option');
       }
 
-      // This will integrate with existing taskService
-      // For now, return the data that would be used for task creation
-      return {
-        title: `Poll Decision: ${winningOption}`,
-        description: `Task created from poll: "${poll.question}"\nWinning option: ${winningOption}`,
-        teamId: poll.teamId,
-        createdBy: poll.createdBy,
-        sourceType: 'poll',
-        sourceId: pollId,
-        priority: 'medium'
-      };
+      // Get poll results to include in task description
+      const results = await this.getPollResults(pollId);
+      const winningResult = results.results.find(r => r.option === winningOption);
+      
+      // Create detailed task description
+      const description = [
+        `Task created from team poll decision.`,
+        ``,
+        `**Poll Question:** ${poll.question}`,
+        `**Winning Option:** ${winningOption} (${winningResult?.votes || 0} votes, ${winningResult?.percentage || 0}%)`,
+        `**Total Votes:** ${results.totalVotes} from ${results.uniqueVoters} team members`,
+        ``,
+        `**Implementation Notes:**`,
+        `- This task represents the team's collective decision`,
+        `- Consider the poll discussion context when implementing`,
+        `- Update task status to keep the team informed of progress`
+      ].join('\n');
+
+      const taskTitle = `Implement: ${winningOption}`;
+
+      // Import taskService dynamically to avoid circular dependencies
+      const { taskService } = await import('./taskService');
+      
+      // Use the new integrated method in taskService
+      const task = await taskService.createTaskFromPoll(
+        pollId,
+        winningOption,
+        poll.teamId,
+        hackathonId,
+        creatorId,
+        creatorName
+      );
+
+      return task;
     } catch (error) {
       console.error('Error converting poll to task:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Export poll results in various formats
+   * @param {string} pollId - Poll document ID
+   * @param {string} format - Export format ('csv', 'json', 'markdown')
+   * @returns {Promise<Object>} Export data with content and filename
+   */
+  async exportPollResults(pollId, format = 'csv') {
+    try {
+      const results = await this.getPollResults(pollId);
+      const poll = results.poll;
+      const timestamp = new Date().toISOString().split('T')[0];
+      
+      let content, filename, mimeType;
+
+      switch (format.toLowerCase()) {
+        case 'json':
+          content = JSON.stringify({
+            poll: {
+              id: poll.$id,
+              question: poll.question,
+              createdAt: poll.createdAt,
+              expiresAt: poll.expiresAt,
+              isActive: poll.isActive,
+              allowMultiple: poll.allowMultiple
+            },
+            results: results.results,
+            summary: {
+              totalVotes: results.totalVotes,
+              uniqueVoters: results.uniqueVoters,
+              winners: results.winners,
+              isExpired: results.isExpired
+            },
+            exportedAt: new Date().toISOString()
+          }, null, 2);
+          filename = `poll-results-${poll.$id}-${timestamp}.json`;
+          mimeType = 'application/json';
+          break;
+
+        case 'markdown':
+          content = [
+            `# Poll Results: ${poll.question}`,
+            ``,
+            `**Poll ID:** ${poll.$id}`,
+            `**Created:** ${new Date(poll.createdAt).toLocaleString()}`,
+            `**Expires:** ${new Date(poll.expiresAt).toLocaleString()}`,
+            `**Status:** ${results.isExpired ? 'Expired' : 'Active'}`,
+            `**Type:** ${poll.allowMultiple ? 'Multiple Choice' : 'Single Choice'}`,
+            ``,
+            `## Results`,
+            ``,
+            `**Total Votes:** ${results.totalVotes}`,
+            `**Unique Voters:** ${results.uniqueVoters}`,
+            ``,
+            `| Option | Votes | Percentage | Winner |`,
+            `|--------|-------|------------|---------|`,
+            ...results.results.map(result => 
+              `| ${result.option} | ${result.votes} | ${result.percentage}% | ${results.winners.includes(result.option) ? '🏆' : ''} |`
+            ),
+            ``,
+            `**Winners:** ${results.winners.join(', ')}`,
+            ``,
+            `---`,
+            `*Exported on ${new Date().toLocaleString()}*`
+          ].join('\n');
+          filename = `poll-results-${poll.$id}-${timestamp}.md`;
+          mimeType = 'text/markdown';
+          break;
+
+        default: // CSV
+          content = [
+            ['Option', 'Votes', 'Percentage', 'Winner'],
+            ...results.results.map(result => [
+              result.option,
+              result.votes,
+              `${result.percentage}%`,
+              results.winners.includes(result.option) ? 'Yes' : 'No'
+            ]),
+            [],
+            ['Poll Question', poll.question],
+            ['Total Votes', results.totalVotes],
+            ['Unique Voters', results.uniqueVoters],
+            ['Created At', new Date(poll.createdAt).toLocaleString()],
+            ['Expires At', new Date(poll.expiresAt).toLocaleString()],
+            ['Status', results.isExpired ? 'Expired' : 'Active'],
+            ['Exported At', new Date().toLocaleString()]
+          ].map(row => row.join(',')).join('\n');
+          filename = `poll-results-${poll.$id}-${timestamp}.csv`;
+          mimeType = 'text/csv';
+          break;
+      }
+
+      return {
+        content,
+        filename,
+        mimeType
+      };
+    } catch (error) {
+      console.error('Error exporting poll results:', error);
       throw error;
     }
   }
@@ -368,9 +564,53 @@ class PollService {
    * @returns {Function} Unsubscribe function
    */
   subscribeToPolls(teamId, callback) {
-    // This will be implemented with Appwrite realtime subscriptions
-    // For now, return a no-op unsubscribe function
-    return () => {};
+    try {
+      // Import client dynamically to avoid circular dependencies
+      const client = require('@/lib/appwrite').default;
+      
+      const unsubscribe = client.subscribe(
+        `databases.${DATABASE_ID}.collections.${COLLECTIONS.POLLS}.documents`,
+        (response) => {
+          // Only process events for polls belonging to this team
+          if (response.payload.teamId === teamId) {
+            callback(response);
+          }
+        }
+      );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error subscribing to polls:', error);
+      return () => {};
+    }
+  }
+
+  /**
+   * Subscribe to poll vote changes for a specific poll
+   * @param {string} pollId - Poll identifier
+   * @param {Function} callback - Callback function for updates
+   * @returns {Function} Unsubscribe function
+   */
+  subscribeToPollVotes(pollId, callback) {
+    try {
+      // Import client dynamically to avoid circular dependencies
+      const client = require('@/lib/appwrite').default;
+      
+      const unsubscribe = client.subscribe(
+        `databases.${DATABASE_ID}.collections.${COLLECTIONS.POLL_VOTES}.documents`,
+        (response) => {
+          // Only process events for votes belonging to this poll
+          if (response.payload.pollId === pollId) {
+            callback(response);
+          }
+        }
+      );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error subscribing to poll votes:', error);
+      return () => {};
+    }
   }
 
   /**

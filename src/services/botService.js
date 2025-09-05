@@ -1,4 +1,8 @@
 import { databases, DATABASE_ID, COLLECTIONS, Query } from '@/lib/appwrite';
+import { messageService } from './messageService';
+import { taskService } from './taskService';
+import { fileService } from './fileService';
+import { ideaService } from './ideaService';
 
 /**
  * Bot Service for system bot interactions and UX enhancements
@@ -69,10 +73,11 @@ class BotService {
   /**
    * Send a motivational message to team chat
    * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier
    * @param {string} context - Context for message selection
-   * @returns {Promise<void>}
+   * @returns {Promise<Object>} Sent message
    */
-  async sendMotivationalMessage(teamId, context = 'general') {
+  async sendMotivationalMessage(teamId, hackathonId, context = 'general') {
     try {
       let messages;
       
@@ -89,11 +94,16 @@ class BotService {
 
       const message = this.getRandomMessage(messages);
       
-      // This will integrate with the existing message service
-      // For now, just log the message that would be sent
-      console.log(`🤖 Bot message for team ${teamId}:`, message);
+      // Send bot message through message service
+      const response = await messageService.sendBotMotivationalMessage(
+        teamId,
+        hackathonId,
+        message,
+        context
+      );
       
-      return message;
+      console.log(`🤖 Bot message sent to team ${teamId}:`, message);
+      return response;
     } catch (error) {
       console.error('Error sending motivational message:', error);
       throw error;
@@ -104,9 +114,11 @@ class BotService {
    * Handle easter egg commands
    * @param {string} command - Easter egg command (e.g., '/party')
    * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier
+   * @param {string} triggeredBy - User who triggered the easter egg
    * @returns {Promise<Object>} Easter egg response
    */
-  async triggerEasterEgg(command, teamId) {
+  async triggerEasterEgg(command, teamId, hackathonId, triggeredBy = 'Someone') {
     try {
       const easterEggs = this.constructor.BOT_MESSAGES.EASTER_EGGS;
       
@@ -117,11 +129,24 @@ class BotService {
         };
       }
 
+      const message = easterEggs[command];
+      const effect = this.getEasterEggEffect(command);
+
+      // Send easter egg message to chat
+      const chatMessage = await messageService.sendBotEasterEggMessage(
+        teamId,
+        hackathonId,
+        command,
+        message,
+        triggeredBy
+      );
+
       const response = {
         found: true,
-        message: easterEggs[command],
-        effect: this.getEasterEggEffect(command),
-        teamId
+        message,
+        effect,
+        teamId,
+        chatMessage
       };
 
       console.log(`🎊 Easter egg triggered: ${command}`, response);
@@ -136,9 +161,12 @@ class BotService {
   /**
    * Get contextual tips based on team activity
    * @param {Object} activityData - Team activity data
+   * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier
+   * @param {boolean} sendToChat - Whether to send tips to chat
    * @returns {Promise<Array>} Array of contextual tips
    */
-  async getContextualTips(activityData) {
+  async getContextualTips(activityData, teamId = null, hackathonId = null, sendToChat = false) {
     try {
       const tips = [];
       const contextualTips = this.constructor.CONTEXTUAL_TIPS;
@@ -181,6 +209,17 @@ class BotService {
         tips.push(this.getRandomMessage(this.constructor.BOT_MESSAGES.TIPS));
       }
 
+      // Send tips to chat if requested
+      if (sendToChat && teamId && hackathonId && tips.length > 0) {
+        const tip = tips[0]; // Send the most relevant tip
+        await messageService.sendBotTipMessage(
+          teamId,
+          hackathonId,
+          tip,
+          'contextual'
+        );
+      }
+
       return tips;
     } catch (error) {
       console.error('Error getting contextual tips:', error);
@@ -191,24 +230,119 @@ class BotService {
   /**
    * Schedule reminder messages
    * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier
    * @param {Object} preferences - Bot preferences (frequency, types)
-   * @returns {Promise<void>}
+   * @returns {Promise<Object>} Scheduling result
    */
-  async scheduleReminders(teamId, preferences) {
+  async scheduleReminders(teamId, hackathonId, preferences) {
     try {
-      // This would integrate with a scheduling system
-      // For now, just log the scheduling request
-      console.log(`📅 Reminders scheduled for team ${teamId}:`, preferences);
+      const defaultPreferences = {
+        frequency: 'hourly',
+        types: ['motivational', 'tips', 'progress'],
+        quietHours: { start: '22:00', end: '08:00' },
+        enabled: true
+      };
+
+      const finalPreferences = { ...defaultPreferences, ...preferences };
       
-      // Example preferences structure:
-      // {
-      //   frequency: 'hourly' | 'daily' | 'disabled',
-      //   types: ['motivational', 'tips', 'progress'],
-      //   quietHours: { start: '22:00', end: '08:00' }
-      // }
+      // Store preferences (in a real implementation, this would be in a database)
+      const schedulingData = {
+        teamId,
+        hackathonId,
+        preferences: finalPreferences,
+        lastReminder: null,
+        nextReminder: this.calculateNextReminderTime(finalPreferences),
+        createdAt: new Date().toISOString()
+      };
+
+      // In a production environment, this would integrate with a job scheduler
+      // For now, we'll simulate the scheduling
+      console.log(`📅 Reminders scheduled for team ${teamId}:`, schedulingData);
+
+      // Send confirmation message
+      if (finalPreferences.enabled) {
+        await messageService.sendSystemMessage(
+          teamId,
+          hackathonId,
+          `🤖 Bot reminders are now active! I'll send ${finalPreferences.frequency} updates to keep your team motivated and on track.`,
+          'bot_reminder_scheduled',
+          {
+            preferences: finalPreferences,
+            timestamp: new Date().toISOString()
+          }
+        );
+      }
+
+      return schedulingData;
     } catch (error) {
       console.error('Error scheduling reminders:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Calculate next reminder time based on preferences
+   * @param {Object} preferences - Bot preferences
+   * @returns {Date} Next reminder time
+   */
+  calculateNextReminderTime(preferences) {
+    const now = new Date();
+    let nextTime = new Date(now);
+
+    switch (preferences.frequency) {
+      case 'hourly':
+        nextTime.setHours(now.getHours() + 1);
+        break;
+      case 'daily':
+        nextTime.setDate(now.getDate() + 1);
+        nextTime.setHours(9, 0, 0, 0); // 9 AM next day
+        break;
+      case 'disabled':
+        return null;
+      default:
+        nextTime.setHours(now.getHours() + 2); // Default to 2 hours
+    }
+
+    // Check quiet hours
+    if (preferences.quietHours) {
+      const quietStart = this.parseTime(preferences.quietHours.start);
+      const quietEnd = this.parseTime(preferences.quietHours.end);
+      const nextHour = nextTime.getHours();
+
+      if (this.isInQuietHours(nextHour, quietStart, quietEnd)) {
+        // Schedule for after quiet hours
+        nextTime.setHours(quietEnd, 0, 0, 0);
+        if (nextTime <= now) {
+          nextTime.setDate(nextTime.getDate() + 1);
+        }
+      }
+    }
+
+    return nextTime;
+  }
+
+  /**
+   * Parse time string to hour number
+   * @param {string} timeStr - Time string like "22:00"
+   * @returns {number} Hour number
+   */
+  parseTime(timeStr) {
+    return parseInt(timeStr.split(':')[0], 10);
+  }
+
+  /**
+   * Check if hour is in quiet hours
+   * @param {number} hour - Hour to check
+   * @param {number} quietStart - Quiet hours start
+   * @param {number} quietEnd - Quiet hours end
+   * @returns {boolean} Is in quiet hours
+   */
+  isInQuietHours(hour, quietStart, quietEnd) {
+    if (quietStart <= quietEnd) {
+      return hour >= quietStart && hour < quietEnd;
+    } else {
+      // Quiet hours span midnight
+      return hour >= quietStart || hour < quietEnd;
     }
   }
 
@@ -355,38 +489,366 @@ class BotService {
   /**
    * Analyze team activity for bot intelligence
    * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier
    * @returns {Promise<Object>} Activity analysis
    */
-  async analyzeTeamActivity(teamId) {
+  async analyzeTeamActivity(teamId, hackathonId) {
     try {
-      // This would integrate with existing services to gather activity data
-      // For now, return a mock analysis structure
-      return {
+      const analysis = {
         taskCount: 0,
         todoTasks: 0,
+        inProgressTasks: 0,
         completedTasks: 0,
         messageCount: 0,
         fileCount: 0,
         ideaCount: 0,
         lastActivityHours: 0,
         recentPoll: false,
-        teamMood: 'productive', // productive, stuck, celebrating
+        teamMood: 'productive',
         suggestions: []
       };
+
+      // Get task data
+      try {
+        const tasks = await taskService.getTasks(teamId, hackathonId);
+        analysis.taskCount = tasks.length;
+        analysis.todoTasks = tasks.filter(t => t.status === 'todo').length;
+        analysis.inProgressTasks = tasks.filter(t => t.status === 'in_progress').length;
+        analysis.completedTasks = tasks.filter(t => t.status === 'done').length;
+
+        // Calculate last task activity
+        if (tasks.length > 0) {
+          const lastTaskUpdate = Math.max(...tasks.map(t => new Date(t.$updatedAt).getTime()));
+          analysis.lastActivityHours = (Date.now() - lastTaskUpdate) / (1000 * 60 * 60);
+        }
+      } catch (error) {
+        console.warn('Could not fetch task data for analysis:', error);
+      }
+
+      // Get message data
+      try {
+        const messages = await messageService.getMessages(teamId, hackathonId, 50);
+        analysis.messageCount = messages.total || messages.messages?.length || 0;
+
+        // Check for recent activity
+        if (messages.messages && messages.messages.length > 0) {
+          const lastMessage = messages.messages[messages.messages.length - 1];
+          const lastMessageTime = new Date(lastMessage.$createdAt).getTime();
+          const messageActivityHours = (Date.now() - lastMessageTime) / (1000 * 60 * 60);
+          analysis.lastActivityHours = Math.min(analysis.lastActivityHours, messageActivityHours);
+        }
+      } catch (error) {
+        console.warn('Could not fetch message data for analysis:', error);
+      }
+
+      // Get file data if fileService is available
+      try {
+        if (fileService && fileService.getTeamFiles) {
+          const files = await fileService.getTeamFiles(teamId);
+          analysis.fileCount = files.length;
+        }
+      } catch (error) {
+        console.warn('Could not fetch file data for analysis:', error);
+      }
+
+      // Get idea data if ideaService is available
+      try {
+        if (ideaService && ideaService.getTeamIdeas) {
+          const ideas = await ideaService.getTeamIdeas(teamId);
+          analysis.ideaCount = ideas.length;
+        }
+      } catch (error) {
+        console.warn('Could not fetch idea data for analysis:', error);
+      }
+
+      // Determine team mood based on activity
+      analysis.teamMood = this.determineTeamMood(analysis);
+
+      // Generate suggestions based on analysis
+      analysis.suggestions = this.generateSuggestions(analysis);
+
+      return analysis;
     } catch (error) {
       console.error('Error analyzing team activity:', error);
       return {
         taskCount: 0,
         todoTasks: 0,
+        inProgressTasks: 0,
         completedTasks: 0,
         messageCount: 0,
         fileCount: 0,
         ideaCount: 0,
-        lastActivityHours: 0,
+        lastActivityHours: 24,
         recentPoll: false,
         teamMood: 'unknown',
         suggestions: []
       };
+    }
+  }
+
+  /**
+   * Determine team mood based on activity analysis
+   * @param {Object} analysis - Activity analysis data
+   * @returns {string} Team mood
+   */
+  determineTeamMood(analysis) {
+    // High activity and progress
+    if (analysis.completedTasks > 5 && analysis.lastActivityHours < 2) {
+      return 'celebrating';
+    }
+
+    // Good progress and communication
+    if (analysis.completedTasks > 0 && analysis.messageCount > 10 && analysis.lastActivityHours < 4) {
+      return 'productive';
+    }
+
+    // Low activity or stuck
+    if (analysis.lastActivityHours > 8 || (analysis.inProgressTasks > 5 && analysis.completedTasks === 0)) {
+      return 'stuck';
+    }
+
+    // Starting out
+    if (analysis.taskCount < 3 && analysis.messageCount < 5) {
+      return 'getting_started';
+    }
+
+    return 'productive';
+  }
+
+  /**
+   * Generate suggestions based on activity analysis
+   * @param {Object} analysis - Activity analysis data
+   * @returns {Array} Array of suggestions
+   */
+  generateSuggestions(analysis) {
+    const suggestions = [];
+
+    if (analysis.taskCount === 0) {
+      suggestions.push('Create your first tasks to get organized!');
+    }
+
+    if (analysis.todoTasks > 10) {
+      suggestions.push('Consider breaking down large tasks or moving some to in-progress.');
+    }
+
+    if (analysis.messageCount === 0) {
+      suggestions.push('Start team communication to coordinate better!');
+    }
+
+    if (analysis.lastActivityHours > 6) {
+      suggestions.push('Time for a team check-in! How is everyone doing?');
+    }
+
+    if (analysis.completedTasks > 10) {
+      suggestions.push('Amazing progress! Consider celebrating your achievements!');
+    }
+
+    if (analysis.fileCount === 0) {
+      suggestions.push('Share files with your team for better collaboration.');
+    }
+
+    return suggestions;
+  }
+  /**
+   * Send contextual message based on team activity
+   * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier
+   * @param {string} trigger - What triggered the message
+   * @returns {Promise<Object>} Sent message
+   */
+  async sendContextualMessage(teamId, hackathonId, trigger) {
+    try {
+      const activity = await this.analyzeTeamActivity(teamId, hackathonId);
+      let message = '';
+      let messageType = 'bot_contextual';
+
+      switch (trigger) {
+        case 'task_completed':
+          if (activity.completedTasks === 1) {
+            message = "🎉 First task completed! You're off to a great start!";
+          } else if (activity.completedTasks % 5 === 0) {
+            message = `🏆 ${activity.completedTasks} tasks completed! Your team is on fire!`;
+          } else {
+            message = this.getRandomMessage(this.constructor.BOT_MESSAGES.TASK_COMPLETION);
+          }
+          break;
+
+        case 'long_inactivity':
+          message = "👋 It's been quiet here! How about a quick team sync to keep the momentum going?";
+          break;
+
+        case 'many_todo_tasks':
+          message = "📋 Lots of tasks in the TODO column! Consider moving some to IN PROGRESS to balance the workload.";
+          break;
+
+        case 'first_message':
+          message = "💬 Great to see the team communicating! Keep the conversation flowing for better coordination.";
+          break;
+
+        case 'milestone_reached':
+          message = "🌟 Milestone reached! Your dedication is paying off. Keep pushing forward!";
+          break;
+
+        default:
+          message = this.getRandomMessage(this.constructor.BOT_MESSAGES.MOTIVATIONAL);
+      }
+
+      const response = await messageService.sendBotMotivationalMessage(
+        teamId,
+        hackathonId,
+        message,
+        trigger
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error sending contextual message:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if bot should send a message based on activity patterns
+   * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier
+   * @returns {Promise<Object>} Recommendation for bot action
+   */
+  async shouldSendMessage(teamId, hackathonId) {
+    try {
+      const activity = await this.analyzeTeamActivity(teamId, hackathonId);
+      
+      const recommendations = {
+        shouldSend: false,
+        reason: null,
+        messageType: null,
+        priority: 'low'
+      };
+
+      // High priority: Team seems stuck
+      if (activity.lastActivityHours > 8 && activity.inProgressTasks > 0) {
+        recommendations.shouldSend = true;
+        recommendations.reason = 'long_inactivity';
+        recommendations.messageType = 'motivational';
+        recommendations.priority = 'high';
+      }
+
+      // Medium priority: Good progress milestone
+      else if (activity.completedTasks > 0 && activity.completedTasks % 5 === 0) {
+        recommendations.shouldSend = true;
+        recommendations.reason = 'milestone_reached';
+        recommendations.messageType = 'celebration';
+        recommendations.priority = 'medium';
+      }
+
+      // Low priority: Regular encouragement
+      else if (activity.lastActivityHours > 2 && activity.lastActivityHours < 4) {
+        recommendations.shouldSend = true;
+        recommendations.reason = 'regular_encouragement';
+        recommendations.messageType = 'motivational';
+        recommendations.priority = 'low';
+      }
+
+      return recommendations;
+    } catch (error) {
+      console.error('Error checking if bot should send message:', error);
+      return { shouldSend: false, reason: 'error', messageType: null, priority: 'low' };
+    }
+  }
+
+  /**
+   * Process user message for easter egg commands
+   * @param {string} messageContent - User message content
+   * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier
+   * @param {string} userName - User who sent the message
+   * @returns {Promise<Object|null>} Easter egg response or null
+   */
+  async processMessageForEasterEggs(messageContent, teamId, hackathonId, userName) {
+    try {
+      const content = messageContent.trim().toLowerCase();
+      
+      // Check for easter egg commands
+      const easterEggCommands = Object.keys(this.constructor.BOT_MESSAGES.EASTER_EGGS);
+      const foundCommand = easterEggCommands.find(cmd => content === cmd);
+
+      if (foundCommand) {
+        return await this.triggerEasterEgg(foundCommand, teamId, hackathonId, userName);
+      }
+
+      // Check for other special patterns
+      if (content.includes('help') && content.includes('bot')) {
+        await messageService.sendBotMotivationalMessage(
+          teamId,
+          hackathonId,
+          "Hi there! I'm your friendly team bot. Try commands like /party, /celebrate, /coffee, or /pizza for some fun! I also send motivational messages and tips to keep your team energized!",
+          'help'
+        );
+        return { found: true, type: 'help' };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error processing message for easter eggs:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get bot status and configuration
+   * @param {string} teamId - Team identifier
+   * @returns {Promise<Object>} Bot status
+   */
+  async getBotStatus(teamId) {
+    try {
+      // In a real implementation, this would fetch from database
+      return {
+        enabled: true,
+        personality: 'friendly',
+        reminderFrequency: 'hourly',
+        easterEggsEnabled: true,
+        contextualTipsEnabled: true,
+        lastActivity: new Date().toISOString(),
+        messagesCount: 0, // Would track bot messages sent
+        easterEggsTriggered: 0
+      };
+    } catch (error) {
+      console.error('Error getting bot status:', error);
+      return {
+        enabled: false,
+        personality: 'friendly',
+        reminderFrequency: 'disabled',
+        easterEggsEnabled: false,
+        contextualTipsEnabled: false,
+        lastActivity: null,
+        messagesCount: 0,
+        easterEggsTriggered: 0
+      };
+    }
+  }
+
+  /**
+   * Update bot configuration
+   * @param {string} teamId - Team identifier
+   * @param {Object} config - Bot configuration
+   * @returns {Promise<Object>} Updated configuration
+   */
+  async updateBotConfig(teamId, config) {
+    try {
+      // In a real implementation, this would save to database
+      const updatedConfig = {
+        enabled: config.enabled ?? true,
+        personality: config.personality ?? 'friendly',
+        reminderFrequency: config.reminderFrequency ?? 'hourly',
+        easterEggsEnabled: config.easterEggsEnabled ?? true,
+        contextualTipsEnabled: config.contextualTipsEnabled ?? true,
+        updatedAt: new Date().toISOString()
+      };
+
+      console.log(`🤖 Bot config updated for team ${teamId}:`, updatedConfig);
+      return updatedConfig;
+    } catch (error) {
+      console.error('Error updating bot config:', error);
+      throw error;
     }
   }
 }

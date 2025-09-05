@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { TeamProvider } from './contexts/TeamContext.jsx';
 import { ThemeProvider } from './components/ThemeProvider.jsx';
+import { FeatureFlagsProvider } from './hooks/useFeatureFlags.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import HackathonWrapper from './components/HackathonWrapper';
 import LoginPage from './pages/LoginPage';
@@ -13,6 +14,10 @@ import WhiteboardPage from './pages/WhiteboardPage';
 import CardTest from './components/CardTest';
 import InputComponentsDemo from './components/InputComponentsDemo';
 import MarkdownEditorDemo from './components/MarkdownEditorDemo';
+import { LeaderboardDemo } from './components/LeaderboardDemo.jsx';
+import { CelebrationTrigger } from './components/CelebrationTrigger.jsx';
+import PublicSubmissionPage from './pages/PublicSubmissionPage';
+import FeatureFlagPage from './pages/FeatureFlagPage';
 
 import { Toaster } from './components/ui/sonner';
 
@@ -25,7 +30,8 @@ function App() {
       disableTransitionOnChange={true}
     >
       <AuthProvider>
-        <TeamProvider>
+        <FeatureFlagsProvider>
+          <TeamProvider>
           <Router>
             <div className="App">
               <Routes>
@@ -33,6 +39,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+                <Route path="/submission/:submissionId" element={<PublicSubmissionPage />} />
                 
                 {/* Protected routes */}
                 {/* Main user console - landing page */}
@@ -95,7 +102,25 @@ function App() {
                   } 
                 />
                 
-
+                {/* Leaderboard Demo - temporary for development */}
+                <Route 
+                  path="/leaderboard-demo" 
+                  element={
+                    <ProtectedRoute>
+                      <LeaderboardDemo />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Feature Flag Management */}
+                <Route 
+                  path="/feature-flags" 
+                  element={
+                    <ProtectedRoute>
+                      <FeatureFlagPage />
+                    </ProtectedRoute>
+                  } 
+                />
                 
                 {/* Hackathon workspace with nested routes */}
                 <Route 
@@ -115,8 +140,10 @@ function App() {
               </Routes>
             </div>
             <Toaster />
+            <CelebrationTrigger />
           </Router>
         </TeamProvider>
+        </FeatureFlagsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

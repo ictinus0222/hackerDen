@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Eye, EyeOff, AlertCircle, Loader2, Mail, Lock, User, CheckCircle } from 'lucide-react';
 import GoogleSignInButton from '../components/GoogleSignInButton';
+import GitHubSignInButton from '../components/GitHubSignInButton';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -22,8 +23,9 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGitHubLoading, setIsGitHubLoading] = useState(false);
 
-  const { register, loginWithGoogle, isAuthenticated, error } = useAuth();
+  const { register, loginWithGoogle, loginWithGitHub, isAuthenticated, error } = useAuth();
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -106,6 +108,18 @@ const RegisterPage = () => {
     }
   };
 
+  const handleGitHubSignIn = async () => {
+    setIsGitHubLoading(true);
+    try {
+      await loginWithGitHub();
+      // Note: This will redirect to GitHub, so we won't reach this point
+    } catch {
+      // Error is handled by useAuth hook
+    } finally {
+      setIsGitHubLoading(false);
+    }
+  };
+
   // Password strength indicator
   const getPasswordStrength = (password) => {
     if (!password) return { strength: 0, text: '', color: '' };
@@ -169,11 +183,18 @@ const RegisterPage = () => {
             )}
             
             <div className="space-y-4">
-              <GoogleSignInButton
-                onClick={handleGoogleSignIn}
-                isLoading={isGoogleLoading}
-                disabled={isSubmitting}
-              />
+              <div className="grid grid-cols-1 gap-3">
+                <GoogleSignInButton
+                  onClick={handleGoogleSignIn}
+                  isLoading={isGoogleLoading}
+                  disabled={isSubmitting || isGitHubLoading}
+                />
+                <GitHubSignInButton
+                  onClick={handleGitHubSignIn}
+                  isLoading={isGitHubLoading}
+                  disabled={isSubmitting || isGoogleLoading}
+                />
+              </div>
               
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">

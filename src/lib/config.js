@@ -33,9 +33,14 @@ class Config {
   get features() {
     return {
       fileSharing: import.meta.env.VITE_FEATURE_FILE_SHARING !== 'false',
+      ideaBoard: import.meta.env.VITE_FEATURE_IDEA_BOARD !== 'false',
       gamification: import.meta.env.VITE_FEATURE_GAMIFICATION !== 'false',
+      judgeSubmissions: import.meta.env.VITE_FEATURE_JUDGE_SUBMISSIONS !== 'false',
       polling: import.meta.env.VITE_FEATURE_POLLING !== 'false',
-      botEnhancements: import.meta.env.VITE_FEATURE_BOT !== 'false'
+      botEnhancements: import.meta.env.VITE_FEATURE_BOT !== 'false',
+      customEmoji: import.meta.env.VITE_FEATURE_CUSTOM_EMOJI !== 'false',
+      easterEggs: import.meta.env.VITE_FEATURE_EASTER_EGGS !== 'false',
+      reactions: import.meta.env.VITE_FEATURE_REACTIONS !== 'false'
     };
   }
 
