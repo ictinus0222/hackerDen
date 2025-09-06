@@ -4,8 +4,66 @@ import { databases } from '../lib/appwrite';
 import client, { ID, Query } from '../lib/appwrite';
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import LoadingSpinner from './LoadingSpinner';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Label } from './ui/label';
+import { Slider } from './ui/slider';
+import { Separator } from './ui/separator';
+import { Badge } from './ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 const COLLECTION_ID = 'whiteboard_objects';
+
+// Custom Color Picker Component
+const ColorPicker = ({ value, onChange, label, className = "" }) => {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={`w-12 h-8 p-1 border-2 ${className}`}
+          style={{ backgroundColor: value }}
+        >
+          <div 
+            className="w-full h-full rounded-sm border border-border/20"
+            style={{ backgroundColor: value }}
+          />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-3" align="start">
+        <div className="space-y-3">
+          <Label className="text-sm font-medium text-foreground">{label}</Label>
+          <div className="space-y-2">
+            <input
+              type="color"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className="w-full h-10 rounded border border-border bg-background cursor-pointer"
+            />
+            <div className="grid grid-cols-8 gap-1">
+              {[
+                '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+                '#800000', '#808080', '#FFA500', '#800080', '#008000', '#000080', '#FFC0CB', '#A52A2A',
+                '#FFD700', '#C0C0C0', '#808000', '#FF6347', '#40E0D0', '#EE82EE', '#90EE90', '#F0E68C'
+              ].map((color) => (
+                <button
+                  key={color}
+                  onClick={() => onChange(color)}
+                  className={`w-6 h-6 rounded border border-border/20 hover:scale-110 transition-transform ${
+                    value === color ? 'ring-2 ring-primary ring-offset-1' : ''
+                  }`}
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 const Whiteboard = () => {
   const { hackathonId } = useParams();
@@ -169,6 +227,9 @@ const Whiteboard = () => {
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
     canvas.addEventListener('contextmenu', handleContextMenu);
+    
+    // Add wheel event listener with passive: false to allow preventDefault
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
       unsubscribe();
@@ -177,6 +238,7 @@ const Whiteboard = () => {
       document.removeEventListener('keyup', handleKeyUp);
       if (canvas) {
         canvas.removeEventListener('contextmenu', handleContextMenu);
+        canvas.removeEventListener('wheel', handleWheel);
       }
     };
   }, [team?.$id, hackathonId, canvasOffset, zoom, isUpdatingObject]);
@@ -1142,7 +1204,7 @@ const Whiteboard = () => {
   // Show loading state while team is loading
   if (teamLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
+      <div className="flex items-center justify-center h-screen bg-background">
         <LoadingSpinner message="Loading team whiteboard..." />
       </div>
     );
@@ -1151,29 +1213,32 @@ const Whiteboard = () => {
   // Show message if user doesn't have a team
   if (!team) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
-            <svg fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">No Team Found</h3>
-          <p className="text-gray-600 mb-4">You need to be part of a team to access the whiteboard.</p>
-          <p className="text-sm text-gray-500">Go back to the dashboard to create or join a team.</p>
-        </div>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <Card className="max-w-md">
+          <CardContent className="text-center p-8">
+            <div className="w-16 h-16 mx-auto mb-4 text-muted-foreground">
+              <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">No Team Found</h3>
+            <p className="text-muted-foreground mb-4">You need to be part of a team to access the whiteboard.</p>
+            <p className="text-sm text-muted-foreground">Go back to the dashboard to create or join a team.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div
-      className="relative w-full h-screen overflow-hidden bg-gray-100"
-      style={{
-        touchAction: 'none', // Prevent touch gestures from interfering
-        userSelect: 'none'   // Prevent text selection
-      }}
-    >
+    <TooltipProvider>
+      <div
+        className="relative w-full h-screen overflow-hidden bg-background"
+        style={{
+          touchAction: 'none', // Prevent touch gestures from interfering
+          userSelect: 'none'   // Prevent text selection
+        }}
+      >
       {/* Canvas */}
       <canvas
         ref={canvasRef}
@@ -1186,7 +1251,6 @@ const Whiteboard = () => {
         }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onWheel={handleWheel}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         style={{
@@ -1198,209 +1262,371 @@ const Whiteboard = () => {
       />
 
       {/* Toolbar */}
-      <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 flex flex-col gap-3 max-w-xs">
-        {/* Tool Selection */}
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            onClick={() => setCurrentTool('select')}
-            className={`p-2 rounded text-sm ${currentTool === 'select' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            title="Select/Move (V)"
-          >
-            ↖️
-          </button>
-          <button
-            onClick={() => setCurrentTool('pen')}
-            className={`p-2 rounded text-sm ${currentTool === 'pen' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            title="Pen (P)"
-          >
-            ✏️
-          </button>
-          <button
-            onClick={() => setCurrentTool('eraser')}
-            className={`p-2 rounded text-sm ${currentTool === 'eraser' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            title="Eraser (E)"
-          >
-            🧹
-          </button>
-          <button
-            onClick={() => setCurrentTool('rectangle')}
-            className={`p-2 rounded text-sm ${currentTool === 'rectangle' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            title="Rectangle (R)"
-          >
-            ⬜
-          </button>
-          <button
-            onClick={() => setCurrentTool('circle')}
-            className={`p-2 rounded text-sm ${currentTool === 'circle' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            title="Circle (C)"
-          >
-            ⭕
-          </button>
-          <button
-            onClick={() => setCurrentTool('line')}
-            className={`p-2 rounded text-sm ${currentTool === 'line' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            title="Line (L)"
-          >
-            📏
-          </button>
-        </div>
-
-        {/* Pan Tool */}
-        <button
-          onClick={() => setCurrentTool('pan')}
-          className={`p-2 rounded w-full ${currentTool === 'pan' || isSpacePressed ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          title="Pan (H or Space)"
-        >
-          ✋ {isSpacePressed ? '(Space held)' : 'Pan'}
-        </button>
-
-        {/* Color Properties */}
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2 items-center">
-            <label className="text-xs font-medium">Stroke:</label>
-            <input
-              type="color"
-              value={currentColor}
-              onChange={(e) => setCurrentColor(e.target.value)}
-              className="w-8 h-8 rounded border"
-              title="Stroke Color"
-            />
+      <Card className="absolute top-4 left-4 w-80 shadow-lg">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold text-foreground">Drawing Tools</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Tool Selection */}
+          <div className="grid grid-cols-3 gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={currentTool === 'select' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentTool('select')}
+                  className="h-10"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                  </svg>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Select/Move (V)</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={currentTool === 'pen' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentTool('pen')}
+                  className="h-10"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Pen (P)</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={currentTool === 'eraser' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentTool('eraser')}
+                  className="h-10"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Eraser (E)</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={currentTool === 'rectangle' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentTool('rectangle')}
+                  className="h-10"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Rectangle (R)</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={currentTool === 'circle' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentTool('circle')}
+                  className="h-10"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
+                  </svg>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Circle (C)</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={currentTool === 'line' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentTool('line')}
+                  className="h-10"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Line (L)</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
-          {(currentTool === 'rectangle' || currentTool === 'circle') && (
-            <div className="flex gap-2 items-center">
-              <label className="text-xs font-medium">Fill:</label>
-              <input
-                type="color"
-                value={fillColor}
-                onChange={(e) => setFillColor(e.target.value)}
-                className="w-8 h-8 rounded border"
-                title="Fill Color"
-              />
-              <button
-                onClick={() => setFillColor('transparent')}
-                className={`px-2 py-1 text-xs rounded ${fillColor === 'transparent' ? 'bg-gray-400 text-white' : 'bg-gray-200'}`}
-                title="No Fill"
+          {/* Pan Tool */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={currentTool === 'pan' || isSpacePressed ? 'default' : 'outline'}
+                onClick={() => setCurrentTool('pan')}
+                className="w-full"
               >
-                None
-              </button>
-            </div>
-          )}
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+                </svg>
+                {isSpacePressed ? '(Space held)' : 'Pan'}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Pan (H or Space)</p>
+            </TooltipContent>
+          </Tooltip>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium">Width: {strokeWidth}px</label>
+          <Separator />
+
+          {/* Color Properties */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium text-foreground">Stroke Color</Label>
+              <ColorPicker
+                value={currentColor}
+                onChange={setCurrentColor}
+                label="Stroke Color"
+              />
+            </div>
+
+            {(currentTool === 'rectangle' || currentTool === 'circle') && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-foreground">Fill Color</Label>
+                  <div className="flex items-center gap-2">
+                    <ColorPicker
+                      value={fillColor === 'transparent' ? '#ffffff' : fillColor}
+                      onChange={(color) => setFillColor(color)}
+                      label="Fill Color"
+                    />
+                    <Button
+                      variant={fillColor === 'transparent' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setFillColor('transparent')}
+                      className="text-xs"
+                    >
+                      None
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-foreground">Stroke Width</Label>
+                <Badge variant="secondary" className="text-xs">
+                  {strokeWidth}px
+                </Badge>
+              </div>
+              <Slider
+                value={[strokeWidth]}
+                onValueChange={(value) => setStrokeWidth(value[0])}
+                min={1}
+                max={20}
+                step={1}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Image Upload */}
+          <div>
             <input
-              type="range"
-              min="1"
-              max="20"
-              value={strokeWidth}
-              onChange={(e) => setStrokeWidth(parseInt(e.target.value))}
-              className="w-full"
-              title="Stroke Width"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="image-upload"
             />
-          </div>
-        </div>
-
-        {/* Image Upload */}
-        <div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-            id="image-upload"
-          />
-          <label
-            htmlFor="image-upload"
-            className="block p-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer text-center text-sm"
-          >
-            📷 Add Image
-          </label>
-        </div>
-
-        {/* Selected Object Actions */}
-        {selectedObject && (
-          <div className="border-t pt-2">
-            <div className="text-xs font-medium mb-2">
-              Selected: {selectedObject.type}
-              {isDragging && <span className="text-blue-500"> (dragging)</span>}
-              {isResizing && <span className="text-green-500"> (resizing)</span>}
-            </div>
-            <button
-              onClick={deleteSelected}
-              className="w-full p-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-              title="Delete Selected (Del)"
+            <Button
+              variant="outline"
+              asChild
+              className="w-full"
             >
-              🗑️ Delete
-            </button>
+              <label
+                htmlFor="image-upload"
+                className="cursor-pointer flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Add Image
+              </label>
+            </Button>
           </div>
-        )}
-      </div>
+
+          {/* Selected Object Actions */}
+          {selectedObject && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-foreground">
+                    Selected: {selectedObject.type}
+                  </Label>
+                  <div className="flex gap-1">
+                    {isDragging && (
+                      <Badge variant="default" className="text-xs">
+                        dragging
+                      </Badge>
+                    )}
+                    {isResizing && (
+                      <Badge variant="secondary" className="text-xs">
+                        resizing
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  variant="destructive"
+                  onClick={deleteSelected}
+                  className="w-full"
+                  size="sm"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete Selected
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Zoom Controls */}
-      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-2 flex flex-col gap-2">
-        <button
-          onClick={() => {
-            const newZoom = Math.min(5, zoom * 1.2);
-            setZoom(newZoom);
-          }}
-          className="p-2 bg-gray-200 rounded hover:bg-gray-300"
-          title="Zoom In"
-        >
-          🔍+
-        </button>
-        <span className="text-xs text-center">{Math.round(zoom * 100)}%</span>
-        <button
-          onClick={() => {
-            const newZoom = Math.max(0.1, zoom * 0.8);
-            setZoom(newZoom);
-          }}
-          className="p-2 bg-gray-200 rounded hover:bg-gray-300"
-          title="Zoom Out"
-        >
-          🔍-
-        </button>
-        <button
-          onClick={() => { setZoom(1); setCanvasOffset({ x: 0, y: 0 }); }}
-          className="p-2 bg-gray-200 rounded hover:bg-gray-300 text-xs"
-          title="Reset View"
-        >
-          Reset
-        </button>
-      </div>
+      <Card className="absolute top-4 right-4 w-20 shadow-lg">
+        <CardContent className="p-3 space-y-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newZoom = Math.min(5, zoom * 1.2);
+                  setZoom(newZoom);
+                }}
+                className="w-full"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                </svg>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Zoom In</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          <div className="text-center">
+            <Badge variant="secondary" className="text-xs">
+              {Math.round(zoom * 100)}%
+            </Badge>
+          </div>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newZoom = Math.max(0.1, zoom * 0.8);
+                  setZoom(newZoom);
+                }}
+                className="w-full"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                </svg>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Zoom Out</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setZoom(1); setCanvasOffset({ x: 0, y: 0 }); }}
+                className="w-full text-xs"
+              >
+                Reset
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Reset View</p>
+            </TooltipContent>
+          </Tooltip>
+        </CardContent>
+      </Card>
 
       {/* Zoom Warning */}
       {showZoomWarning && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
-          <div className="text-center">
-            <div className="font-semibold">Use Mouse Wheel to Zoom</div>
-            <div className="text-sm">Browser zoom is disabled on the whiteboard</div>
-          </div>
-        </div>
+        <Card className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-lg z-50 border-yellow-500 bg-yellow-500/10">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="font-semibold text-yellow-600 dark:text-yellow-400">Use Mouse Wheel to Zoom</div>
+              <div className="text-sm text-yellow-600/80 dark:text-yellow-400/80">Browser zoom is disabled on the whiteboard</div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Instructions */}
-      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 text-xs text-gray-600 max-w-sm">
-        <div className="font-semibold mb-2">Keyboard Shortcuts:</div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-          <div>V - Select</div>
-          <div>P - Pen</div>
-          <div>E - Eraser</div>
-          <div>R - Rectangle</div>
-          <div>C - Circle</div>
-          <div>L - Line</div>
-          <div>H/Space - Pan</div>
-          <div>Del - Delete</div>
-          <div>Esc - Deselect</div>
-          <div>Ctrl+V - Paste</div>
-        </div>
-        <div className="mt-2 pt-2 border-t">
-          <div>• Mouse wheel: Zoom</div>
-          <div>• Drag handles: Resize</div>
-          <div>• Right-click disabled</div>
-        </div>
-      </div>
+      <Card className="absolute bottom-4 left-4 w-80 shadow-lg">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-foreground">Keyboard Shortcuts</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <div>V - Select</div>
+            <div>P - Pen</div>
+            <div>E - Eraser</div>
+            <div>R - Rectangle</div>
+            <div>C - Circle</div>
+            <div>L - Line</div>
+            <div>H/Space - Pan</div>
+            <div>Del - Delete</div>
+            <div>Esc - Deselect</div>
+            <div>Ctrl+V - Paste</div>
+          </div>
+          <Separator />
+          <div className="text-xs text-muted-foreground space-y-1">
+            <div>• Mouse wheel: Zoom</div>
+            <div>• Drag handles: Resize</div>
+            <div>• Right-click disabled</div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
+    </TooltipProvider>
   );
 };
 

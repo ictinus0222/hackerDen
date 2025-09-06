@@ -315,15 +315,15 @@ const SubmissionPreview = ({
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div className="space-y-1">
                   <div className="text-lg font-bold text-primary">
-                    {previewDataMemo.teamData?.progress?.filesShared || 0}
+                    {previewDataMemo.teamData?.completedTasks || 0}
                   </div>
-                  <div className="text-xs text-muted-foreground">Files Shared</div>
+                  <div className="text-xs text-muted-foreground">Tasks Completed</div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-lg font-bold text-primary">
-                    {previewDataMemo.teamData?.progress?.ideasImplemented || 0}
+                    {previewDataMemo.teamData?.totalTimeTaken || '0s'}
                   </div>
-                  <div className="text-xs text-muted-foreground">Ideas Implemented</div>
+                  <div className="text-xs text-muted-foreground">Total Time</div>
                 </div>
               </div>
             </CardContent>

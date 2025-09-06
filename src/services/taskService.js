@@ -217,7 +217,7 @@ export const taskService = {
         let systemMessageContent;
         let messageType;
 
-        if (status === 'completed') {
+        if (status === 'completed' || status === 'done') {
           // Task completion message
           systemMessageContent = `✅ ${userName} completed task: "${taskTitle || task.title}"`;
           messageType = 'task_completed';
@@ -228,6 +228,7 @@ export const taskService = {
             'todo': '📋',
             'in_progress': '🔄',
             'completed': '✅',
+            'done': '✅',
             'blocked': '🚫'
           };
           

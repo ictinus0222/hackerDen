@@ -509,7 +509,7 @@ class BotService {
 
       // Get task data
       try {
-        const tasks = await taskService.getTasks(teamId, hackathonId);
+        const tasks = await taskService.getTeamTasks(teamId, hackathonId);
         analysis.taskCount = tasks.length;
         analysis.todoTasks = tasks.filter(t => t.status === 'todo').length;
         analysis.inProgressTasks = tasks.filter(t => t.status === 'in_progress').length;

@@ -293,15 +293,15 @@ const PublicSubmissionPage = () => {
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div className="space-y-1">
                     <div className="text-2xl font-bold text-primary">
-                      {submission.teamData?.progress?.filesShared || 0}
+                      {submission.teamData?.completedTasks || 0}
                     </div>
-                    <div className="text-xs text-muted-foreground">Files Shared</div>
+                    <div className="text-xs text-muted-foreground">Tasks Completed</div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-2xl font-bold text-primary">
-                      {submission.teamData?.progress?.ideasImplemented || 0}
+                      {submission.teamData?.totalTimeTaken || '0s'}
                     </div>
-                    <div className="text-xs text-muted-foreground">Ideas Implemented</div>
+                    <div className="text-xs text-muted-foreground">Total Time</div>
                   </div>
                 </div>
               </CardContent>

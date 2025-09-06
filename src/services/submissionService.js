@@ -162,6 +162,7 @@ class SubmissionService {
       try {
         const team = await databases.getDocument(DATABASE_ID, COLLECTIONS.TEAMS, teamId);
         teamData.teamName = team.name;
+        teamData.createdAt = team.createdAt; // Store team creation time
         
         // Get team members (use legacy method for backward compatibility)
         const members = await teamService.getLegacyTeamMembers(teamId);
@@ -198,7 +199,7 @@ class SubmissionService {
       // Gamification features have been removed for final submission
 
       // Calculate enhanced progress metrics
-      const completedTasks = tasks.filter(task => task.status === 'completed').length;
+      const completedTasks = tasks.filter(task => task.status === 'done' || task.status === 'completed').length;
       const totalTasks = tasks.length;
       const filesShared = files.length;
       
@@ -206,6 +207,28 @@ class SubmissionService {
       const ideasImplemented = tasks.filter(task => 
         task.labels && task.labels.includes('idea-conversion')
       ).length;
+
+      // Calculate total time taken from team creation to final submission
+      let totalTimeTaken = null;
+      if (teamData.createdAt) {
+        const teamCreationTime = new Date(teamData.createdAt);
+        const currentTime = new Date();
+        const timeDiffMs = currentTime - teamCreationTime;
+        
+        // Convert to hours, minutes, seconds
+        const hours = Math.floor(timeDiffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDiffMs % (1000 * 60)) / 1000);
+        
+        // Format time string
+        if (hours > 0) {
+          totalTimeTaken = `${hours}h ${minutes}m`;
+        } else if (minutes > 0) {
+          totalTimeTaken = `${minutes}m ${seconds}s`;
+        } else {
+          totalTimeTaken = `${seconds}s`;
+        }
+      }
 
       // Calculate poll decisions implemented
       const pollDecisionsImplemented = tasks.filter(task => 
@@ -229,6 +252,7 @@ class SubmissionService {
         members: teamData.members,
         completedTasks,
         totalTasks,
+        totalTimeTaken,
         files,
         ideas,
         polls,
@@ -236,6 +260,7 @@ class SubmissionService {
         userPoints,
         progress: {
           tasksCompleted: completedTasks,
+          totalTimeTaken,
           filesShared,
           ideasSubmitted: totalIdeas,
           ideasImplemented,
