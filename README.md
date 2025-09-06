@@ -215,6 +215,10 @@ VITE_APPWRITE_DATABASE_ID=your-database-id
 # Server API Key (Required for setup scripts)
 APPWRITE_API_KEY=your-server-api-key
 
+# Public URL Configuration (Required for production)
+# Set this to your production domain for correct submission URLs and OAuth callbacks
+VITE_PUBLIC_URL=https://hackerden.netlify.app
+
 # Enhancement Feature Flags (Optional)
 VITE_ENABLE_FILE_SHARING=true
 VITE_ENABLE_GAMIFICATION=true

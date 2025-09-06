@@ -362,8 +362,8 @@ class SubmissionService {
    * @returns {string} Public submission URL
    */
   generateSubmissionUrl(submissionId) {
-    // This will be the public URL that judges can access
-    const baseUrl = window.location.origin;
+    // Use environment variable for base URL, fallback to current origin
+    const baseUrl = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
     return `${baseUrl}/submission/${submissionId}`;
   }
 

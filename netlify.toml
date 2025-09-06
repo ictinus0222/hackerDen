@@ -5,6 +5,8 @@
 [build.environment]
   # Disable secrets scanning since we're using environment variables properly
   SECRETS_SCAN_ENABLED = "false"
+  # Set the public URL for production submission links
+  VITE_PUBLIC_URL = "https://hackerden.netlify.app"
 
 # Alternative approach - if you want to keep scanning but exclude specific paths
 # Uncomment the lines below and comment out SECRETS_SCAN_ENABLED if you prefer this approach
