@@ -519,5 +519,109 @@ export const teamService = {
     } catch (error) {
       throw new Error('Failed to switch team');
     }
+  },
+
+  // Delete team and all associated data
+  async deleteTeam(teamId, hackathonId, userId) {
+    try {
+      // Verify user is the team owner
+      const team = await databases.getDocument(DATABASE_ID, COLLECTIONS.TEAMS, teamId);
+      if (team.ownerId !== userId) {
+        throw new Error('Only the team owner can delete the team');
+      }
+
+      // Verify team belongs to the specified hackathon
+      if (team.hackathonId !== hackathonId) {
+        throw new Error('Team does not belong to the specified hackathon');
+      }
+
+      // Delete all team members
+      const members = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TEAM_MEMBERS,
+        [Query.equal('teamId', teamId)]
+      );
+      
+      for (const member of members.documents) {
+        await databases.deleteDocument(DATABASE_ID, COLLECTIONS.TEAM_MEMBERS, member.$id);
+      }
+
+      // Delete all tasks
+      const { taskService } = await import('./taskService');
+      try {
+        const tasks = await taskService.getTeamTasks(teamId, hackathonId);
+        for (const task of tasks) {
+          await databases.deleteDocument(DATABASE_ID, COLLECTIONS.TASKS, task.$id);
+        }
+      } catch (error) {
+        console.warn('Could not delete tasks:', error);
+      }
+
+      // Delete all messages
+      try {
+        const messages = await databases.listDocuments(
+          DATABASE_ID,
+          COLLECTIONS.MESSAGES,
+          [Query.equal('teamId', teamId)]
+        );
+        for (const message of messages.documents) {
+          await databases.deleteDocument(DATABASE_ID, COLLECTIONS.MESSAGES, message.$id);
+        }
+      } catch (error) {
+        console.warn('Could not delete messages:', error);
+      }
+
+      // Delete all files
+      try {
+        const { fileService } = await import('./fileService');
+        const files = await fileService.getTeamFiles(teamId);
+        for (const file of files) {
+          await fileService.deleteFile(file.$id);
+        }
+      } catch (error) {
+        console.warn('Could not delete files:', error);
+      }
+
+      // Delete all vault secrets
+      try {
+        const { vaultService } = await import('./vaultService');
+        const secrets = await vaultService.getTeamSecrets(teamId);
+        for (const secret of secrets) {
+          await vaultService.deleteSecret(secret.id);
+        }
+      } catch (error) {
+        console.warn('Could not delete vault secrets:', error);
+      }
+
+      // Delete all documents
+      try {
+        const { documentService } = await import('./documentService');
+        const documents = await documentService.getTeamDocuments(teamId);
+        for (const document of documents) {
+          await documentService.deleteDocument(document.$id);
+        }
+      } catch (error) {
+        console.warn('Could not delete documents:', error);
+      }
+
+      // Delete submission if exists
+      try {
+        const { submissionService } = await import('./submissionService');
+        const submission = await submissionService.getTeamSubmission(teamId);
+        if (submission) {
+          await databases.deleteDocument(DATABASE_ID, COLLECTIONS.SUBMISSIONS, submission.$id);
+        }
+      } catch (error) {
+        console.warn('Could not delete submission:', error);
+      }
+
+      // Finally, delete the team itself
+      await databases.deleteDocument(DATABASE_ID, COLLECTIONS.TEAMS, teamId);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      throw new Error(error.message || 'Failed to delete team');
+    }
   }
 };

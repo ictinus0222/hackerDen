@@ -155,6 +155,7 @@ const COLLECTIONS = {
     name: 'Submissions',
     attributes: [
       { key: 'teamId', type: 'string', size: 255, required: true },
+      { key: 'hackathonId', type: 'string', size: 255, required: true },
       { key: 'title', type: 'string', size: 255, required: false },
       { key: 'description', type: 'string', size: 5000, required: false },
       { key: 'techStack', type: 'string', size: 1000, required: false, array: true },
@@ -169,7 +170,8 @@ const COLLECTIONS = {
       { key: 'updatedAt', type: 'datetime', required: true }
     ],
     indexes: [
-      { key: 'teamId_idx', type: 'unique', attributes: ['teamId'] },
+      { key: 'teamId_hackathonId_idx', type: 'unique', attributes: ['teamId', 'hackathonId'] },
+      { key: 'hackathonId_idx', type: 'key', attributes: ['hackathonId'] },
       { key: 'isFinalized_idx', type: 'key', attributes: ['isFinalized'] }
     ]
   },

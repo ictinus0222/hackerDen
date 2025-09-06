@@ -9,19 +9,29 @@ class SubmissionService {
    * Create a new submission for a team
    * @param {string} teamId - Team identifier
    * @param {Object} submissionData - Submission content
+   * @param {string} hackathonId - Hackathon identifier (optional, will be fetched from team if not provided)
    * @returns {Promise<Object>} Submission document
    */
-  async createSubmission(teamId, submissionData) {
+  async createSubmission(teamId, submissionData, hackathonId = null) {
     try {
-      // Check if submission already exists for team
+      // Get hackathon ID from team if not provided
+      if (!hackathonId) {
+        const team = await databases.getDocument(DATABASE_ID, COLLECTIONS.TEAMS, teamId);
+        hackathonId = team.hackathonId;
+      }
+
+      // Check if submission already exists for team in this hackathon
       const existing = await databases.listDocuments(
         DATABASE_ID,
         COLLECTIONS.SUBMISSIONS,
-        [Query.equal('teamId', teamId)]
+        [
+          Query.equal('teamId', teamId),
+          Query.equal('hackathonId', hackathonId)
+        ]
       );
 
       if (existing.documents.length > 0) {
-        throw new Error('Submission already exists for this team');
+        throw new Error('Submission already exists for this team in this hackathon');
       }
 
       const submissionId = ID.unique();
@@ -33,6 +43,7 @@ class SubmissionService {
         submissionId,
         {
           teamId,
+          hackathonId,
           title: submissionData.title || '',
           description: submissionData.description || '',
           techStack: submissionData.techStack || [],
@@ -98,16 +109,26 @@ class SubmissionService {
   }
 
   /**
-   * Get submission by team ID
+   * Get submission by team ID and hackathon ID
    * @param {string} teamId - Team identifier
+   * @param {string} hackathonId - Hackathon identifier (optional, will be fetched from team if not provided)
    * @returns {Promise<Object|null>} Submission document
    */
-  async getTeamSubmission(teamId) {
+  async getTeamSubmission(teamId, hackathonId = null) {
     try {
+      // Get hackathon ID from team if not provided
+      if (!hackathonId) {
+        const team = await databases.getDocument(DATABASE_ID, COLLECTIONS.TEAMS, teamId);
+        hackathonId = team.hackathonId;
+      }
+
       const response = await databases.listDocuments(
         DATABASE_ID,
         COLLECTIONS.SUBMISSIONS,
-        [Query.equal('teamId', teamId)]
+        [
+          Query.equal('teamId', teamId),
+          Query.equal('hackathonId', hackathonId)
+        ]
       );
 
       return response.documents.length > 0 ? response.documents[0] : null;

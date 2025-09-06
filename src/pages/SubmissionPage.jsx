@@ -113,6 +113,7 @@ const SubmissionPage = () => {
       <div className="container mx-auto px-4 py-8">
         <SubmissionBuilder
           teamId={team.$id}
+          hackathonId={hackathonId}
           onSubmissionCreated={handleSubmissionCreated}
           onSubmissionUpdated={handleSubmissionUpdated}
         />

@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 import { Loader2, Save, ExternalLink, AlertCircle, CheckCircle2, Copy, Eye } from 'lucide-react';
 import SubmissionPreview from '@/components/SubmissionPreview';
 
-const SubmissionBuilder = ({ teamId, onSubmissionCreated, onSubmissionUpdated }) => {
+const SubmissionBuilder = ({ teamId, hackathonId, onSubmissionCreated, onSubmissionUpdated }) => {
   const { user } = useAuth();
   const { team } = useTeam();
   const [submission, setSubmission] = useState(null);
@@ -59,7 +59,7 @@ const SubmissionBuilder = ({ teamId, onSubmissionCreated, onSubmissionUpdated })
 
       setIsLoading(true);
       try {
-        const existingSubmission = await submissionService.getTeamSubmission(teamId);
+        const existingSubmission = await submissionService.getTeamSubmission(teamId, hackathonId);
         
         if (existingSubmission) {
           setSubmission(existingSubmission);
@@ -83,7 +83,7 @@ const SubmissionBuilder = ({ teamId, onSubmissionCreated, onSubmissionUpdated })
           // Create new submission
           const newSubmission = await submissionService.createSubmission(teamId, {
             title: team?.name ? `${team.name} - Hackathon Project` : 'Hackathon Project'
-          });
+          }, hackathonId);
           setSubmission(newSubmission);
           form.setValue('title', newSubmission.title);
           
