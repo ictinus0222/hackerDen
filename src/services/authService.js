@@ -109,11 +109,10 @@ export const authService = {
       
       // Create OAuth2 session with Google
       // This will redirect to Google's OAuth page
-      const baseUrl = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
       await account.createOAuth2Session(
         'google',
-        `${baseUrl}/oauth/callback`, // Success redirect
-        `${baseUrl}/login?error=oauth_failed` // Failure redirect
+        `${window.location.origin}/oauth/callback`, // Success redirect
+        `${window.location.origin}/login?error=oauth_failed` // Failure redirect
       );
     } catch (error) {
       console.error('Google OAuth error:', error);
@@ -135,11 +134,10 @@ export const authService = {
       
       // Create OAuth2 session with GitHub
       // This will redirect to GitHub's OAuth page
-      const baseUrl = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
       await account.createOAuth2Session(
         'github',
-        `${baseUrl}/oauth/callback`, // Success redirect
-        `${baseUrl}/login?error=oauth_failed` // Failure redirect
+        `${window.location.origin}/oauth/callback`, // Success redirect
+        `${window.location.origin}/login?error=oauth_failed` // Failure redirect
       );
     } catch (error) {
       console.error('GitHub OAuth error:', error);
