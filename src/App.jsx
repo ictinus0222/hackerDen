@@ -14,8 +14,6 @@ import WhiteboardPage from './pages/WhiteboardPage';
 import CardTest from './components/CardTest';
 import InputComponentsDemo from './components/InputComponentsDemo';
 import MarkdownEditorDemo from './components/MarkdownEditorDemo';
-import { LeaderboardDemo } from './components/LeaderboardDemo.jsx';
-import { CelebrationTrigger } from './components/CelebrationTrigger.jsx';
 import PublicSubmissionPage from './pages/PublicSubmissionPage';
 import FeatureFlagPage from './pages/FeatureFlagPage';
 
@@ -102,16 +100,6 @@ function App() {
                   } 
                 />
                 
-                {/* Leaderboard Demo - temporary for development */}
-                <Route 
-                  path="/leaderboard-demo" 
-                  element={
-                    <ProtectedRoute>
-                      <LeaderboardDemo />
-                    </ProtectedRoute>
-                  } 
-                />
-                
                 {/* Feature Flag Management */}
                 <Route 
                   path="/feature-flags" 
@@ -140,7 +128,6 @@ function App() {
               </Routes>
             </div>
             <Toaster />
-            <CelebrationTrigger />
           </Router>
         </TeamProvider>
         </FeatureFlagsProvider>

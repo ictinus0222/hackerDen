@@ -40,37 +40,6 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
-    try {
-      setError(null);
-      setLoading(true);
-      await authService.login(email, password);
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-      return currentUser;
-    } catch (loginError) {
-      setError(loginError.message);
-      throw loginError;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const register = async (email, password, name) => {
-    try {
-      setError(null);
-      setLoading(true);
-      await authService.register(email, password, name);
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-      return currentUser;
-    } catch (registerError) {
-      setError(registerError.message);
-      throw registerError;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const logout = async () => {
     try {
@@ -141,8 +110,6 @@ const AuthProvider = ({ children }) => {
     user,
     loading,
     error,
-    login,
-    register,
     logout,
     loginWithGoogle,
     loginWithGitHub,

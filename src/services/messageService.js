@@ -1,18 +1,7 @@
 import client, { databases, DATABASE_ID, COLLECTIONS } from '../lib/appwrite';
 import { ID, Query } from 'appwrite';
-import { gamificationService } from './gamificationService';
 
 const MESSAGES_COLLECTION_ID = COLLECTIONS.MESSAGES;
-
-// Helper function to award points with error handling
-const awardPointsForAction = async (userId, teamId, action, hackathonId = null, userName = 'Team Member') => {
-  try {
-    await gamificationService.awardPoints(userId, teamId, action, null, hackathonId, userName);
-  } catch (error) {
-    console.warn('Failed to award points:', error);
-    // Don't fail the parent operation - just log the warning
-  }
-};
 
 export const messageService = {
   // Send a user message
@@ -34,8 +23,6 @@ export const messageService = {
         messageData
       );
 
-      // Award points for sending a message
-      await awardPointsForAction(userId, teamId, 'message_sent', hackathonId, 'Team Member');
 
       return response;
     } catch (error) {
@@ -324,57 +311,7 @@ export const messageService = {
     }
   },
 
-  // Send file annotation notification
-  async sendFileAnnotationMessage(teamId, hackathonId, fileName, annotatorName, annotationContent) {
-    try {
-      const content = `💬 ${annotatorName} added an annotation to "${fileName}": "${annotationContent}"`;
-      const systemData = {
-        fileName,
-        annotatorName,
-        annotationContent,
-        type: 'file_annotation'
-      };
 
-      const response = await this.sendSystemMessage(
-        teamId, 
-        hackathonId, 
-        content, 
-        'file_annotated', 
-        systemData
-      );
-
-      return response;
-    } catch (error) {
-      console.error('Error sending file annotation message:', error);
-      throw new Error('Failed to send file annotation message.');
-    }
-  },
-
-  // Send achievement unlock notification
-  async sendAchievementMessage(teamId, hackathonId, userName, achievementName, achievementDescription) {
-    try {
-      const content = `🏆 ${userName} unlocked achievement: "${achievementName}" - ${achievementDescription}`;
-      const systemData = {
-        userName,
-        achievementName,
-        achievementDescription,
-        type: 'achievement_unlock'
-      };
-
-      const response = await this.sendSystemMessage(
-        teamId, 
-        hackathonId, 
-        content, 
-        'achievement_unlocked', 
-        systemData
-      );
-
-      return response;
-    } catch (error) {
-      console.error('Error sending achievement message:', error);
-      throw new Error('Failed to send achievement message.');
-    }
-  },
 
   // Send celebration announcement
   async sendCelebrationMessage(teamId, hackathonId, celebrationType, triggerData) {
@@ -522,17 +459,6 @@ export const messageService = {
       'vault_secret_deleted',
       'file_uploaded',
       'file_annotated',
-      'idea_created',
-      'idea_voted',
-      'idea_status_changed',
-      'idea_auto_approved',
-      'idea_converted_to_task',
-      'achievement_unlocked',
-      'celebration',
-      'poll_created',
-      'poll_voted',
-      'poll_ended',
-      'poll_converted_to_task',
       'bot_message',
       'bot_tip',
       'bot_easter_egg',

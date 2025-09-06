@@ -1,8 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo.jsx';
 import ProgressBar from './ProgressBar.jsx';
-import { Leaderboard } from './Leaderboard.jsx';
-import { GamificationDisplay } from './GamificationDisplay.jsx';
 import { ThemeToggle } from './ui/theme-toggle.jsx';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
@@ -23,87 +21,98 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
     }
   };
 
-  const navigationItems = [
+  const navigationCategories = [
     {
-      name: 'Dashboard',
-      href: `/hackathon/${hackathonId}/dashboard`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      )
+      name: "Overview",
+      items: [
+        {
+          name: 'Dashboard',
+          href: `/hackathon/${hackathonId}/dashboard`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          )
+        }
+      ]
     },
     {
-      name: 'Tasks',
-      href: `/hackathon/${hackathonId}/tasks`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-      )
+      name: "Project Management",
+      items: [
+        {
+          name: 'Tasks',
+          href: `/hackathon/${hackathonId}/tasks`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+          )
+        },
+        {
+          name: 'Documents',
+          href: `/hackathon/${hackathonId}/documents`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          )
+        },
+        {
+          name: 'Files',
+          href: `/hackathon/${hackathonId}/files`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          )
+        }
+      ]
     },
     {
-      name: 'Documents',
-      href: `/hackathon/${hackathonId}/documents`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      )
+      name: "Collaboration",
+      items: [
+        {
+          name: 'Chat',
+          href: `/hackathon/${hackathonId}/chat`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          )
+        },
+        {
+          name: 'Whiteboard',
+          href: `/hackathon/${hackathonId}/whiteboard`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          )
+        },
+        {
+          name: 'Team Vault',
+          href: `/hackathon/${hackathonId}/vault`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159-.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25z" />
+            </svg>
+          )
+        }
+      ]
     },
     {
-      name: 'Files',
-      href: `/hackathon/${hackathonId}/files`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Chat',
-      href: `/hackathon/${hackathonId}/chat`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Ideas',
-      href: `/hackathon/${hackathonId}/ideas`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Team Vault',
-      href: `/hackathon/${hackathonId}/vault`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159-.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Whiteboard',
-      href: `/hackathon/${hackathonId}/whiteboard`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Submission',
-      href: `/hackathon/${hackathonId}/submission`,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-        </svg>
-      )
+      name: "Submission",
+      items: [
+        {
+          name: 'Submission',
+          href: `/hackathon/${hackathonId}/submission`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 713.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          )
+        }
+      ]
     }
   ];
 
@@ -167,30 +176,39 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
               <Separator className="mx-4 mb-3" />
 
               {/* Navigation */}
-              <nav className="flex-1 px-4 py-2 space-y-1 overflow-hidden">
-                {navigationItems.map((item) => {
-                  const isActive = currentPath === item.href || currentPath.startsWith(item.href);
-                   
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`group flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-                        isActive
-                          ? 'bg-primary/10 text-primary border border-primary/20'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                      }`}
-                      onClick={onToggle} // Close sidebar on mobile when navigating
-                    >
-                      <div className={`transition-colors duration-200 ${
-                        isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                      }`}>
-                        {item.icon}
-                      </div>
-                      <span className="font-medium text-sm">{item.name}</span>
-                    </Link>
-                  );
-                })}
+              <nav className="flex-1 px-4 py-2 space-y-4 overflow-hidden">
+                {navigationCategories.map((category) => (
+                  <div key={category.name} className="space-y-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">
+                      {category.name}
+                    </h3>
+                    <div className="space-y-1">
+                      {category.items.map((item) => {
+                        const isActive = currentPath === item.href || currentPath.startsWith(item.href);
+                         
+                        return (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            className={`group flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 ${
+                              isActive
+                                ? 'bg-primary/10 text-primary border border-primary/20'
+                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            }`}
+                            onClick={onToggle} // Close sidebar on mobile when navigating
+                          >
+                            <div className={`transition-colors duration-200 ${
+                              isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                            }`}>
+                              {item.icon}
+                            </div>
+                            <span className="font-medium text-sm">{item.name}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </nav>
 
               {/* Progress Bar Section */}
@@ -217,19 +235,6 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
                 </>
               )}
 
-              {/* Gamification Section */}
-              <Separator className="mx-4 my-3" />
-              <div className="px-4 py-3 flex-shrink-0 space-y-3">
-                {/* User Points Display */}
-                <GamificationDisplay compact={true} />
-                
-                {/* Team Leaderboard */}
-                <Leaderboard 
-                  teamId={team?.$id} 
-                  compact={true}
-                  limit={3}
-                />
-              </div>
 
               {/* User Profile Section */}
               <div className="p-4 flex-shrink-0">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { hackathonService } from '../services/hackathonService';
+import { teamService } from '../services/teamService';
 import ConsoleLayout from '../components/ConsoleLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import TeamSelector from '../components/TeamSelector';
@@ -88,6 +89,64 @@ const UserHackathonConsole = () => {
       setJoinError(err.message);
     } finally {
       setJoinLoading(false);
+    }
+  };
+
+  const handleLeaveTeam = async (hackathon) => {
+    if (!confirm('Are you sure you want to leave this team?')) {
+      return;
+    }
+
+    try {
+      const teamId = hackathon.team?.id || hackathon.team?.teamId || hackathon.team?.$id;
+      await teamService.leaveTeam(user.$id, teamId, hackathon.hackathonId);
+      // Refresh the page to update the UI
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to leave team:', err);
+      alert(err.message || 'Failed to leave team');
+    }
+  };
+
+  const handleDeleteTeam = async (hackathon) => {
+    if (!confirm('Are you sure you want to delete this team? This action cannot be undone and will permanently delete ALL team data including:\n\n• All tasks and progress\n• All chat messages\n• All files and documents\n• All vault secrets\n• All team members\n\nThis action is IRREVERSIBLE!')) {
+      return;
+    }
+
+    try {
+      // Show loading state
+      const confirmDelete = confirm('FINAL WARNING: This will permanently delete ALL team data from the servers. Are you absolutely sure?');
+      if (!confirmDelete) {
+        return;
+      }
+
+      // Debug the values being passed
+      console.log('Delete team debug:', {
+        teamId: hackathon.team?.id,
+        teamIdAlt: hackathon.team?.teamId,
+        hackathonId: hackathon.hackathonId,
+        hackathon: hackathon
+      });
+
+      // Extract teamId and hackathonId with fallbacks
+      const teamId = hackathon.team?.id || hackathon.team?.teamId || hackathon.team?.$id || hackathon.teamId;
+      const hackathonId = hackathon.hackathonId || hackathon.$id;
+
+      if (!teamId || !hackathonId) {
+        throw new Error(`Missing required data: teamId=${teamId}, hackathonId=${hackathonId}`);
+      }
+
+      // Use the comprehensive team deletion method
+      await teamService.deleteTeam(teamId, hackathonId, user.$id);
+      
+      // Show success message
+      alert('Team and all associated data have been permanently deleted from the servers.');
+      
+      // Refresh the page to update the UI
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to delete team:', err);
+      alert(err.message || 'Failed to delete team. Some data may have been partially deleted.');
     }
   };
 
@@ -189,13 +248,15 @@ const UserHackathonConsole = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {groupedHackathons.ongoing.map((hackathon) => (
-                    <HackathonCard 
-                      key={hackathon.hackathonId} 
-                      hackathon={hackathon} 
-                      onJoinCreateTeam={handleJoinCreateTeam}
-                      getStatusBadgeVariant={getStatusBadgeVariant}
-                      getRoleBadgeVariant={getRoleBadgeVariant}
-                    />
+                  <HackathonCard
+                    key={hackathon.hackathonId}
+                    hackathon={hackathon}
+                    onJoinCreateTeam={handleJoinCreateTeam}
+                    onLeaveTeam={handleLeaveTeam}
+                    onDeleteTeam={handleDeleteTeam}
+                    getStatusBadgeVariant={getStatusBadgeVariant}
+                    getRoleBadgeVariant={getRoleBadgeVariant}
+                  />
                   ))}
                 </div>
               </section>
@@ -210,13 +271,15 @@ const UserHackathonConsole = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {groupedHackathons.upcoming.map((hackathon) => (
-                    <HackathonCard 
-                      key={hackathon.hackathonId} 
-                      hackathon={hackathon} 
-                      onJoinCreateTeam={handleJoinCreateTeam}
-                      getStatusBadgeVariant={getStatusBadgeVariant}
-                      getRoleBadgeVariant={getRoleBadgeVariant}
-                    />
+                  <HackathonCard
+                    key={hackathon.hackathonId}
+                    hackathon={hackathon}
+                    onJoinCreateTeam={handleJoinCreateTeam}
+                    onLeaveTeam={handleLeaveTeam}
+                    onDeleteTeam={handleDeleteTeam}
+                    getStatusBadgeVariant={getStatusBadgeVariant}
+                    getRoleBadgeVariant={getRoleBadgeVariant}
+                  />
                   ))}
                 </div>
               </section>
@@ -231,13 +294,15 @@ const UserHackathonConsole = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {groupedHackathons.completed.map((hackathon) => (
-                    <HackathonCard 
-                      key={hackathon.hackathonId} 
-                      hackathon={hackathon} 
-                      onJoinCreateTeam={handleJoinCreateTeam}
-                      getStatusBadgeVariant={getStatusBadgeVariant}
-                      getRoleBadgeVariant={getRoleBadgeVariant}
-                    />
+                  <HackathonCard
+                    key={hackathon.hackathonId}
+                    hackathon={hackathon}
+                    onJoinCreateTeam={handleJoinCreateTeam}
+                    onLeaveTeam={handleLeaveTeam}
+                    onDeleteTeam={handleDeleteTeam}
+                    getStatusBadgeVariant={getStatusBadgeVariant}
+                    getRoleBadgeVariant={getRoleBadgeVariant}
+                  />
                   ))}
                 </div>
               </section>
@@ -315,7 +380,7 @@ const UserHackathonConsole = () => {
 };
 
 // Hackathon Card Component
-const HackathonCard = ({ hackathon, onJoinCreateTeam, getStatusBadgeVariant, getRoleBadgeVariant }) => {
+const HackathonCard = ({ hackathon, onJoinCreateTeam, onLeaveTeam, onDeleteTeam, getStatusBadgeVariant, getRoleBadgeVariant }) => {
   return (
     <Card className="bg-card/95 backdrop-blur-sm border-border/30 shadow-lg hover:shadow-xl transition-all duration-200">
       <CardContent className="p-6 space-y-4">
@@ -382,9 +447,25 @@ const HackathonCard = ({ hackathon, onJoinCreateTeam, getStatusBadgeVariant, get
           {hackathon.status === 'upcoming' && (
             <>
               {hackathon.team ? (
-                <Button variant="destructive" size="sm">
-                  Leave Team
-                </Button>
+                <>
+                  {hackathon.team.role === 'owner' || hackathon.team.role === 'leader' ? (
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => onDeleteTeam(hackathon)}
+                    >
+                      Delete Team
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => onLeaveTeam(hackathon)}
+                    >
+                      Leave Team
+                    </Button>
+                  )}
+                </>
               ) : (
                 <Button
                   variant="secondary"

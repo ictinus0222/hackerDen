@@ -5,17 +5,6 @@
 
 import { databases, storage, DATABASE_ID, COLLECTIONS, STORAGE_BUCKETS, Query, ID } from '../lib/appwrite';
 import client from '../lib/appwrite';
-import { gamificationService } from './gamificationService';
-
-// Helper function to award points with error handling
-const awardPointsForAction = async (userId, teamId, action, hackathonId = null, userName = 'Team Member') => {
-  try {
-    await gamificationService.awardPoints(userId, teamId, action, null, hackathonId, userName);
-  } catch (error) {
-    console.warn('Failed to award points:', error);
-    // Don't fail the parent operation - just log the warning
-  }
-};
 
 export const fileService = {
   /**
@@ -78,14 +67,11 @@ export const fileService = {
           fileSize: file.size,
           storageId: storageFile.$id,
           previewUrl: previewUrl.href,
-          annotationCount: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
       );
 
-      // Award points for file upload
-      await awardPointsForAction(uploadedBy, teamId, 'file_upload', hackathonId, uploaderName);
 
       // Send file upload notification to chat
       if (hackathonId) {
@@ -169,20 +155,6 @@ export const fileService = {
         fileId
       );
 
-      // Delete associated annotations
-      const annotations = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTIONS.FILE_ANNOTATIONS,
-        [Query.equal('fileId', fileId)]
-      );
-
-      for (const annotation of annotations.documents) {
-        await databases.deleteDocument(
-          DATABASE_ID,
-          COLLECTIONS.FILE_ANNOTATIONS,
-          annotation.$id
-        );
-      }
 
       return { success: true };
     } catch (error) {
@@ -191,99 +163,6 @@ export const fileService = {
     }
   },
 
-  /**
-   * Add annotation to a file
-   * @param {string} fileId - The file document ID
-   * @param {string} userId - User ID adding annotation
-   * @param {Object} annotationData - Annotation data
-   * @param {string} hackathonId - Hackathon ID for chat integration
-   * @param {string} annotatorName - Name of annotator for chat messages
-   * @returns {Promise<Object>} Annotation document
-   */
-  async addAnnotation(fileId, userId, annotationData, hackathonId = null, annotatorName = 'Team Member') {
-    try {
-      const annotation = await databases.createDocument(
-        DATABASE_ID,
-        COLLECTIONS.FILE_ANNOTATIONS,
-        ID.unique(),
-        {
-          fileId,
-          userId,
-          content: annotationData.content,
-          position: JSON.stringify(annotationData.position),
-          type: annotationData.type || 'point',
-          createdAt: new Date().toISOString()
-        }
-      );
-
-      // Update annotation count on file
-      const fileDoc = await databases.getDocument(
-        DATABASE_ID,
-        COLLECTIONS.FILES,
-        fileId
-      );
-
-      await databases.updateDocument(
-        DATABASE_ID,
-        COLLECTIONS.FILES,
-        fileId,
-        {
-          annotationCount: fileDoc.annotationCount + 1,
-          updatedAt: new Date().toISOString()
-        }
-      );
-
-      // Send file annotation notification to chat
-      if (hackathonId) {
-        try {
-          // Import messageService dynamically to avoid circular dependency
-          const messageServiceModule = await import('./messageService.js');
-          await messageServiceModule.messageService.sendFileAnnotationMessage(
-            fileDoc.teamId,
-            hackathonId,
-            fileDoc.fileName,
-            annotatorName,
-            annotationData.content
-          );
-        } catch (chatError) {
-          console.warn('Failed to send file annotation notification to chat:', chatError);
-          // Don't fail annotation if chat notification fails
-        }
-      }
-
-      return annotation;
-    } catch (error) {
-      console.error('Error adding annotation:', error);
-      throw new Error(`Failed to add annotation: ${error.message}`);
-    }
-  },
-
-  /**
-   * Get annotations for a file
-   * @param {string} fileId - The file document ID
-   * @returns {Promise<Array>} Array of annotation documents
-   */
-  async getFileAnnotations(fileId) {
-    try {
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTIONS.FILE_ANNOTATIONS,
-        [
-          Query.equal('fileId', fileId),
-          Query.orderDesc('createdAt')
-        ]
-      );
-
-      // Parse position data
-      return response.documents.map(annotation => ({
-        ...annotation,
-        position: JSON.parse(annotation.position)
-      }));
-    } catch (error) {
-      console.error('Error fetching file annotations:', error);
-      throw new Error(`Failed to fetch file annotations: ${error.message}`);
-    }
-  },
 
   /**
    * Get file download URL
@@ -434,27 +313,31 @@ export const fileService = {
    * @returns {Function} Unsubscribe function
    */
   subscribeToAnnotations(fileId, callback) {
+    throw new Error('File annotation features have been removed for final submission');
+  },
+
+  /**
+   * Update file name
+   * @param {string} fileId - The file document ID
+   * @param {string} newFileName - The new file name
+   * @returns {Promise<Object>} Updated file document
+   */
+  async updateFileName(fileId, newFileName) {
     try {
-      const unsubscribe = client.subscribe(
-        `databases.${DATABASE_ID}.collections.${COLLECTIONS.FILE_ANNOTATIONS}.documents`,
-        (response) => {
-          // Only process events for this file
-          if (response.payload.fileId === fileId) {
-            callback({
-              ...response,
-              payload: {
-                ...response.payload,
-                position: JSON.parse(response.payload.position)
-              }
-            });
-          }
+      const updatedFile = await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.FILES,
+        fileId,
+        {
+          fileName: newFileName,
+          updatedAt: new Date().toISOString()
         }
       );
 
-      return unsubscribe;
+      return updatedFile;
     } catch (error) {
-      console.error('Error subscribing to annotations:', error);
-      throw new Error('Failed to subscribe to annotation updates');
+      console.error('Error updating file name:', error);
+      throw new Error('Failed to update file name');
     }
   }
 };

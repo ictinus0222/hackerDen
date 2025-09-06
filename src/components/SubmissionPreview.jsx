@@ -27,7 +27,6 @@ import {
   Zap,
   Clock
 } from 'lucide-react';
-import TeamContributions from '@/components/TeamContributions';
 
 const SubmissionPreview = ({ 
   submission, 
@@ -330,11 +329,6 @@ const SubmissionPreview = ({
             </CardContent>
           </Card>
 
-          {/* Team Contributions */}
-          <TeamContributions 
-            teamData={previewDataMemo.teamData}
-            submissionId={previewDataMemo.$id}
-          />
 
           {/* Submission Details */}
           <Card>

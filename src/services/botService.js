@@ -2,7 +2,6 @@ import { databases, DATABASE_ID, COLLECTIONS, Query } from '@/lib/appwrite';
 import { messageService } from './messageService';
 import { taskService } from './taskService';
 import { fileService } from './fileService';
-import { ideaService } from './ideaService';
 
 /**
  * Bot Service for system bot interactions and UX enhancements
@@ -551,15 +550,8 @@ class BotService {
         console.warn('Could not fetch file data for analysis:', error);
       }
 
-      // Get idea data if ideaService is available
-      try {
-        if (ideaService && ideaService.getTeamIdeas) {
-          const ideas = await ideaService.getTeamIdeas(teamId);
-          analysis.ideaCount = ideas.length;
-        }
-      } catch (error) {
-        console.warn('Could not fetch idea data for analysis:', error);
-      }
+      // Ideas Management Flow has been removed for final submission
+      analysis.ideaCount = 0;
 
       // Determine team mood based on activity
       analysis.teamMood = this.determineTeamMood(analysis);

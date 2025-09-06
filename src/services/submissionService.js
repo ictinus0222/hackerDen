@@ -191,45 +191,11 @@ class SubmissionService {
       let achievements = [];
       let userPoints = [];
       
-      // Get ideas if idea service is available
-      try {
-        const { ideaService } = await import('./ideaService');
-        ideas = await ideaService.getTeamIdeas(teamId);
-      } catch (error) {
-        console.warn('Could not fetch ideas:', error);
-      }
+      // Ideas Management Flow has been removed for final submission
 
-      // Get polls if poll service is available
-      try {
-        const pollServiceModule = await import('./pollService');
-        polls = await pollServiceModule.default.getTeamPolls(teamId, { includeExpired: true });
-      } catch (error) {
-        console.warn('Could not fetch polls:', error);
-      }
+      // Polling features have been removed for final submission
 
-      // Get achievements and points if gamification service is available
-      try {
-        const { gamificationService } = await import('./gamificationService');
-        
-        // Get achievements for all team members
-        for (const member of teamData.members) {
-          try {
-            const memberProgress = await gamificationService.getUserProgress(member.userId, teamId);
-            achievements.push(...memberProgress.achievements);
-            if (memberProgress.teamPoints.length > 0) {
-              userPoints.push({
-                userId: member.userId,
-                userName: member.userName,
-                ...memberProgress.teamPoints[0]
-              });
-            }
-          } catch (error) {
-            console.warn(`Could not fetch progress for member ${member.userId}:`, error);
-          }
-        }
-      } catch (error) {
-        console.warn('Could not fetch gamification data:', error);
-      }
+      // Gamification features have been removed for final submission
 
       // Calculate enhanced progress metrics
       const completedTasks = tasks.filter(task => task.status === 'completed').length;

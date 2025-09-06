@@ -23,7 +23,6 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react';
-import TeamContributions from '@/components/TeamContributions';
 
 const PublicSubmissionPage = () => {
   const { submissionId } = useParams();
@@ -308,11 +307,6 @@ const PublicSubmissionPage = () => {
               </CardContent>
             </Card>
 
-            {/* Team Members */}
-            <TeamContributions 
-              teamData={submission.teamData}
-              submissionId={submission.$id}
-            />
 
             {/* Submission Details */}
             <Card>

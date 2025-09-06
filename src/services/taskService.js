@@ -1,7 +1,6 @@
 import { databases, DATABASE_ID, COLLECTIONS, Query, ID } from '../lib/appwrite';
 import client from '../lib/appwrite';
 import { messageService } from './messageService';
-import { gamificationService } from './gamificationService';
 
 // Helper function to send task system messages with error handling
 const sendTaskSystemMessage = async (teamId, hackathonId, messageType, content, systemData) => {
@@ -9,16 +8,6 @@ const sendTaskSystemMessage = async (teamId, hackathonId, messageType, content, 
     await messageService.sendSystemMessage(teamId, hackathonId, content, messageType, systemData);
   } catch (error) {
     console.warn('Failed to send task system message:', error);
-    // Don't fail the parent operation - just log the warning
-  }
-};
-
-// Helper function to award points with error handling
-const awardPointsForAction = async (userId, teamId, action) => {
-  try {
-    await gamificationService.awardPoints(userId, teamId, action);
-  } catch (error) {
-    console.warn('Failed to award points:', error);
     // Don't fail the parent operation - just log the warning
   }
 };
@@ -237,10 +226,6 @@ export const taskService = {
           systemMessageContent = `✅ ${userName} completed task: "${taskTitle || task.title}"`;
           messageType = 'task_completed';
           
-          // Award points for task completion
-          if (userId && userId !== 'system') {
-            await awardPointsForAction(userId, teamId, 'task_completion');
-          }
         } else {
           // General status change message
           const statusEmoji = {
@@ -318,10 +303,6 @@ export const taskService = {
           systemMessageContent = `✅ ${userName} completed task: "${task.title}"`;
           messageType = 'task_completed';
           
-          // Award points for task completion
-          if (currentTask.assignedTo && currentTask.assignedTo !== 'system') {
-            await awardPointsForAction(currentTask.assignedTo, teamId, 'task_completion');
-          }
         } else {
           // General status change message
           const statusEmoji = {
@@ -479,7 +460,8 @@ export const taskService = {
 
   // Create task from idea (integration with idea service)
   async createTaskFromIdea(ideaId, teamId, hackathonId, assignedTo, createdBy, creatorName = 'System', assignedToName = 'System') {
-    try {
+    throw new Error('Ideas Management Flow has been removed for final submission');
+    /*try {
       // Import ideaService dynamically to avoid circular dependency
       const { ideaService } = await import('./ideaService');
       
@@ -527,12 +509,13 @@ export const taskService = {
     } catch (error) {
       console.error('Error creating task from idea:', error);
       throw new Error('Failed to create task from idea');
-    }
+    }*/
   },
 
   // Create task from poll result (integration with poll service)
   async createTaskFromPoll(pollId, winningOption, teamId, hackathonId, createdBy, creatorName = 'System') {
-    try {
+    throw new Error('Polling features have been removed for final submission');
+    /*try {
       // Get poll details
       const poll = await databases.getDocument(
         DATABASE_ID,
@@ -544,9 +527,8 @@ export const taskService = {
         throw new Error('Invalid winning option');
       }
 
-      // Import pollService dynamically to get poll results
-      const pollServiceModule = await import('./pollService');
-      const results = await pollServiceModule.default.getPollResults(pollId);
+      // Polling features have been removed for final submission
+      const results = { results: [], totalVotes: 0, uniqueVoters: 0 };
       const winningResult = results.results.find(r => r.option === winningOption);
       
       // Create detailed task description
@@ -598,7 +580,7 @@ export const taskService = {
     } catch (error) {
       console.error('Error creating task from poll:', error);
       throw new Error('Failed to create task from poll');
-    }
+    }*/
   },
 
   // Subscribe to real-time task updates

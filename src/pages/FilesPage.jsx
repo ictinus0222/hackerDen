@@ -11,6 +11,7 @@ import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { 
   Upload, 
   Download, 
@@ -19,9 +20,9 @@ import {
   FileText, 
   Image, 
   File, 
-  MessageSquare,
   Calendar,
-  User
+  User,
+  Edit3
 } from 'lucide-react';
 import { fileService } from '../services/fileService';
 import { useAuth } from '../hooks/useAuth';
@@ -38,6 +39,8 @@ const FilesPage = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [editingFile, setEditingFile] = useState(null);
+  const [newFileName, setNewFileName] = useState('');
 
   // Fetch team files
   const fetchFiles = useCallback(async () => {
@@ -87,6 +90,63 @@ const FilesPage = () => {
     } catch (error) {
       console.error('Error deleting file:', error);
       toast.error('Failed to delete file');
+    }
+  };
+
+  // Handle edit file name
+  const handleEditFileName = (file) => {
+    setEditingFile(file);
+    setNewFileName(file.fileName);
+  };
+
+  // Save file name
+  const handleSaveFileName = async () => {
+    if (!editingFile || !newFileName.trim()) return;
+
+    try {
+      await fileService.updateFileName(editingFile.$id, newFileName.trim());
+      toast.success('File name updated successfully');
+      setEditingFile(null);
+      setNewFileName('');
+      await fetchFiles(); // Refresh file list
+    } catch (error) {
+      console.error('Error updating file name:', error);
+      toast.error('Failed to update file name');
+    }
+  };
+
+  // Handle file preview
+  const handlePreviewFile = (file) => {
+    if (file.fileType.startsWith('image/')) {
+      // For images, open in a new window with proper preview
+      const viewUrl = fileService.getFileViewUrl(file.storageId);
+      window.open(viewUrl, '_blank');
+    } else {
+      // For other files, attempt to view or download
+      try {
+        const viewUrl = fileService.getFileViewUrl(file.storageId);
+        window.open(viewUrl, '_blank');
+      } catch (error) {
+        console.error('Preview failed, attempting download:', error);
+        handleDownloadFile(file);
+      }
+    }
+  };
+
+  // Handle file download
+  const handleDownloadFile = (file) => {
+    try {
+      const downloadUrl = fileService.getFileDownloadUrl(file.storageId);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = file.fileName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast.error('Failed to download file');
     }
   };
 
@@ -265,7 +325,7 @@ const FilesPage = () => {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <User className="h-3 w-3" />
-                    <span>Uploaded by {file.uploadedBy}</span>
+                    <span>Uploaded by {file.uploaderName || 'Team Member'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-3 w-3" />
@@ -273,12 +333,6 @@ const FilesPage = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span>{formatFileSize(file.fileSize)}</span>
-                    {file.annotationCount > 0 && (
-                      <div className="flex items-center gap-1">
-                        <MessageSquare className="h-3 w-3" />
-                        <span>{file.annotationCount} annotations</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -293,13 +347,13 @@ const FilesPage = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => window.open(fileService.getFileViewUrl(file.storageId), '_blank')}
+                            onClick={() => handlePreviewFile(file)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>View File</p>
+                          <p>Preview File</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -310,13 +364,30 @@ const FilesPage = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => window.open(fileService.getFileDownloadUrl(file.storageId), '_blank')}
+                            onClick={() => handleDownloadFile(file)}
                           >
                             <Download className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Download File</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditFileName(file)}
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit Name</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -347,6 +418,36 @@ const FilesPage = () => {
           ))}
         </div>
       )}
+
+      {/* Edit File Name Dialog */}
+      <Dialog open={!!editingFile} onOpenChange={() => setEditingFile(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit File Name</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="fileName" className="block text-sm font-medium mb-2">
+                File Name
+              </label>
+              <Input
+                id="fileName"
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                placeholder="Enter new file name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingFile(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveFileName} disabled={!newFileName.trim()}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

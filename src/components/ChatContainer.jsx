@@ -150,11 +150,6 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
     setRetryQueue([]);
   }, []);
 
-  // Handle poll vote updates
-  const handlePollVoteUpdate = useCallback((pollId, vote) => {
-    // Refresh messages to show updated poll state
-    refreshMessages();
-  }, [refreshMessages]);
 
   // Handle task creation from polls
   const handleTaskCreated = useCallback((task, source) => {
@@ -328,7 +323,6 @@ const ChatContainer = ({ hackathon, team, hackathonId, className }) => {
           currentUserId={user?.$id}
           typingUsers={typingUsers}
           onRetryMessage={retryFailedMessage}
-          onPollVoteUpdate={handlePollVoteUpdate}
           onTaskCreated={handleTaskCreated}
           className="flex-1 min-h-0"
         />
