@@ -136,17 +136,11 @@ const FilePreview = ({ file, open, onOpenChange }) => {
   };
 
   // Handle file download
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!file) return;
     
     try {
-      const downloadUrl = fileService.getFileDownloadUrl(file.storageId);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = file.fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      await fileService.downloadFileWithFallback(file.storageId, file.fileName);
     } catch (error) {
       console.error('Error downloading file:', error);
     }

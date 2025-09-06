@@ -38,11 +38,22 @@ export const fileService = {
       }
 
       // Upload to Appwrite Storage
+      console.log('Uploading file:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      
       const storageFile = await storage.createFile(
         STORAGE_BUCKETS.TEAM_FILES,
         ID.unique(),
         file
       );
+      
+      console.log('File uploaded successfully:', {
+        storageId: storageFile.$id,
+        size: storageFile.sizeOriginal
+      });
 
       // Generate preview URL
       const previewUrl = storage.getFilePreview(
@@ -67,6 +78,7 @@ export const fileService = {
           fileSize: file.size,
           storageId: storageFile.$id,
           previewUrl: previewUrl.href,
+          annotationCount: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
@@ -170,7 +182,13 @@ export const fileService = {
    * @returns {string} Download URL
    */
   getFileDownloadUrl(storageId) {
-    return storage.getFileDownload(STORAGE_BUCKETS.TEAM_FILES, storageId).href;
+    try {
+      const downloadUrl = storage.getFileDownload(STORAGE_BUCKETS.TEAM_FILES, storageId);
+      return downloadUrl.href;
+    } catch (error) {
+      console.error('Error generating download URL:', error);
+      throw new Error('Failed to generate download URL');
+    }
   },
 
   /**
@@ -180,6 +198,87 @@ export const fileService = {
    */
   getFileViewUrl(storageId) {
     return storage.getFileView(STORAGE_BUCKETS.TEAM_FILES, storageId).href;
+  },
+
+  /**
+   * Download file with proper integrity preservation
+   * @param {string} storageId - The storage file ID
+   * @param {string} fileName - The file name
+   * @returns {Promise<void>}
+   */
+  async downloadFileWithFallback(storageId, fileName) {
+    try {
+      // Get the download URL (this should be the original file, not compressed)
+      const downloadUrl = this.getFileDownloadUrl(storageId);
+      console.log('Download URL:', downloadUrl);
+      
+      // Also get the view URL for comparison
+      const viewUrl = this.getFileViewUrl(storageId);
+      console.log('View URL:', viewUrl);
+      
+      // Method 1: Try direct download first
+      try {
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        link.target = '_blank';
+        link.setAttribute('rel', 'noopener noreferrer');
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log('Direct download initiated');
+        return;
+      } catch (directError) {
+        console.warn('Direct download failed, trying fetch method:', directError);
+      }
+      
+      // Method 2: Use fetch to get the file and ensure it's the original
+      console.log('Using fetch method to download original file...');
+      const response = await fetch(downloadUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': '*/*',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Content-Type:', response.headers.get('content-type'));
+      console.log('Content-Length:', response.headers.get('content-length'));
+      
+      // Get the file as array buffer to preserve binary data
+      const arrayBuffer = await response.arrayBuffer();
+      console.log('Downloaded file size:', arrayBuffer.byteLength, 'bytes');
+      
+      // Create blob with the correct MIME type
+      const contentType = response.headers.get('content-type') || 'application/octet-stream';
+      const blob = new Blob([arrayBuffer], { type: contentType });
+      
+      // Create object URL and download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.setAttribute('rel', 'noopener noreferrer');
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      
+      console.log('File downloaded successfully via fetch method');
+      
+    } catch (error) {
+      console.error('All download methods failed:', error);
+      throw new Error('Failed to download file');
+    }
   },
 
   /**
@@ -338,6 +437,60 @@ export const fileService = {
     } catch (error) {
       console.error('Error updating file name:', error);
       throw new Error('Failed to update file name');
+    }
+  },
+
+  /**
+   * Verify file integrity by checking file size
+   * @param {string} storageId - The storage file ID
+   * @param {number} expectedSize - The expected file size
+   * @returns {Promise<boolean>} True if file size matches
+   */
+  async verifyFileIntegrity(storageId, expectedSize) {
+    try {
+      // First, get the file info from storage
+      const fileInfo = await storage.getFile(STORAGE_BUCKETS.TEAM_FILES, storageId);
+      console.log('Storage file info:', {
+        id: fileInfo.$id,
+        name: fileInfo.name,
+        sizeOriginal: fileInfo.sizeOriginal,
+        mimeType: fileInfo.mimeType
+      });
+      
+      // Check if the original size matches
+      if (fileInfo.sizeOriginal !== expectedSize) {
+        console.warn('File size mismatch:', {
+          expected: expectedSize,
+          actual: fileInfo.sizeOriginal,
+          difference: fileInfo.sizeOriginal - expectedSize
+        });
+        return false;
+      }
+      
+      // Also check the download URL
+      const downloadUrl = this.getFileDownloadUrl(storageId);
+      const response = await fetch(downloadUrl, { method: 'HEAD' });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch file headers:', response.status);
+        return false;
+      }
+      
+      const downloadSize = parseInt(response.headers.get('content-length') || '0');
+      const contentType = response.headers.get('content-type');
+      
+      console.log('Download URL info:', {
+        url: downloadUrl,
+        downloadSize,
+        contentType,
+        expectedSize,
+        sizeMatch: downloadSize === expectedSize
+      });
+      
+      return downloadSize === expectedSize;
+    } catch (error) {
+      console.error('Error verifying file integrity:', error);
+      return false;
     }
   }
 };

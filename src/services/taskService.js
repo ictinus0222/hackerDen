@@ -44,10 +44,6 @@ export const taskService = {
           // Store labels as array (now that we have string array attribute)
           labels: taskData.labels && Array.isArray(taskData.labels) ? 
             taskData.labels : 
-            [],
-          // Store attached file IDs as array for file attachment functionality
-          attachedFiles: taskData.attachedFiles && Array.isArray(taskData.attachedFiles) ? 
-            taskData.attachedFiles : 
             []
         }
       );
@@ -334,128 +330,19 @@ export const taskService = {
     }
   },
 
-  // Attach files to a task
+  // Attach files to a task (DISABLED - attachedFiles attribute not in database schema)
   async attachFilesToTask(taskId, fileIds, teamId, hackathonId, userId = 'system', userName = 'System') {
-    try {
-      // Get current task to check existing attachments
-      const currentTask = await databases.getDocument(
-        DATABASE_ID,
-        COLLECTIONS.TASKS,
-        taskId
-      );
-
-      // Merge new file IDs with existing ones (avoid duplicates)
-      const existingFiles = currentTask.attachedFiles || [];
-      const newFiles = Array.isArray(fileIds) ? fileIds : [fileIds];
-      const updatedFiles = [...new Set([...existingFiles, ...newFiles])];
-
-      const task = await databases.updateDocument(
-        DATABASE_ID,
-        COLLECTIONS.TASKS,
-        taskId,
-        {
-          attachedFiles: updatedFiles
-        }
-      );
-
-      // Send system message for file attachment
-      const systemMessageContent = `📎 ${userName} attached ${newFiles.length} file(s) to task: "${currentTask.title}"`;
-      const systemData = {
-        taskId: taskId,
-        taskTitle: currentTask.title,
-        attachedBy: userName,
-        fileCount: newFiles.length,
-        newFileIds: newFiles
-      };
-
-      await sendTaskSystemMessage(teamId, hackathonId, 'task_files_attached', systemMessageContent, systemData);
-
-      return task;
-    } catch (error) {
-      console.error('Error attaching files to task:', error);
-      throw new Error('Failed to attach files to task');
-    }
+    throw new Error('File attachment functionality is not available - attachedFiles attribute not configured in database schema');
   },
 
-  // Remove files from a task
+  // Remove files from a task (DISABLED - attachedFiles attribute not in database schema)
   async removeFilesFromTask(taskId, fileIds, teamId, hackathonId, userId = 'system', userName = 'System') {
-    try {
-      // Get current task to check existing attachments
-      const currentTask = await databases.getDocument(
-        DATABASE_ID,
-        COLLECTIONS.TASKS,
-        taskId
-      );
-
-      // Remove specified file IDs from existing attachments
-      const existingFiles = currentTask.attachedFiles || [];
-      const filesToRemove = Array.isArray(fileIds) ? fileIds : [fileIds];
-      const updatedFiles = existingFiles.filter(fileId => !filesToRemove.includes(fileId));
-
-      const task = await databases.updateDocument(
-        DATABASE_ID,
-        COLLECTIONS.TASKS,
-        taskId,
-        {
-          attachedFiles: updatedFiles
-        }
-      );
-
-      // Send system message for file removal
-      const systemMessageContent = `📎 ${userName} removed ${filesToRemove.length} file(s) from task: "${currentTask.title}"`;
-      const systemData = {
-        taskId: taskId,
-        taskTitle: currentTask.title,
-        removedBy: userName,
-        fileCount: filesToRemove.length,
-        removedFileIds: filesToRemove
-      };
-
-      await sendTaskSystemMessage(teamId, hackathonId, 'task_files_removed', systemMessageContent, systemData);
-
-      return task;
-    } catch (error) {
-      console.error('Error removing files from task:', error);
-      throw new Error('Failed to remove files from task');
-    }
+    throw new Error('File removal functionality is not available - attachedFiles attribute not configured in database schema');
   },
 
-  // Get files attached to a task
+  // Get files attached to a task (DISABLED - attachedFiles attribute not in database schema)
   async getTaskFiles(taskId) {
-    try {
-      const task = await databases.getDocument(
-        DATABASE_ID,
-        COLLECTIONS.TASKS,
-        taskId
-      );
-
-      if (!task.attachedFiles || task.attachedFiles.length === 0) {
-        return [];
-      }
-
-      // Import fileService dynamically to avoid circular dependency
-      const { fileService } = await import('./fileService');
-      
-      // Get file documents for attached file IDs
-      const filePromises = task.attachedFiles.map(async (fileId) => {
-        try {
-          return await databases.getDocument(
-            DATABASE_ID,
-            COLLECTIONS.FILES,
-            fileId
-          );
-        } catch (error) {
-          console.warn(`Failed to get file ${fileId}:`, error);
-          return null;
-        }
-      });
-
-      const files = await Promise.all(filePromises);
-      return files.filter(file => file !== null);
-    } catch (error) {
-      console.error('Error getting task files:', error);
-      throw new Error('Failed to get task files');
-    }
+    throw new Error('File retrieval functionality is not available - attachedFiles attribute not configured in database schema');
   },
 
   // Create task from idea (integration with idea service)

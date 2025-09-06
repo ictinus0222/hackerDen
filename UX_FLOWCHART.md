@@ -17,7 +17,7 @@ This document provides a detailed flowchart of the HackerDen user experience, co
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 🔐 Authentication Flow
+## 🔐 Authentication Flow (OAuth Only)
 
 ```mermaid
 graph TD
@@ -25,35 +25,23 @@ graph TD
     B -->|No| C[Redirect to /login]
     B -->|Yes| D[Redirect to /console]
     
-    C --> E{Has Account?}
-    E -->|No| F[Click Register]
-    E -->|Yes| G[Enter Credentials]
+    C --> E[Login Page]
+    E --> F[GitHub OAuth Button]
+    E --> G[Google OAuth Button]
     
-    F --> H[Registration Form]
-    H --> I[Email + Password]
-    H --> J[OAuth Options]
+    F --> H[GitHub OAuth Flow]
+    G --> I[Google OAuth Flow]
     
-    I --> K[Validate Form]
-    K -->|Invalid| L[Show Errors]
-    K -->|Valid| M[Create Account]
+    H --> J[OAuth Callback]
+    I --> J
+    J --> K[Account Created/Logged In]
+    K --> D
     
-    J --> N[GitHub OAuth]
-    J --> O[Google OAuth]
-    
-    N --> P[OAuth Callback]
-    O --> P
-    P --> Q[Account Created]
-    
-    G --> R[Login Validation]
-    R -->|Invalid| S[Show Error]
-    R -->|Valid| T[Login Success]
-    
-    M --> T
-    Q --> T
-    T --> D
-    
-    L --> H
-    S --> C
+    style E fill:#e1f5fe
+    style F fill:#f3e5f5
+    style G fill:#f3e5f5
+    style H fill:#e8f5e8
+    style I fill:#e8f5e8
 ```
 
 ## 🏠 Main Console Flow
@@ -128,6 +116,36 @@ graph TD
     Q --> M
     
     L --> T[Team Dashboard]
+    T --> U{User Role?}
+    U -->|Member| V[Leave Team Option]
+    U -->|Leader/Owner| W[Delete Team Option]
+    
+    V --> X[Confirm Leave Team]
+    X -->|Yes| Y[Remove from Team]
+    X -->|No| T
+    
+    W --> Z[Double Confirmation]
+    Z -->|Yes| AA[Delete ALL Team Data]
+    Z -->|No| T
+    
+    AA --> BB[Delete Tasks]
+    AA --> CC[Delete Messages]
+    AA --> DD[Delete Files]
+    AA --> EE[Delete Documents]
+    AA --> FF[Delete Vault Secrets]
+    AA --> GG[Delete Team Members]
+    AA --> HH[Delete Team Record]
+    
+    BB --> II[Complete Deletion]
+    CC --> II
+    DD --> II
+    EE --> II
+    FF --> II
+    GG --> II
+    HH --> II
+    II --> JJ[Return to Console]
+    
+    Y --> JJ
 ```
 
 ## 📋 Task Management Flow
@@ -206,7 +224,7 @@ graph TD
     P[System Messages] --> Q[Task Created]
     P --> R[Task Status Changed]
     P --> S[Team Member Joined]
-    P --> T[Achievement Unlocked]
+    P --> T[File Uploaded]
     
     Q --> U[Auto-generate Message]
     R --> U
@@ -214,13 +232,14 @@ graph TD
     T --> U
     U --> N
     
-    V[Message Actions] --> W[React to Message]
-    V --> X[Reply to Message]
+    V[Bot Messages] --> W[Motivational Messages]
+    V --> X[Contextual Tips]
+    V --> Y[Easter Eggs]
     
-    W --> Y[Emoji Picker]
-    Y --> Z[Select Emoji]
-    Z --> AA[Add Reaction]
-    AA --> N
+    W --> Z[Send to Chat]
+    X --> Z
+    Y --> Z
+    Z --> N
     
     I --> F
     M --> F
@@ -230,222 +249,66 @@ graph TD
 
 ```mermaid
 graph TD
-    A[File Library] --> B{Feature Enabled?}
-    B -->|No| C[Feature Disabled Message]
-    B -->|Yes| D[Display File Grid]
+    A[File Library] --> B[Display File Grid]
     
-    D --> E[Upload Button]
-    E --> F[File Selection Dialog]
-    F --> G[Select Files]
-    G --> H[File Validation]
+    B --> C[Upload Button]
+    C --> D[File Selection Dialog]
+    D --> E[Select Files]
+    E --> F[File Validation]
     
-    H --> I[Check File Type]
-    H --> J[Check File Size]
-    I -->|Invalid Type| K[Show Type Error]
-    J -->|Too Large| L[Show Size Error]
-    I -->|Valid Type| M[Validation Passed]
-    J -->|Valid Size| M
+    F --> G[Check File Type]
+    F --> H[Check File Size]
+    G -->|Invalid Type| I[Show Type Error]
+    H -->|Too Large| J[Show Size Error]
+    G -->|Valid Type| K[Validation Passed]
+    H -->|Valid Size| K
     
-    M --> N[Upload Progress]
-    N --> O[Generate Preview]
-    O --> P[Save to Storage]
-    P -->|Success| Q[Add to File Library]
-    P -->|Error| R[Show Upload Error]
+    K --> L[Upload Progress]
+    L --> M[Generate Preview]
+    M --> N[Save to Storage]
+    N -->|Success| O[Add to File Library]
+    N -->|Error| P[Show Upload Error]
     
-    Q --> S[Real-time Update]
-    S --> T[Notify Team Members]
-    T --> U[Update Points]
-    U --> V[Check Achievements]
+    O --> Q[Real-time Update]
+    Q --> R[Notify Team Members]
     
-    W[Click File Card] --> X[File Preview Modal]
-    X --> Y[Display File Content]
-    Y --> Z{File Type?}
-    Z -->|Image| AA[Image Viewer]
-    Z -->|PDF| BB[PDF Viewer]
-    Z -->|Code| CC[Syntax Highlighted]
-    Z -->|Text| DD[Text Display]
+    S[Click File Card] --> T[File Actions Menu]
+    T --> U[Preview File]
+    T --> V[Download File]
+    T --> W[Edit File Name]
+    T --> X[Delete File]
     
-    AA --> EE[Annotation Mode]
-    BB --> EE
-    EE --> FF[Click to Annotate]
-    FF --> GG[Add Comment]
-    GG --> HH[Save Annotation]
-    HH --> S
+    U --> Y[Open in New Tab]
+    V --> Z[Download to Device]
     
-    K --> F
-    L --> F
-    R --> F
+    W --> AA[Edit Name Dialog]
+    AA --> BB[Enter New Name]
+    BB --> CC[Save Changes]
+    CC --> DD[Update File Record]
+    DD --> Q
+    
+    X --> EE[Confirm Deletion]
+    EE -->|Yes| FF[Delete from Storage]
+    EE -->|No| T
+    FF --> GG[Delete File Record]
+    GG --> Q
+    
+    I --> D
+    J --> D
+    P --> D
 ```
 
 ## 💡 Idea Management Flow
 
-```mermaid
-graph TD
-    A[Idea Board] --> B{Feature Enabled?}
-    B -->|No| C[Feature Disabled Message]
-    B -->|Yes| D[Display Ideas by Status]
-    
-    D --> E[Submitted Ideas]
-    D --> F[Approved Ideas]
-    D --> G[In Progress Ideas]
-    D --> H[Completed Ideas]
-    
-    I[Create Idea Button] --> J[Idea Creation Modal]
-    J --> K[Fill Idea Form]
-    K --> L[Title Required]
-    K --> M[Description Required]
-    K --> N[Tags Optional]
-    
-    L --> O[Form Validation]
-    M --> O
-    N --> O
-    
-    O -->|Invalid| P[Show Validation Errors]
-    O -->|Valid| Q[Submit Idea]
-    Q --> R[Add to Submitted]
-    R --> S[Real-time Update]
-    S --> T[Notify Team]
-    T --> U[Award Points]
-    U --> V[Check Achievements]
-    
-    W[Click Idea Card] --> X[Idea Details Modal]
-    X --> Y[Show Full Description]
-    Y --> Z[Voting Interface]
-    
-    Z --> AA{User Voted?}
-    AA -->|Yes| BB[Show Vote Status]
-    AA -->|No| CC[Vote Button]
-    
-    CC --> DD[Cast Vote]
-    DD --> EE[Update Vote Count]
-    EE --> FF[Check Approval Threshold]
-    FF -->|Threshold Met| GG[Auto-approve Idea]
-    FF -->|Not Met| HH[Stay in Submitted]
-    
-    GG --> II[Move to Approved]
-    II --> JJ[Create Conversion Option]
-    JJ --> KK[Convert to Task]
-    KK --> LL[Add to Kanban Board]
-    LL --> S
-    
-    P --> J
-```
+**REMOVED FOR FINAL SUBMISSION** - This feature has been simplified out of the application to focus on core hackathon functionality.
 
 ## 🎮 Gamification Flow
 
-```mermaid
-graph TD
-    A[User Actions] --> B[Point Calculation]
-    
-    C[Task Completed] --> D[Award 10 Points]
-    E[Message Sent] --> F[Award 1 Point]
-    G[File Uploaded] --> H[Award 5 Points]
-    I[Idea Submitted] --> J[Award 3 Points]
-    K[Vote Cast] --> L[Award 1 Point]
-    
-    D --> M[Update User Points]
-    F --> M
-    H --> M
-    J --> M
-    L --> M
-    
-    M --> N[Check Achievement Triggers]
-    N --> O{Achievement Unlocked?}
-    
-    O -->|No| P[Update Leaderboard]
-    O -->|Yes| Q[Achievement Notification]
-    
-    Q --> R[Celebration Effects]
-    R --> S[Confetti Animation]
-    R --> T[Sound Effect]
-    R --> U[Toast Notification]
-    
-    S --> V[Update Badge Collection]
-    T --> V
-    U --> V
-    V --> P
-    
-    P --> W[Real-time Leaderboard Update]
-    W --> X[Team Rankings]
-    W --> Y[Individual Rankings]
-    
-    Z[View Achievements] --> AA[Badge Collection Modal]
-    AA --> BB[Display Earned Badges]
-    AA --> CC[Display Progress Bars]
-    AA --> DD[Show Next Milestones]
-    
-    EE[View Leaderboard] --> FF[Leaderboard Modal]
-    FF --> GG[Team Members List]
-    GG --> HH[Points Breakdown]
-    GG --> II[Achievement Count]
-    GG --> JJ[Recent Activities]
-```
+**REMOVED FOR FINAL SUBMISSION** - This feature has been simplified out of the application to focus on core hackathon functionality.
 
 ## 📊 Polling System Flow
 
-```mermaid
-graph TD
-    A[Poll Manager] --> B{Feature Enabled?}
-    B -->|No| C[Feature Disabled Message]
-    B -->|Yes| D[Display Active Polls]
-    
-    D --> E[Active Polls Tab]
-    D --> F[Poll History Tab]
-    
-    G[Create Poll Button] --> H[Poll Creation Modal]
-    H --> I[Poll Type Selection]
-    I --> J[Custom Poll]
-    I --> K[Quick Yes/No Poll]
-    
-    J --> L[Custom Poll Form]
-    L --> M[Question Required]
-    L --> N[Add Options]
-    L --> O[Settings Configuration]
-    
-    N --> P[Minimum 2 Options]
-    O --> Q[Single/Multiple Choice]
-    O --> R[Expiration Time]
-    
-    K --> S[Quick Poll Form]
-    S --> T[Question Only]
-    T --> U[Auto Yes/No Options]
-    
-    M --> V[Form Validation]
-    P --> V
-    Q --> V
-    R --> V
-    U --> V
-    
-    V -->|Invalid| W[Show Validation Errors]
-    V -->|Valid| X[Create Poll]
-    X --> Y[Add to Active Polls]
-    Y --> Z[Real-time Update]
-    Z --> AA[Notify Team Members]
-    
-    BB[Click Poll Card] --> CC[Poll Voting Interface]
-    CC --> DD{Poll Active?}
-    DD -->|No| EE[Show Results Only]
-    DD -->|Yes| FF[Show Voting Options]
-    
-    FF --> GG{User Voted?}
-    GG -->|Yes| HH[Show Vote Status]
-    GG -->|No| II[Enable Voting]
-    
-    II --> JJ[Select Options]
-    JJ --> KK[Submit Vote]
-    KK --> LL[Update Vote Count]
-    LL --> MM[Real-time Results Update]
-    MM --> Z
-    
-    NN[Poll Expiration] --> OO[Auto-close Poll]
-    OO --> PP[Move to History]
-    PP --> QQ[Final Results]
-    QQ --> RR[Conversion Options]
-    RR --> SS[Convert Winner to Task]
-    SS --> TT[Add to Kanban Board]
-    
-    W --> H
-```
+**REMOVED FOR FINAL SUBMISSION** - This feature has been simplified out of the application to focus on core hackathon functionality.
 
 ## 🏆 Judge Submission Flow
 
@@ -506,6 +369,46 @@ graph TD
     KK --> MM[Technical Details]
     KK --> NN[Demo Links]
     KK --> OO[Evaluation Criteria]
+```
+
+## 🧭 Navigation Flow (Simplified)
+
+```mermaid
+graph TD
+    A[Hackathon Dashboard] --> B[Sidebar Navigation]
+    
+    B --> C[Overview Section]
+    C --> D[Dashboard - Main Overview]
+    
+    B --> E[Project Management Section]
+    E --> F[Tasks - Kanban Board]
+    E --> G[Documents - Collaborative Docs]
+    E --> H[Files - File Library]
+    
+    B --> I[Collaboration Section]
+    I --> J[Chat - Team Communication]
+    I --> K[Whiteboard - Visual Collaboration]
+    I --> L[Team Vault - Secure Storage]
+    
+    B --> M[Submission Section]
+    M --> N[Submission - Judge Presentation]
+    
+    O[Progress Tracking] --> P[Task Progress Bar]
+    P --> Q[Completed vs Total Tasks]
+    Q --> R[Visual Progress Indicator]
+    
+    S[Team Actions] --> T{User Role?}
+    T -->|Member| U[Leave Team Option]
+    T -->|Leader/Owner| V[Delete Team Option]
+    
+    U --> W[Confirm Leave Team]
+    V --> X[Double Confirmation Delete]
+    X --> Y[Delete ALL Team Data]
+    
+    style C fill:#e1f5fe
+    style E fill:#f3e5f5
+    style I fill:#e8f5e8
+    style M fill:#fff3e0
 ```
 
 ## 🤖 Bot System & Easter Eggs Flow
@@ -945,28 +848,29 @@ graph TD
 
 ---
 
-## 📋 User Journey Summary
+## 📋 User Journey Summary (Simplified)
 
 ### New User Journey (First Time)
-1. **Discovery** → Registration → Email Verification
+1. **Discovery** → OAuth Registration (GitHub/Google)
 2. **Onboarding** → Console Tour → Create/Join Hackathon
 3. **Team Setup** → Create/Join Team → Role Assignment
-4. **Feature Discovery** → Task Creation → Chat Usage → Enhancement Features
-5. **Engagement** → Gamification → Achievements → Team Collaboration
+4. **Core Features** → Task Creation → Chat Usage → File Sharing
+5. **Collaboration** → Team Communication → Progress Tracking
 
 ### Returning User Journey
-1. **Login** → Console → Select Active Hackathon
-2. **Dashboard** → Check Progress → Review Notifications
-3. **Collaboration** → Tasks → Chat → Files → Ideas → Polls
-4. **Productivity** → Complete Tasks → Earn Points → Unlock Achievements
+1. **OAuth Login** → Console → Select Active Hackathon
+2. **Dashboard** → Check Progress → Review Team Status
+3. **Collaboration** → Tasks → Chat → Files → Documents
+4. **Productivity** → Complete Tasks → Track Progress
 5. **Submission** → Build Submission → Finalize for Judges
 
 ### Team Leader Journey
 1. **Team Management** → Create Team → Share Join Code
 2. **Task Coordination** → Assign Tasks → Monitor Progress
-3. **Resource Management** → File Organization → Idea Curation
-4. **Decision Making** → Create Polls → Guide Team Direction
-5. **Submission Oversight** → Review Submission → Final Approval
+3. **Resource Management** → File Organization → Document Management
+4. **Team Actions** → Leave Team (Members) → Delete Team (Leaders)
+5. **Data Management** → Comprehensive Team Data Cleanup
+6. **Submission Oversight** → Review Submission → Final Approval
 
 ### Judge Journey
 1. **Direct Access** → Public Submission URL → No Authentication

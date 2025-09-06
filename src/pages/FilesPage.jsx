@@ -134,16 +134,18 @@ const FilesPage = () => {
   };
 
   // Handle file download
-  const handleDownloadFile = (file) => {
+  const handleDownloadFile = async (file) => {
     try {
-      const downloadUrl = fileService.getFileDownloadUrl(file.storageId);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = file.fileName;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Verify file integrity first
+      const isIntegrityOk = await fileService.verifyFileIntegrity(file.storageId, file.fileSize);
+      if (!isIntegrityOk) {
+        console.warn('File integrity check failed, but proceeding with download');
+        toast.warning('File may be corrupted, but download will proceed');
+      }
+      
+      // Use the improved download method with fallback
+      await fileService.downloadFileWithFallback(file.storageId, file.fileName);
+      toast.success('Download started');
     } catch (error) {
       console.error('Error downloading file:', error);
       toast.error('Failed to download file');

@@ -57,15 +57,6 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
             </svg>
           )
         },
-        {
-          name: 'Files',
-          href: `/hackathon/${hackathonId}/files`,
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-          )
-        }
       ]
     },
     {
@@ -94,7 +85,7 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
           href: `/hackathon/${hackathonId}/vault`,
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159-.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           )
         }
@@ -172,11 +163,14 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
               </div>
             </CardHeader>
 
-            <CardContent className="p-0 flex flex-col h-full">
+            <CardContent className="p-0 flex flex-col h-full min-h-0">
               <Separator className="mx-4 mb-3" />
 
               {/* Navigation */}
-              <nav className="flex-1 px-4 py-2 space-y-4 overflow-hidden">
+              <nav className="flex-1 px-4 py-2 space-y-4 overflow-y-auto sidebar-nav-scroll min-h-0" style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent'
+              }}>
                 {navigationCategories.map((category) => (
                   <div key={category.name} className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">
@@ -237,10 +231,10 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
 
 
               {/* User Profile Section */}
-              <div className="p-4 flex-shrink-0">
+              <div className="p-3 flex-shrink-0">
                 <div className="p-3 rounded-xl bg-muted/20 border border-border/20">
-                <div className="flex items-center space-x-3 mb-3">
-                  <Avatar className="w-12 h-12">
+                <div className="flex items-center space-x-3 mb-2">
+                  <Avatar className="w-10 h-10">
                     <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
                       {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </AvatarFallback>
@@ -264,7 +258,8 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
                 <Button
                   asChild
                   variant="outline"
-                  className="w-full flex items-center space-x-3 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 border-border/30 hover:border-border/50 rounded-xl transition-colors duration-200 mb-3"
+                  size="sm"
+                  className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 border-border/30 hover:border-border/50 rounded-xl transition-colors duration-200 mb-2"
                 >
                   <Link to="/console">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,8 +271,9 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
 
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-3 py-3 text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/10 border-destructive/30 hover:border-destructive/50 rounded-xl transition-colors duration-200"
+                  className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/10 border-destructive/30 hover:border-destructive/50 rounded-xl transition-colors duration-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
