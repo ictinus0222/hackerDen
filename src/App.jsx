@@ -16,6 +16,7 @@ import InputComponentsDemo from './components/InputComponentsDemo';
 import MarkdownEditorDemo from './components/MarkdownEditorDemo';
 import PublicSubmissionPage from './pages/PublicSubmissionPage';
 import FeatureFlagPage from './pages/FeatureFlagPage';
+import LandingPage from './components/LandingPage';
 
 import { Toaster } from './components/ui/sonner';
 
@@ -34,6 +35,7 @@ function App() {
             <div className="App">
               <Routes>
                 {/* Public routes */}
+                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
