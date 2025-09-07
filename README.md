@@ -1,6 +1,6 @@
 # HackerDen
 
-A modern, hackathon-focused collaborative platform that transforms team coordination from functional to delightful. Built with React 19 and Appwrite, HackerDen provides comprehensive hackathon management, real-time team collaboration, advanced task tracking, and an engaging enhancement suite featuring file sharing, idea management, gamification, polling, and intelligent bot interactions.
+A modern, hackathon-focused collaborative platform that provides comprehensive team coordination and project management. Built with React 19 and Appwrite, HackerDen offers hackathon management, real-time team collaboration, advanced task tracking, file sharing, and judge submission systems.
 
 ## Features
 
@@ -18,7 +18,7 @@ A modern, hackathon-focused collaborative platform that transforms team coordina
 - **Progress Indicators**: Visual task completion progress bar in sidebar with color-coded status
 
 #### 🏆 **Hackathon Management & Team Coordination**
-- **User Authentication**: Secure registration, login, and session management
+- **User Authentication**: Secure OAuth authentication with Google and GitHub
 - **Hackathon Console**: Centralized dashboard showing all user's hackathons (ongoing, upcoming, completed)
 - **Hackathon-Specific Dashboards**: Individual dashboards for each hackathon with team management
 - **Team Creation**: Create teams with unique join codes and automatic ownership assignment
@@ -59,56 +59,28 @@ A modern, hackathon-focused collaborative platform that transforms team coordina
 
 ### 🚀 Enhancement Features (Foundation Complete, Core Features Implemented)
 
-The HackerDen Enhancement Suite transforms the platform from a functional collaboration tool into an engaging, gamified hackathon experience. The foundation is complete with all Appwrite collections and storage buckets configured, and core enhancement features are now implemented and ready for use.
+The HackerDen Enhancement Suite provides essential collaboration features for hackathon teams. The foundation is complete with Appwrite collections and storage buckets configured, and core enhancement features are now implemented and ready for use.
 
 #### 📁 **File Sharing & Collaboration System**
 - **File Upload & Storage**: Support for images, PDFs, text files, and code files (up to 10MB per file)
 - **Team File Library**: Shared file browser with preview capabilities and metadata tracking
-- **Interactive Annotations**: Add comments and markers to images and documents with Canvas-based positioning
-- **Real-time Synchronization**: Live file updates and annotation notifications across all team members
+- **Real-time Synchronization**: Live file updates across all team members
 - **Syntax Highlighting**: Code file preview with language-specific highlighting for development files
 
-#### 💡 **Idea Management & Voting Board**
-- **Democratic Idea Submission**: Create ideas with titles, descriptions, and tags for team consideration
-- **Real-time Voting System**: Team members vote on ideas with live results and duplicate prevention
-- **Status Progression**: Ideas move from submitted → approved → in progress → completed
-- **Task Integration**: Approved ideas automatically convert to actionable tasks in the Kanban board
-- **Chat Integration**: Idea activities generate notifications in team chat for visibility
 
-#### 🎮 **Gamification & Achievement System**
-- **Comprehensive Point System**: Task completion (10pts), messages (1pt), file uploads (5pts), ideas (3pts), votes (1pt)
-- **Achievement Badges**: Unlock badges for milestones with fun names and celebration effects
-- **Celebration Effects**: Confetti animations and optional sound effects for task completion and achievements
-- **Team Leaderboard**: Real-time individual and team progress tracking with friendly competition
-- **Progress Visualization**: Visual progress bars and achievement collections with tooltips
 
 #### 🏆 **Judge Submission System**
 - **Comprehensive Submission Builder**: Project description, tech stack, challenges, accomplishments, future work
 - **Public Judge Pages**: Generate shareable URLs accessible without authentication for easy judge access
-- **Auto-aggregation**: Automatically pull project data from completed tasks, uploaded files, and team contributions
-- **Team Contributions**: Individual member contribution tracking and role visualization
+- **Auto-aggregation**: Automatically pull project data from completed tasks and uploaded files
 - **Finalization System**: Lock submissions when hackathon judging begins to prevent further edits
 
-#### 📊 **In-App Polling System**
-- **Flexible Poll Creation**: Multiple choice, yes/no, and custom option polls with expiration settings
-- **Real-time Voting**: Live poll results with vote percentages and user vote tracking
-- **Poll-to-Task Conversion**: Convert winning poll options directly into actionable tasks
-- **Poll History**: Track past team decisions with collapsible details and result exports
-- **Chat Integration**: Polls appear inline in team chat with interactive voting buttons
 
-#### 🤖 **System Bot & UX Enhancements**
-- **Contextual Bot Messages**: Motivational messages and productivity tips based on team activity patterns
-- **Easter Egg System**: Hidden commands (/party, /celebrate) trigger team-wide special effects
-- **Enhanced Tooltips**: Witty tooltips and pop-culture references throughout the interface
-- **Custom Reactions**: Emoji reactions for messages and tasks with custom emoji upload support
-- **Discovery Features**: Hidden features and achievements for platform exploration
 
 #### 📱 **Enhanced Mobile Experience**
 - **Touch-Optimized Interactions**: Large touch targets, swipe gestures, and long-press functionality
 - **Camera Integration**: Direct photo upload from mobile camera for file sharing
-- **Mobile-Optimized Animations**: Celebration effects and UI transitions designed for mobile screens
 - **Auto-Save Forms**: Prevent data loss on mobile with continuous form saving
-- **Performance Modes**: Lite modes for slower devices with reduced animations and effects
 
 ## Enhancement Development Status
 
@@ -120,12 +92,8 @@ The HackerDen Enhancement Suite transforms the platform from a functional collab
 - [x] **MVP Integration Points**: Chat notifications, task conversion, and team-scoped data
 
 ### ✅ Core Features Implemented
-- [x] **File Sharing System**: Complete upload, preview, and annotation system with EnhancedFileService
-- [x] **Idea Management Board**: Full submission, voting, and status tracking with task conversion
-- [x] **Gamification System**: Point tracking, achievement system, and celebration effects
+- [x] **File Sharing System**: Complete upload and preview system with EnhancedFileService
 - [x] **Judge Submission Pages**: Builder interface and public submission pages with auto-save
-- [x] **Polling System**: Complete poll creation, voting interface, and results display
-- [x] **Bot System**: Motivational messages, easter eggs, and reaction system
 - [x] **Error Handling**: Comprehensive error boundaries, retry mechanisms, and offline support
 - [x] **Feature Flags**: Dynamic feature management with user-level controls
 
@@ -133,14 +101,13 @@ The HackerDen Enhancement Suite transforms the platform from a functional collab
 - [ ] **Real-time Integration**: Appwrite subscriptions for live updates across all features
 - [ ] **Mobile Optimization**: Touch interactions and responsive enhancement components
 - [ ] **Advanced Analytics**: Team productivity insights and performance metrics
-- [ ] **Chat Integration**: Enhancement activity notifications in team chat
 
 ### 🔮 Future Roadmap
 - **External Integrations**: GitHub, Slack, and other developer tool connections
 - **Advanced Notifications**: Push notifications and customizable alert preferences
 - **Team Templates**: Pre-configured team setups for different hackathon types
-- **AI Features**: Smart suggestions, automated task creation, and intelligent bot responses
-- **Advanced File Preview**: PDF viewer, 3D model support, and collaborative editing
+- **AI Features**: Smart suggestions and automated task creation
+- **Advanced File Preview**: PDF viewer and 3D model support
 
 ## Tech Stack
 
@@ -221,11 +188,6 @@ VITE_PUBLIC_URL=https://hackerden.netlify.app
 
 # Enhancement Feature Flags (Optional)
 VITE_ENABLE_FILE_SHARING=true
-VITE_ENABLE_GAMIFICATION=true
-VITE_ENABLE_IDEA_BOARD=true
-VITE_ENABLE_POLLING=true
-VITE_ENABLE_BOT_FEATURES=true
-VITE_ENABLE_SOUND_EFFECTS=true
 VITE_ENABLE_ANIMATIONS=true
 ```
 
@@ -302,13 +264,8 @@ HackerDen includes a dynamic feature flag system that allows for controlled roll
 
 ### Available Feature Flags
 ```env
-VITE_ENABLE_FILE_SHARING=true      # File upload and annotation system
-VITE_ENABLE_GAMIFICATION=true      # Points, achievements, and celebrations
-VITE_ENABLE_IDEA_BOARD=true        # Idea submission and voting
-VITE_ENABLE_POLLING=true           # Team polling and decision-making
-VITE_ENABLE_BOT_FEATURES=true      # System bot and easter eggs
-VITE_ENABLE_SOUND_EFFECTS=true     # Audio feedback for achievements
-VITE_ENABLE_ANIMATIONS=true        # Celebration effects and transitions
+VITE_ENABLE_FILE_SHARING=true      # File upload and preview system
+VITE_ENABLE_ANIMATIONS=true        # UI transitions and effects
 ```
 
 ### Feature Flag Management
@@ -405,27 +362,9 @@ src/
 │   ├── HackathonTeamSelector.jsx # Hackathon-specific team selection
 │   ├── FileUpload.jsx           # File upload with progress and validation
 │   ├── FileLibrary.jsx          # Team file browser and management
-│   ├── FilePreview.jsx          # File preview with annotation support
-│   ├── AnnotationOverlay.jsx    # Interactive file annotation system
-│   ├── IdeaBoard.jsx            # Idea submission and voting interface
-│   ├── IdeaCard.jsx             # Individual idea display with voting
-│   ├── IdeaModal.jsx            # Idea creation and editing modal
-│   ├── GamificationDisplay.jsx  # Points, achievements, and leaderboard
-│   ├── AchievementNotification.jsx # Achievement unlock notifications
-│   ├── CelebrationEffects.jsx   # Confetti and celebration animations
-│   ├── Leaderboard.jsx          # Team and individual rankings
-│   ├── BadgeCollection.jsx      # Achievement badge display
-│   ├── PollCreator.jsx          # Poll creation form
-│   ├── PollDisplay.jsx          # Poll voting interface
-│   ├── QuickPoll.jsx            # Yes/no quick polls
-│   ├── PollHistory.jsx          # Historical poll view
-│   ├── PollManager.jsx          # Main poll management interface
+│   ├── FilePreview.jsx          # File preview system
 │   ├── SubmissionBuilder.jsx    # Judge submission form builder
 │   ├── SubmissionPreview.jsx    # Submission preview and finalization
-│   ├── ReactionButton.jsx       # Emoji reaction interface
-│   ├── ReactionPicker.jsx       # Emoji selection component
-│   ├── EasterEggSystem.jsx      # Bot easter eggs and special effects
-│   ├── BotSettings.jsx          # Bot personality and settings
 │   ├── FeatureFlagManager.jsx   # Dynamic feature flag controls
 │   ├── EnhancementRetryMechanisms.jsx # Advanced retry and error recovery
 │   └── ThemeProvider.jsx        # Dark theme provider with system detection
@@ -445,11 +384,7 @@ src/
 │   ├── useNetworkErrorHandling.jsx # Network-specific error handling
 │   ├── useValidationErrorHandling.jsx # Form validation with custom rules
 │   ├── useFileUpload.jsx        # File upload with progress tracking
-│   ├── useIdeas.jsx             # Idea management and voting
-│   ├── useGamification.jsx      # Points, achievements, and celebrations
-│   ├── usePolls.jsx             # Poll creation and voting
-│   ├── useSubmissions.jsx       # Judge submission management
-│   └── useReactions.jsx         # Emoji reactions and custom emoji
+│   └── useSubmissions.jsx       # Judge submission management
 ├── lib/                # Third-party integrations
 │   └── appwrite.js              # Appwrite configuration and utilities
 ├── pages/              # Page components (20+ pages)
@@ -475,14 +410,9 @@ src/
 │   ├── userNameService.js       # User name resolution and caching
 │   ├── hackathonService.js      # Hackathon management and operations
 │   ├── vaultService.js          # Team vault and credential management
-│   ├── fileService.js           # File upload, storage, and annotation system
+│   ├── fileService.js           # File upload and storage system
 │   ├── EnhancedFileService.js   # Advanced file operations with error handling
-│   ├── ideaService.js           # Idea management, voting, and task conversion
-│   ├── gamificationService.js   # Points, achievements, and celebration system
 │   ├── submissionService.js     # Judge submission pages and public URLs
-│   ├── pollService.js           # In-app polling and decision-making system
-│   ├── botService.js            # System bot, easter eggs, and UX enhancements
-│   ├── reactionService.js       # Emoji reactions and custom emoji system
 │   ├── featureFlagService.js    # Dynamic feature flag management
 │   ├── EnhancementErrorReporting.js # Comprehensive error reporting system
 │   ├── EnhancementOfflineService.js # Offline support and caching
@@ -666,7 +596,7 @@ The application implements smart routing based on user team membership:
 ### Advanced Error Management
 HackerDen includes a sophisticated error handling system that ensures graceful degradation and excellent user experience even when things go wrong:
 
-- **Feature-Specific Error Boundaries**: Intelligent error categorization for file sharing, idea management, gamification, polling, and submissions
+- **Feature-Specific Error Boundaries**: Intelligent error categorization for file sharing and submissions
 - **Retry Mechanisms**: Exponential backoff with user-controlled retry options and progress visualization
 - **Offline Resilience**: Local storage caching with operation queueing for sync when back online
 - **User-Friendly Feedback**: Clear error messages with recovery suggestions and actionable steps
@@ -826,49 +756,10 @@ const {
 - `fileSize` (number): File size in bytes
 - `storageId` (string): Appwrite Storage file ID
 - `previewUrl` (string): Generated preview URL
-- `annotationCount` (number): Number of annotations
 - `createdAt` (datetime): Upload timestamp
 - `updatedAt` (datetime): Last update timestamp
 
-#### file_annotations
-- `fileId` (string): Reference to file
-- `userId` (string): User ID of annotator
-- `content` (string): Annotation text
-- `position` (object): Annotation position {x, y, width?, height?}
-- `type` (string): Annotation type ('point', 'area', 'line')
-- `createdAt` (datetime): Creation timestamp
 
-#### ideas
-- `teamId` (string): Reference to team
-- `createdBy` (string): User ID of idea creator
-- `title` (string): Idea title
-- `description` (string): Detailed idea description
-- `tags` (array): Array of tag strings for categorization
-- `status` (string): Idea status ('submitted', 'approved', 'in_progress', 'completed', 'rejected')
-- `voteCount` (number): Total number of votes received
-- `createdAt` (datetime): Creation timestamp
-- `updatedAt` (datetime): Last update timestamp
-
-#### idea_votes
-- `ideaId` (string): Reference to idea
-- `userId` (string): User ID of voter
-- `createdAt` (datetime): Vote timestamp
-
-#### user_points
-- `userId` (string): Reference to user
-- `teamId` (string): Reference to team
-- `totalPoints` (number): Total accumulated points
-- `pointsBreakdown` (object): Points by category {tasksCompleted, messagesPosted, filesUploaded, ideasSubmitted, votesGiven}
-- `updatedAt` (datetime): Last update timestamp
-
-#### achievements
-- `userId` (string): Reference to user
-- `achievementType` (string): Type of achievement
-- `achievementName` (string): Display name of achievement
-- `description` (string): Achievement description
-- `iconUrl` (string): Achievement badge icon URL
-- `pointsAwarded` (number): Points awarded for this achievement
-- `unlockedAt` (datetime): Achievement unlock timestamp
 
 #### submissions
 - `teamId` (string): Reference to team
@@ -885,30 +776,6 @@ const {
 - `createdAt` (datetime): Creation timestamp
 - `updatedAt` (datetime): Last update timestamp
 
-#### polls
-- `teamId` (string): Reference to team
-- `createdBy` (string): User ID of poll creator
-- `question` (string): Poll question
-- `options` (array): Array of option strings
-- `allowMultiple` (boolean): Whether multiple selections are allowed
-- `expiresAt` (datetime): Poll expiration time
-- `isActive` (boolean): Whether poll is currently active
-- `totalVotes` (number): Total number of votes cast
-- `createdAt` (datetime): Creation timestamp
-
-#### poll_votes
-- `pollId` (string): Reference to poll
-- `userId` (string): User ID of voter
-- `selectedOptions` (array): Array of selected option strings
-- `createdAt` (datetime): Vote timestamp
-
-#### reactions
-- `targetId` (string): ID of target (message or task)
-- `targetType` (string): Type of target ('message' or 'task')
-- `userId` (string): User ID of reactor
-- `emoji` (string): Emoji character or custom emoji ID
-- `isCustom` (boolean): Whether this is a custom uploaded emoji
-- `createdAt` (datetime): Reaction timestamp
 
 ### Storage Buckets
 
@@ -918,97 +785,6 @@ const {
 - **Supported Types**: Images (JPG, PNG, GIF, WebP, SVG), Documents (PDF, TXT, MD, CSV), Code (JS, TS, JSX, TSX, CSS, HTML, XML, JSON)
 - **Permissions**: Team-based read/write access
 
-#### custom-emoji
-- **Purpose**: Custom emoji and sticker uploads
-- **Size Limit**: 1MB per file
-- **Supported Types**: Images (JPG, PNG, GIF, WebP)
-- **Permissions**: Team-based read/write accesseatedAt` (datetime): Creation timestamp
-
-#### ideas
-- `teamId` (string): Reference to team
-- `createdBy` (string): User ID of creator
-- `title` (string): Idea title
-- `description` (string): Idea description
-- `tags` (array): Idea tags for categorization
-- `status` (string): Idea status ('submitted', 'approved', 'in_progress', 'completed', 'rejected')
-- `voteCount` (number): Total vote count
-- `createdAt` (datetime): Creation timestamp
-- `updatedAt` (datetime): Last update timestamp
-
-#### idea_votes
-- `ideaId` (string): Reference to idea
-- `userId` (string): User ID of voter
-- `createdAt` (datetime): Vote timestamp
-
-#### user_points
-- `userId` (string): Reference to user
-- `teamId` (string): Reference to team
-- `totalPoints` (number): Total points earned
-- `pointsBreakdown` (object): Points by category {tasksCompleted, messagesPosted, filesUploaded, ideasSubmitted, votesGiven}
-- `updatedAt` (datetime): Last update timestamp
-
-#### achievements
-- `userId` (string): Reference to user
-- `achievementType` (string): Type of achievement
-- `achievementName` (string): Display name
-- `description` (string): Achievement description
-- `iconUrl` (string): Achievement icon URL
-- `pointsAwarded` (number): Points awarded for achievement
-- `unlockedAt` (datetime): Unlock timestamp
-
-#### submissions
-- `teamId` (string): Reference to team
-- `title` (string): Project title
-- `description` (string): Project description
-- `techStack` (array): Technologies used
-- `challenges` (string): Challenges faced
-- `accomplishments` (string): What was accomplished
-- `futureWork` (string): Future improvements
-- `demoUrl` (string): Live demo URL
-- `repositoryUrl` (string): Code repository URL
-- `isFinalized` (boolean): Whether submission is locked
-- `publicUrl` (string): Public judge access URL
-- `createdAt` (datetime): Creation timestamp
-- `updatedAt` (datetime): Last update timestamp
-
-#### polls
-- `teamId` (string): Reference to team
-- `createdBy` (string): User ID of creator
-- `question` (string): Poll question
-- `options` (array): Poll options
-- `allowMultiple` (boolean): Allow multiple selections
-- `expiresAt` (datetime): Poll expiration time
-- `isActive` (boolean): Whether poll is active
-- `totalVotes` (number): Total vote count
-- `createdAt` (datetime): Creation timestamp
-
-#### poll_votes
-- `pollId` (string): Reference to poll
-- `userId` (string): User ID of voter
-- `selectedOptions` (array): Selected option indices
-- `createdAt` (datetime): Vote timestamp
-
-#### reactions
-- `targetId` (string): ID of target (message or task)
-- `targetType` (string): Type of target ('message', 'task')
-- `userId` (string): User ID of reactor
-- `emoji` (string): Emoji or custom emoji ID
-- `isCustom` (boolean): Whether emoji is custom
-- `createdAt` (datetime): Reaction timestamp
-
-### Storage Buckets
-
-#### team-files
-- **Purpose**: Team file uploads and sharing
-- **Size Limit**: 10MB per file
-- **Supported Types**: Images, PDFs, text files, code files
-- **Permissions**: Team-based read/write access
-
-#### custom-emoji
-- **Purpose**: Custom emoji and sticker uploads
-- **Size Limit**: 1MB per file
-- **Supported Types**: PNG, GIF, WebP images
-- **Permissions**: Team-based read/write access
 
 ## Documentation
 
@@ -1181,7 +957,7 @@ This project follows a spec-driven development approach:
 
 ## Project Vision
 
-HackerDen aims to transform hackathon collaboration from functional to delightful. We believe that great tools should not only work well but also inspire creativity and foster team bonding. Our enhancement suite adds personality, gamification, and intelligent features that make hackathon participation more engaging and productive.
+HackerDen aims to provide essential tools for effective hackathon collaboration. We believe that great tools should work reliably and help teams focus on building amazing projects. Our platform provides the core features teams need to organize, communicate, and showcase their work effectively.
 
 ### Core Values
 - **Developer Experience**: Tools should be intuitive and powerful
@@ -1207,4 +983,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ for the hackathon community**
 
-*Transform your hackathon experience from functional to delightful with HackerDen's comprehensive collaboration platform.*
+*Streamline your hackathon workflow with HackerDen's comprehensive collaboration platform.*
