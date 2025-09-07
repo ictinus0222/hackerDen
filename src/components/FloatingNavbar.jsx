@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from './ui/navigation-menu';
 import { Badge } from './ui/badge';
@@ -8,6 +9,7 @@ import { cn } from '@/lib/utils';
 const FloatingNavbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -129,7 +131,7 @@ const FloatingNavbar = () => {
                   ? "bg-primary text-primary-foreground hover:bg-primary/90" 
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
               )}
-              onClick={() => scrollToSection('cta')}
+              onClick={() => navigate('/login')}
             >
               Get Early Access
               <ArrowRight className="ml-1 h-3 w-3" />
@@ -189,7 +191,7 @@ const FloatingNavbar = () => {
               <div className="pt-4 border-t">
                 <Button 
                   className="w-full font-medium" 
-                  onClick={() => scrollToSection('cta')}
+                  onClick={() => navigate('/login')}
                 >
                   Get Early Access
                   <ArrowRight className="ml-2 h-4 w-4" />

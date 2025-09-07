@@ -16,7 +16,7 @@ import InputComponentsDemo from './components/InputComponentsDemo';
 import MarkdownEditorDemo from './components/MarkdownEditorDemo';
 import PublicSubmissionPage from './pages/PublicSubmissionPage';
 import FeatureFlagPage from './pages/FeatureFlagPage';
-import LandingPage from './components/LandingPage';
+import Home from './components/Home';
 
 import { Toaster } from './components/ui/sonner';
 
@@ -35,7 +35,8 @@ function App() {
             <div className="App">
               <Routes>
                 {/* Public routes */}
-                <Route path="/landing" element={<LandingPage />} />
+                <Route path="/landing" element={<Navigate to="/home" replace />} />
+                <Route path="/home" element={<Home />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
@@ -122,8 +123,8 @@ function App() {
                   } 
                 />
                 
-                {/* Default redirect to console */}
-                <Route path="/" element={<Navigate to="/console" replace />} />
+                {/* Default redirect to home */}
+                <Route path="/" element={<Navigate to="/home" replace />} />
                 
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/console" replace />} />
