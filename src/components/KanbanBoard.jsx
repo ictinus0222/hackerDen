@@ -86,8 +86,8 @@ const KanbanBoard = () => {
   // WIP Limits configuration
   const WIP_LIMITS = {
     todo: null, // No limit for backlog
-    in_progress: 3,
-    blocked: 2,
+    in_progress: null, // No limit for in progress
+    blocked: null, // No limit for blocked
     done: null // No limit for completed tasks
   };
 
