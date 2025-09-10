@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { simpleDocumentService } from '../services/simpleDocumentService';
+import { realtimeService } from '../services/realtimeService';
 import { useAuth } from '../hooks/useAuth';
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { AlertCircle, Save, Users, Clock } from 'lucide-react';
+import { AlertCircle, Save, Users, Clock, Wifi, WifiOff } from 'lucide-react';
+import MarkdownEditor from './MarkdownEditor';
 
 const SimpleCollaborativeDocument = () => {
   const { hackathonId } = useParams();
@@ -21,6 +22,10 @@ const SimpleCollaborativeDocument = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+  const unsubscribeRef = useRef(null);
+  const saveTimeoutRef = useRef(null);
 
   // Load document on component mount
   useEffect(() => {
@@ -28,6 +33,54 @@ const SimpleCollaborativeDocument = () => {
       loadDocument();
     }
   }, [team, hackathonId]);
+
+  // Set up real-time collaboration
+  useEffect(() => {
+    if (!team || !hackathonId || !user) return;
+
+    console.log('Setting up real-time document collaboration for team:', team.$id, 'hackathon:', hackathonId);
+
+    const unsubscribe = realtimeService.subscribeToDocuments(
+      team.$id,
+      hackathonId,
+      (response) => {
+        console.log('Real-time document update received:', response);
+        
+        if (response.events.includes('databases.*.collections.documents.documents.update')) {
+          const updatedDoc = response.payload;
+          
+          // Only update if it's not our own change
+          if (updatedDoc.$id === document?.$id && updatedDoc.contentVersion !== document?.contentVersion) {
+            console.log('Updating document from real-time sync:', updatedDoc);
+            setDocument(updatedDoc);
+            setContent(updatedDoc.content || '');
+            setTitle(updatedDoc.title || '');
+            setLastSyncTime(new Date());
+          }
+        }
+      },
+      {
+        onError: (error, retryCount) => {
+          console.error('Document subscription error:', error);
+          setIsConnected(false);
+        },
+        onReconnect: (retryCount) => {
+          console.log('Document subscription reconnected after', retryCount, 'attempts');
+          setIsConnected(true);
+        }
+      }
+    );
+
+    unsubscribeRef.current = unsubscribe;
+    setIsConnected(true);
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+    };
+  }, [team, hackathonId, user, document?.$id, document?.contentVersion]);
 
   const loadDocument = async () => {
     try {
@@ -56,7 +109,9 @@ const SimpleCollaborativeDocument = () => {
         newTitle
       );
       setDocument(updatedDoc);
+      setLastSyncTime(new Date());
     } catch (err) {
+      console.error('Failed to save document:', err);
       setError('Failed to save document');
     } finally {
       setSaving(false);
@@ -67,17 +122,36 @@ const SimpleCollaborativeDocument = () => {
   useEffect(() => {
     if (!document || loading) return;
 
-    const timeoutId = setTimeout(() => {
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save
+    saveTimeoutRef.current = setTimeout(() => {
       if (content !== document.content || title !== document.title) {
         saveDocument(content, title);
       }
     }, 2000); // Save after 2 seconds of inactivity
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [content, title, document, loading, saveDocument]);
 
-  const handleContentChange = (e) => {
-    setContent(e.target.value);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleContentChange = (newContent) => {
+    setContent(newContent);
   };
 
   const handleTitleChange = (e) => {
@@ -127,18 +201,33 @@ const SimpleCollaborativeDocument = () => {
               <span>Team: {team?.name}</span>
             </div>
             <div className="flex items-center gap-4">
+              {/* Real-time connection status */}
+              <div className="flex items-center gap-1">
+                {isConnected ? (
+                  <Wifi className="h-3 w-3 text-green-500" />
+                ) : (
+                  <WifiOff className="h-3 w-3 text-red-500" />
+                )}
+                <span className="text-xs">
+                  {isConnected ? 'Live sync' : 'Offline'}
+                </span>
+              </div>
+              
               {saving && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   <Save className="h-3 w-3" />
                   Saving...
                 </Badge>
               )}
+              
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 <span>
-                  {document?.$updatedAt 
-                    ? new Date(document.$updatedAt).toLocaleString() 
-                    : 'Never'
+                  {lastSyncTime 
+                    ? `Synced ${lastSyncTime.toLocaleTimeString()}`
+                    : document?.$updatedAt 
+                      ? new Date(document.$updatedAt).toLocaleString() 
+                      : 'Never'
                   }
                 </span>
               </div>
@@ -159,11 +248,11 @@ const SimpleCollaborativeDocument = () => {
         </CardHeader>
         <Separator />
         <CardContent className="p-0">
-          <Textarea
-            value={content}
-            onChange={handleContentChange}
-            className="min-h-[500px] border-none shadow-none resize-none font-mono text-sm focus-visible:ring-0 rounded-none"
-            placeholder="Start writing your collaborative document here...
+          <div className="h-[600px]">
+            <MarkdownEditor
+              value={content}
+              onChange={handleContentChange}
+              placeholder="Start writing your collaborative document here...
 
 # Welcome to your team document!
 
@@ -174,7 +263,10 @@ You can use **markdown** formatting:
 - `Code blocks`
 
 Start collaborating with your team!"
-          />
+              autoSave={false}
+              className="h-full border-0 rounded-none"
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -182,7 +274,7 @@ Start collaborating with your team!"
       <Card>
         <CardContent className="pt-6">
           <div className="text-xs text-muted-foreground text-center">
-            💡 Changes are automatically saved every 2 seconds. This document is shared with all team members in real-time.
+            💡 Changes are automatically saved every 2 seconds. This document supports real-time collaboration with live markdown preview and instant synchronization across all team members.
           </div>
         </CardContent>
       </Card>

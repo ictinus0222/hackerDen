@@ -127,7 +127,7 @@ const KanbanBoard = () => {
       console.log('Updating task status from', task.status, 'to', newStatus);
       
       // Make API call and refresh silently in background
-      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id, hackathonId, user?.$id);
+      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id, hackathonId, user?.$id, user?.name);
       console.log('Task status updated successfully');
       
       // Silent refresh without loading state

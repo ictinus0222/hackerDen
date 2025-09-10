@@ -231,8 +231,19 @@ export const taskService = {
             'done': '✅',
             'blocked': '🚫'
           };
+
+          const statusDisplayNames = {
+            'todo': 'TO-DO',
+            'in_progress': 'In Progress',
+            'completed': 'Completed',
+            'done': 'Done',
+            'blocked': 'Blocked'
+          };
           
-          systemMessageContent = `${statusEmoji[status] || '🔄'} ${userName} changed task "${taskTitle || task.title}" from ${oldStatus} to ${status}`;
+          const oldStatusDisplay = statusDisplayNames[oldStatus] || oldStatus;
+          const newStatusDisplay = statusDisplayNames[status] || status;
+          
+          systemMessageContent = `${statusEmoji[status] || '🔄'} ${userName} changed task "${taskTitle || task.title}" from ${oldStatusDisplay} to ${newStatusDisplay}`;
           messageType = 'task_status_changed';
         }
 
@@ -308,8 +319,19 @@ export const taskService = {
             'completed': '✅',
             'blocked': '🚫'
           };
+
+          const statusDisplayNames = {
+            'todo': 'TO-DO',
+            'in_progress': 'In Progress',
+            'completed': 'Completed',
+            'done': 'Done',
+            'blocked': 'Blocked'
+          };
           
-          systemMessageContent = `${statusEmoji[newStatus] || '🔄'} ${userName} changed task "${task.title}" from ${oldStatus} to ${newStatus}`;
+          const oldStatusDisplay = statusDisplayNames[oldStatus] || oldStatus;
+          const newStatusDisplay = statusDisplayNames[newStatus] || newStatus;
+          
+          systemMessageContent = `${statusEmoji[newStatus] || '🔄'} ${userName} changed task "${task.title}" from ${oldStatusDisplay} to ${newStatusDisplay}`;
           messageType = 'task_status_changed';
         }
 

@@ -1,6 +1,8 @@
 import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
+import { hackathonService } from '../services/hackathonService';
 import { ChatInitializationSkeleton } from '../components/ChatLoadingStates';
 import ChatContainer from '../components/ChatContainer';
 import ChatErrorBoundary from '../components/ChatErrorBoundary';
@@ -9,9 +11,44 @@ const ChatPage = () => {
   const { hackathonId } = useParams();
   const { user } = useAuth();
   const { team, loading: teamLoading, hasTeam } = useHackathonTeam(hackathonId);
+  const [hackathon, setHackathon] = useState(null);
+  const [hackathonLoading, setHackathonLoading] = useState(true);
+
+  // Load hackathon data
+  useEffect(() => {
+    const loadHackathonData = async () => {
+      if (!hackathonId) return;
+
+      try {
+        setHackathonLoading(true);
+        const hackathonData = await hackathonService.getHackathonById(hackathonId);
+        setHackathon({
+          $id: hackathonData.hackathonId,
+          title: hackathonData.hackathonName,
+          description: hackathonData.description,
+          startDate: hackathonData.startDate,
+          endDate: hackathonData.endDate,
+          status: hackathonData.status
+        });
+      } catch (err) {
+        console.error('Failed to load hackathon data:', err);
+        // Set fallback data
+        setHackathon({
+          $id: hackathonId,
+          title: 'Current Hackathon',
+          description: 'Hackathon event',
+          status: 'ongoing'
+        });
+      } finally {
+        setHackathonLoading(false);
+      }
+    };
+
+    loadHackathonData();
+  }, [hackathonId]);
 
   // Show enhanced loading state while team data is being fetched
-  if (teamLoading) {
+  if (teamLoading || hackathonLoading) {
     return (
       <div className="h-full flex flex-col">
         <ChatInitializationSkeleton />
@@ -52,7 +89,7 @@ const ChatPage = () => {
     <ChatErrorBoundary>
       <div className="h-full flex flex-col chat-container">
         <ChatContainer 
-          hackathon={{ title: 'Current Hackathon' }} // TODO: Get actual hackathon data
+          hackathon={hackathon}
           team={team}
           hackathonId={hackathonId}
           className="flex-1 min-h-0"
