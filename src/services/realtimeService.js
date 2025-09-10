@@ -153,6 +153,39 @@ class RealtimeService {
     });
   }
 
+  // Subscribe to documents with enhanced error handling
+  subscribeToDocuments(teamId, hackathonId, callback, options = {}) {
+    const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const channel = `databases.${databaseId}.collections.documents.documents`;
+
+    console.log('🔔 Subscribing to documents channel:', channel, 'for team:', teamId, 'hackathon:', hackathonId);
+
+    return this.subscribe(channel, (response) => {
+      console.log('🔔 Raw document event received:', response);
+      // Only process documents for this team and hackathon
+      if (response.payload.teamId === teamId && response.payload.hackathonId === hackathonId) {
+        console.log('🔔 Document event matches team/hackathon, processing:', response);
+        callback(response);
+      } else {
+        console.log('🔔 Document event for different team/hackathon, ignoring. Expected team:', teamId, 'hackathon:', hackathonId, 'Got team:', response.payload.teamId, 'hackathon:', response.payload.hackathonId);
+      }
+    }, {
+      ...options,
+      onError: (error, retryCount) => {
+        console.error(`🔔 Document subscription error (attempt ${retryCount}):`, error);
+        if (options.onError) {
+          options.onError(error, retryCount);
+        }
+      },
+      onReconnect: (retryCount) => {
+        console.log(`🔔 Document subscription reconnected after ${retryCount} attempts`);
+        if (options.onReconnect) {
+          options.onReconnect(retryCount);
+        }
+      }
+    });
+  }
+
   // Get subscription status
   getSubscriptionStatus() {
     const active = Array.from(this.subscriptions.values()).filter(sub => sub.isActive).length;

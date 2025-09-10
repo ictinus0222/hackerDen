@@ -86,8 +86,8 @@ const KanbanBoard = () => {
   // WIP Limits configuration
   const WIP_LIMITS = {
     todo: null, // No limit for backlog
-    in_progress: 3,
-    blocked: 2,
+    in_progress: null, // No limit for in progress
+    blocked: null, // No limit for blocked
     done: null // No limit for completed tasks
   };
 
@@ -127,7 +127,7 @@ const KanbanBoard = () => {
       console.log('Updating task status from', task.status, 'to', newStatus);
       
       // Make API call and refresh silently in background
-      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id, hackathonId, user?.$id);
+      await taskService.updateTaskStatus(taskId, newStatus, task.title, team.$id, hackathonId, user?.$id, user?.name);
       console.log('Task status updated successfully');
       
       // Silent refresh without loading state

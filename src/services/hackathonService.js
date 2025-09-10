@@ -80,21 +80,43 @@ export const hackathonService = {
       const hackathons = await Promise.all(hackathonPromises);
       const validHackathons = hackathons.filter(hackathon => hackathon);
 
+      // Helpers for formatting and status
+      const formatDDMMYYYY = (iso) => {
+        const d = new Date(iso);
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      };
+
+      const computeStatus = (startIso, endIso, explicitStatus) => {
+        const now = new Date();
+        const start = new Date(startIso);
+        const end = new Date(endIso);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+          return explicitStatus || 'upcoming';
+        }
+        if (now < start) return 'upcoming';
+        if (now > end) return 'completed';
+        return 'ongoing';
+      };
+
       // Combine hackathon data with team data
       const result = validHackathons.map(hackathon => {
         const userTeam = validTeams.find(team => team.hackathonId === hackathon.$id);
         const userMembership = userTeams.documents.find(membership => membership.teamId === userTeam?.$id);
+        const status = computeStatus(hackathon.startDate, hackathon.endDate, hackathon.status);
         
         return {
           hackathonId: hackathon.$id,
           hackathonName: hackathon.name,
           description: hackathon.description,
-          dates: `${new Date(hackathon.startDate).toLocaleDateString()} - ${new Date(hackathon.endDate).toLocaleDateString()}`,
-          status: hackathon.status,
+          dates: `${formatDDMMYYYY(hackathon.startDate)} - ${formatDDMMYYYY(hackathon.endDate)}`,
+          status: status,
           team: userTeam ? {
             id: userTeam.$id,
             name: userTeam.name,
-            role: userMembership?.role || 'member'
+            role: (userMembership?.role === 'owner' ? 'leader' : (userMembership?.role || 'member'))
           } : null
         };
       });

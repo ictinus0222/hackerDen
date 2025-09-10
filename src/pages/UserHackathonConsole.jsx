@@ -11,6 +11,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
 
 const UserHackathonConsole = () => {
   const { user } = useAuth();
@@ -402,25 +403,28 @@ const HackathonCard = ({ hackathon, onJoinCreateTeam, onLeaveTeam, onDeleteTeam,
           <Card className="bg-muted/20 border-border/20">
             <CardContent className="p-3">
               <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  hackathon.team.role === 'leader' 
-                    ? 'bg-gradient-to-br from-yellow-500 to-orange-600' 
-                    : 'bg-gradient-to-br from-purple-500 to-pink-600'
-                }`}>
-                  {hackathon.team.role === 'leader' ? (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3l14 9-14 9V3z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  )}
+                {/* shadcn Avatar with initials */}
+                <div className="flex items-center justify-center">
+                  <div className={`rounded-2xl p-0.5 ${hackathon.team.role === 'leader' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' : 'bg-gradient-to-br from-purple-500 to-pink-600'}`}>
+                    <div className="bg-card rounded-2xl">
+                      <Avatar className="w-8 h-8 rounded-2xl">
+                        <AvatarFallback className="rounded-2xl font-semibold text-xs">
+                          {(hackathon.team.name || 'TM')
+                            .split(' ')
+                            .filter(Boolean)
+                            .slice(0, 2)
+                            .map(w => w[0])
+                            .join('')
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">{hackathon.team.name}</p>
                   <Badge variant={getRoleBadgeVariant(hackathon.team.role)} className="text-xs">
-                    {hackathon.team.role === 'leader' ? 'Team Leader' : 'Member'}
+                    {hackathon.team.role === 'leader' ? 'Leader' : 'Member'}
                   </Badge>
                 </div>
               </div>
@@ -444,38 +448,35 @@ const HackathonCard = ({ hackathon, onJoinCreateTeam, onLeaveTeam, onDeleteTeam,
             </Link>
           </Button>
           
-          {hackathon.status === 'upcoming' && (
+          {hackathon.team ? (
             <>
-              {hackathon.team ? (
-                <>
-                  {hackathon.team.role === 'owner' || hackathon.team.role === 'leader' ? (
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => onDeleteTeam(hackathon)}
-                    >
-                      Delete Team
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => onLeaveTeam(hackathon)}
-                    >
-                      Leave Team
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <Button
-                  variant="secondary"
+              {(hackathon.team.role === 'leader') && hackathon.status === 'upcoming' && (
+                <Button 
+                  variant="destructive" 
                   size="sm"
-                  onClick={() => onJoinCreateTeam(hackathon)}
+                  onClick={() => onDeleteTeam(hackathon)}
                 >
-                  Join Team
+                  Delete Team
+                </Button>
+              )}
+              {hackathon.team.role !== 'leader' && (
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => onLeaveTeam(hackathon)}
+                >
+                  Leave Team
                 </Button>
               )}
             </>
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onJoinCreateTeam(hackathon)}
+            >
+              Join Team
+            </Button>
           )}
         </div>
       </CardContent>
