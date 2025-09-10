@@ -3,6 +3,7 @@ import { teamMemberService } from '../services/teamMemberService';
 import { userNameService } from '../services/userNameService';
 import { useTeam } from './useTeam';
 import { useAuth } from './useAuth';
+import { usePresence } from './usePresence';
 
 export const useTeamMembers = () => {
   const { team } = useTeam();
@@ -10,6 +11,12 @@ export const useTeamMembers = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Get team member IDs for presence tracking
+  const teamMemberIds = members.map(member => member.id).filter(Boolean);
+  
+  // Use presence hook to track online status
+  const { isUserOnline } = usePresence(team?.$id, teamMemberIds);
 
   const fetchTeamMembers = async () => {
     if (!team?.$id) {
@@ -59,18 +66,21 @@ export const useTeamMembers = () => {
       
       const teamMembers = await teamMemberService.getTeamMembers(team.$id, user);
       
-      // Add current user info and mark as current user
+      // Add current user info and mark as current user, with real-time online status
       const membersWithCurrentUser = teamMembers.map(member => {
         if (member.id === user?.$id) {
           return {
             ...member,
             name: user.name,
             avatar: user.name.charAt(0).toUpperCase(),
-            online: true,
+            online: true, // Current user is always online
             isCurrentUser: true
           };
         }
-        return member;
+        return {
+          ...member,
+          online: isUserOnline(member.id) // Use real-time presence
+        };
       });
 
       // If current user is not in the list, add them
@@ -99,6 +109,18 @@ export const useTeamMembers = () => {
   useEffect(() => {
     fetchTeamMembers();
   }, [team?.$id, user?.$id]);
+
+  // Update online status when presence changes
+  useEffect(() => {
+    if (members.length > 0) {
+      setMembers(prevMembers => 
+        prevMembers.map(member => ({
+          ...member,
+          online: member.isCurrentUser ? true : isUserOnline(member.id)
+        }))
+      );
+    }
+  }, [isUserOnline, members.length]);
 
   return {
     members,

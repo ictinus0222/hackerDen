@@ -43,34 +43,40 @@ export const teamMemberService = {
         console.warn('Could not pre-cache user names from tasks:', taskError);
       }
 
-      // Get user names from team membership data
-      const members = memberships.documents.map((membership) => {
-        // Use the userName from the membership, or fall back to current user name, or simple fallback
-        let userName = membership.userName;
-        
-        if (!userName || userName === 'Team Member' || userName === 'Team Owner') {
-          // If this is the current user, use their real name
-          if (currentUser && membership.userId === currentUser.$id && currentUser.name) {
-            userName = currentUser.name;
-          } else {
-            // For other users without stored names, just show "Team Member"
-            userName = 'Team Member';
-          }
+      // Get user names from team membership data (with resolution service)
+      const members = await Promise.all(memberships.documents.map(async (membership) => {
+        // Prefer current user's name; otherwise resolve via userNameService; fallback to membership.userName
+        let resolvedName = membership.userName;
+
+        const isGeneric = !resolvedName || resolvedName === 'Team Member' || resolvedName === 'Team Owner' || resolvedName === membership.userId;
+        if (currentUser && membership.userId === currentUser.$id && currentUser.name) {
+          resolvedName = currentUser.name;
+        } else if (isGeneric) {
+          try {
+            const lookedUp = await userNameService.getUserName(membership.userId, currentUser);
+            if (lookedUp) {
+              resolvedName = lookedUp;
+            }
+          } catch {}
+        }
+
+        if (!resolvedName) {
+          resolvedName = 'Team Member';
         }
 
         // Cache the name for future use
-        userNameService.setUserName(membership.userId, userName);
+        userNameService.setUserName(membership.userId, resolvedName);
 
         return {
           id: membership.userId,
-          name: userName,
-          avatar: userName.charAt(0).toUpperCase(),
+          name: resolvedName,
+          avatar: resolvedName.charAt(0).toUpperCase(),
           role: membership.role,
           joinedAt: membership.joinedAt,
-          online: Math.random() > 0.3, // Random online status for now - would be real in production
+          online: false, // default offline; hooks can mark current user online
           isCurrentUser: false
         };
-      });
+      }));
 
       return members;
     } catch (error) {

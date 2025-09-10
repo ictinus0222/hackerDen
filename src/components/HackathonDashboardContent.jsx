@@ -357,11 +357,11 @@ const HackathonDashboardContent = ({ hackathon }) => {
                         <div className="relative">
                           <Avatar className="w-10 h-10">
                             <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                              {member.userName?.[0]?.toUpperCase() || 'M'}
+                              {(member.name || member.userName || 'Member').charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           {/* Online status indicator */}
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background bg-green-500"></div>
+                          <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${member.online ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
                           <p className="text-sm font-medium text-foreground truncate">
@@ -370,8 +370,8 @@ const HackathonDashboardContent = ({ hackathon }) => {
                           </p>
                           <div className="flex items-center space-x-2">
                             <div className="flex items-center space-x-1">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span className="text-xs text-muted-foreground">Online</span>
+                              <div className={`w-2 h-2 rounded-full ${member.online ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                              <span className="text-xs text-muted-foreground">{member.online ? 'Online' : 'Offline'}</span>
                             </div>
                             <Badge 
                               variant={member.role === 'owner' ? 'default' : 'secondary'}
