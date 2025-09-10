@@ -54,10 +54,7 @@ export const authService = {
   // Get current user
   async getCurrentUser() {
     try {
-      // Only make API call if we have indication of an active session
-      if (!hasActiveSession()) {
-        return null;
-      }
+      // Attempt to restore session directly from cookies even if localStorage markers are missing
       return await account.get();
     } catch (error) {
       // Clear invalid session data on 401 errors

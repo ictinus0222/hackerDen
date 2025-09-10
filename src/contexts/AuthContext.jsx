@@ -20,13 +20,7 @@ const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      // Quick check - if no session data exists, don't make API call
-      if (!hasActiveSession()) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-      
+      // Always attempt to restore session via backend in case localStorage markers are missing
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
     } catch (authError) {
