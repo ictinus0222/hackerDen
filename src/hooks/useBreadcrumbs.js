@@ -25,7 +25,8 @@ export const useBreadcrumbs = (hackathon = null) => {
 
     // Handle hackathon routes
     if (segments[0] === 'hackathon' && params.hackathonId) {
-      const hackathonName = hackathon?.name || 'Hackathon';
+      // Prefer provided hackathon prop; support both name shapes
+      const hackathonName = hackathon?.name || hackathon?.hackathonName || 'Hackathon';
       
       crumbs.push({
         label: hackathonName,

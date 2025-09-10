@@ -140,12 +140,6 @@ const HackathonSidebar = ({ isOpen, onToggle, hackathon, team, tasksByStatus, ha
                   </div>
                   <div className="space-y-1">
                     <h1 className="text-lg font-bold text-foreground leading-none">HackerDen</h1>
-                    <p className="text-xs text-muted-foreground leading-none">Hackathon</p>
-                    {hackathon && (
-                      <Badge variant="secondary" className="text-xs">
-                        {hackathon.hackathonName}
-                      </Badge>
-                    )}
                   </div>
                 </div>
                 
