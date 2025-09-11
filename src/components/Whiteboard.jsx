@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { databases } from '../lib/appwrite';
+import { databases, COLLECTIONS } from '../lib/appwrite';
 import client, { ID, Query } from '../lib/appwrite';
 import { useHackathonTeam } from '../hooks/useHackathonTeam';
 import LoadingSpinner from './LoadingSpinner';
@@ -13,7 +13,7 @@ import { Badge } from './ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
-const COLLECTION_ID = 'whiteboard_objects';
+const COLLECTION_ID = COLLECTIONS.WHITEBOARD_OBJECTS;
 
 // Custom Color Picker Component
 const ColorPicker = ({ value, onChange, label, className = "" }) => {
@@ -95,6 +95,7 @@ const Whiteboard = () => {
   const [pendingUpdate, setPendingUpdate] = useState(null);
   const [imageCache, setImageCache] = useState(new Map());
   const [imageLoadTrigger, setImageLoadTrigger] = useState(0);
+  const [connectionStatus, setConnectionStatus] = useState('connecting'); // 'connecting', 'connected', 'disconnected', 'fallback'
 
   // Helper function to compress image
   const compressImage = (file, maxWidth = 800, quality = 0.8) => {
@@ -139,16 +140,74 @@ const Whiteboard = () => {
     // Load existing objects
     loadObjects();
 
-    // Setup real-time subscription for this team's whiteboard
-    const unsubscribe = client.subscribe(`databases.${import.meta.env.VITE_APPWRITE_DATABASE_ID}.collections.${COLLECTION_ID}.documents`, (response) => {
-      if (response.events.includes('databases.*.collections.*.documents.*')) {
-        // Don't reload objects if we're currently updating an object locally
-        // This prevents real-time updates from interfering with dragging
+    // Setup real-time subscription for this team's whiteboard with retry logic
+    let unsubscribe;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    let reconnectTimeout;
+
+    const setupRealtimeSubscription = () => {
+      try {
+        unsubscribe = client.subscribe(`databases.${import.meta.env.VITE_APPWRITE_DATABASE_ID}.collections.${COLLECTION_ID}.documents`, (response) => {
+          if (response.events.includes('databases.*.collections.*.documents.*')) {
+            // Don't reload objects if we're currently updating an object locally
+            // This prevents real-time updates from interfering with dragging
+            if (!isUpdatingObject) {
+              loadObjects();
+            }
+          }
+        });
+        
+        // Reset reconnect attempts on successful connection
+        reconnectAttempts = 0;
+        setConnectionStatus('connected');
+        console.log('✅ Realtime subscription established');
+      } catch (error) {
+        console.warn('Failed to setup realtime subscription:', error);
+        handleRealtimeFailure();
+      }
+    };
+
+    const handleRealtimeFailure = () => {
+      if (reconnectAttempts < maxReconnectAttempts) {
+        reconnectAttempts++;
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Exponential backoff, max 30s
+        console.warn(`Realtime connection failed. Retrying in ${delay}ms (attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
+        
+        reconnectTimeout = setTimeout(() => {
+          setupRealtimeSubscription();
+        }, delay);
+      } else {
+        console.warn('Max reconnection attempts reached. Continuing without realtime updates.');
+        setConnectionStatus('disconnected');
+        startFallbackRefresh();
+        // Continue without realtime updates - whiteboard will still work
+      }
+    };
+
+    // Initial connection attempt
+    setupRealtimeSubscription();
+
+    // Fallback: Periodic refresh when realtime is not working
+    let fallbackRefreshInterval;
+    const startFallbackRefresh = () => {
+      if (fallbackRefreshInterval) return; // Already started
+      
+      console.log('Starting fallback refresh mechanism (every 10 seconds)');
+      setConnectionStatus('fallback');
+      fallbackRefreshInterval = setInterval(() => {
         if (!isUpdatingObject) {
           loadObjects();
         }
+      }, 10000); // Refresh every 10 seconds
+    };
+
+    // Start fallback refresh after a delay to give realtime a chance
+    const fallbackTimeout = setTimeout(() => {
+      if (reconnectAttempts > 0) {
+        startFallbackRefresh();
       }
-    });
+    }, 15000); // Start fallback after 15 seconds if realtime is still failing
 
     // Handle clipboard paste for images
     const handlePaste = async (e) => {
@@ -232,7 +291,18 @@ const Whiteboard = () => {
     canvas.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      unsubscribe();
+      if (unsubscribe) {
+        unsubscribe();
+      }
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      if (fallbackRefreshInterval) {
+        clearInterval(fallbackRefreshInterval);
+      }
+      if (fallbackTimeout) {
+        clearTimeout(fallbackTimeout);
+      }
       document.removeEventListener('paste', handlePaste);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
@@ -262,14 +332,62 @@ const Whiteboard = () => {
     }
   };
 
+  // Helper function to compress points data if it's too long
+  const compressPointsData = (points) => {
+    if (!points) {
+      return null;
+    }
+    
+    if (typeof points === 'string') {
+      return points;
+    }
+    
+    if (!Array.isArray(points)) {
+      return null;
+    }
+    
+    const pointsString = JSON.stringify(points);
+    
+    // If points data is within limit, return as is
+    if (pointsString.length <= 50000) {
+      return pointsString;
+    }
+    
+    // If too long, compress by reducing precision and removing unnecessary data
+    const compressedPoints = points.map(point => ({
+      x: Math.round(point.x * 10) / 10, // Round to 1 decimal place
+      y: Math.round(point.y * 10) / 10
+    }));
+    
+    const compressedString = JSON.stringify(compressedPoints);
+    
+    // If still too long, reduce precision further
+    if (compressedString.length > 50000) {
+      const moreCompressedPoints = points.map(point => ({
+        x: Math.round(point.x), // Round to integers
+        y: Math.round(point.y)
+      }));
+      return JSON.stringify(moreCompressedPoints);
+    }
+    
+    return compressedString;
+  };
+
   // Save object to Appwrite and local state (with team and hackathon context)
   const saveObject = async (objectData) => {
     if (!team?.$id || !hackathonId) return;
 
     try {
       const objectId = ID.unique();
+      
+      // Compress points data if it exists and is too long
+      let processedObjectData = { ...objectData };
+      if (objectData.points) {
+        processedObjectData.points = compressPointsData(objectData.points);
+      }
+      
       const fullObjectData = {
-        ...objectData,
+        ...processedObjectData,
         teamId: team.$id,
         hackathonId: hackathonId
       };
@@ -299,6 +417,29 @@ const Whiteboard = () => {
             objectId,
             dataToSave
           );
+        } else if (error.message.includes('points') && (error.message.includes('10000') || error.message.includes('50000'))) {
+          // If points data is still too long, try with even more compression
+          console.warn('Points data still too long, applying maximum compression');
+          const maxCompressedData = { ...dataToSave };
+          if (maxCompressedData.points) {
+            try {
+              const points = JSON.parse(maxCompressedData.points);
+              if (points && Array.isArray(points)) {
+                // Sample every other point to reduce size
+                const sampledPoints = points.filter((_, index) => index % 2 === 0);
+                maxCompressedData.points = JSON.stringify(sampledPoints);
+              }
+            } catch (error) {
+              console.warn('Error parsing points for maximum compression:', error);
+              delete maxCompressedData.points;
+            }
+          }
+          await databases.createDocument(
+            import.meta.env.VITE_APPWRITE_DATABASE_ID,
+            COLLECTION_ID,
+            objectId,
+            maxCompressedData
+          );
         } else {
           throw error;
         }
@@ -315,16 +456,22 @@ const Whiteboard = () => {
     try {
       setIsUpdatingObject(true);
 
+      // Compress points data if it exists and is too long
+      let processedUpdates = { ...updates };
+      if (updates.points) {
+        processedUpdates.points = compressPointsData(updates.points);
+      }
+
       // Update local state immediately for smooth interaction
       setObjects(prevObjects =>
         prevObjects.map(obj =>
-          obj.$id === objectId ? { ...obj, ...updates } : obj
+          obj.$id === objectId ? { ...obj, ...processedUpdates } : obj
         )
       );
 
       // Update selected object if it's the one being modified
       if (selectedObject && selectedObject.$id === objectId) {
-        setSelectedObject(prev => ({ ...prev, ...updates }));
+        setSelectedObject(prev => ({ ...prev, ...processedUpdates }));
       }
 
       // Update in Appwrite (temporarily handle fillColor gracefully)
@@ -333,18 +480,41 @@ const Whiteboard = () => {
           import.meta.env.VITE_APPWRITE_DATABASE_ID,
           COLLECTION_ID,
           objectId,
-          updates
+          processedUpdates
         );
       } catch (error) {
         if (error.message.includes('fillColor')) {
           // Retry without fillColor if the attribute doesn't exist
           console.warn('fillColor attribute not found, updating without it. Please update your database schema.');
-          const { fillColor, ...updatesWithoutFill } = updates;
+          const { fillColor, ...updatesWithoutFill } = processedUpdates;
           await databases.updateDocument(
             import.meta.env.VITE_APPWRITE_DATABASE_ID,
             COLLECTION_ID,
             objectId,
             updatesWithoutFill
+          );
+        } else if (error.message.includes('points') && (error.message.includes('10000') || error.message.includes('50000'))) {
+          // If points data is still too long, try with even more compression
+          console.warn('Points data still too long during update, applying maximum compression');
+          const maxCompressedUpdates = { ...processedUpdates };
+          if (maxCompressedUpdates.points) {
+            try {
+              const points = JSON.parse(maxCompressedUpdates.points);
+              if (points && Array.isArray(points)) {
+                // Sample every other point to reduce size
+                const sampledPoints = points.filter((_, index) => index % 2 === 0);
+                maxCompressedUpdates.points = JSON.stringify(sampledPoints);
+              }
+            } catch (error) {
+              console.warn('Error parsing points for maximum compression during update:', error);
+              delete maxCompressedUpdates.points;
+            }
+          }
+          await databases.updateDocument(
+            import.meta.env.VITE_APPWRITE_DATABASE_ID,
+            COLLECTION_ID,
+            objectId,
+            maxCompressedUpdates
           );
         } else {
           throw error;
@@ -484,14 +654,20 @@ const Whiteboard = () => {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
-        const points = JSON.parse(obj.points);
-        if (points.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(points[0].x, points[0].y);
-          for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
+        if (obj.points) {
+          try {
+            const points = JSON.parse(obj.points);
+            if (points && Array.isArray(points) && points.length > 1) {
+              ctx.beginPath();
+              ctx.moveTo(points[0].x, points[0].y);
+              for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+              }
+              ctx.stroke();
+            }
+          } catch (error) {
+            console.warn('Error parsing points data:', error);
           }
-          ctx.stroke();
         }
       } else if (obj.type === 'rectangle') {
         // Fill if fillColor is set
@@ -729,14 +905,23 @@ const Whiteboard = () => {
   // Get object bounds for selection and collision detection
   const getObjectBounds = (obj) => {
     if (obj.type === 'path') {
-      const points = JSON.parse(obj.points);
-      if (points.length === 0) return { x: obj.x || 0, y: obj.y || 0, width: 0, height: 0 };
+      if (!obj.points) return { x: obj.x || 0, y: obj.y || 0, width: 0, height: 0 };
+      
+      try {
+        const points = JSON.parse(obj.points);
+        if (!points || !Array.isArray(points) || points.length === 0) {
+          return { x: obj.x || 0, y: obj.y || 0, width: 0, height: 0 };
+        }
 
-      const minX = Math.min(...points.map(p => p.x));
-      const maxX = Math.max(...points.map(p => p.x));
-      const minY = Math.min(...points.map(p => p.y));
-      const maxY = Math.max(...points.map(p => p.y));
-      return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+        const minX = Math.min(...points.map(p => p.x));
+        const maxX = Math.max(...points.map(p => p.x));
+        const minY = Math.min(...points.map(p => p.y));
+        const maxY = Math.max(...points.map(p => p.y));
+        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+      } catch (error) {
+        console.warn('Error parsing points data in getObjectBounds:', error);
+        return { x: obj.x || 0, y: obj.y || 0, width: 0, height: 0 };
+      }
     }
     return { x: obj.x, y: obj.y, width: obj.width || 0, height: obj.height || 0 };
   };
@@ -947,22 +1132,38 @@ const Whiteboard = () => {
       let updateData;
       if (selectedObject.type === 'path') {
         // Move path by updating all points
-        const points = JSON.parse(selectedObject.points);
-        const newPoints = points.map(p => ({ x: p.x + deltaX, y: p.y + deltaY }));
+        if (selectedObject.points) {
+          try {
+            const points = JSON.parse(selectedObject.points);
+            if (points && Array.isArray(points)) {
+              const newPoints = points.map(p => ({ x: p.x + deltaX, y: p.y + deltaY }));
 
-        // Calculate new bounding box from the moved points
-        const minX = Math.min(...newPoints.map(p => p.x));
-        const minY = Math.min(...newPoints.map(p => p.y));
-        const maxX = Math.max(...newPoints.map(p => p.x));
-        const maxY = Math.max(...newPoints.map(p => p.y));
+              // Calculate new bounding box from the moved points
+              const minX = Math.min(...newPoints.map(p => p.x));
+              const minY = Math.min(...newPoints.map(p => p.y));
+              const maxX = Math.max(...newPoints.map(p => p.x));
+              const maxY = Math.max(...newPoints.map(p => p.y));
 
-        updateData = {
-          points: JSON.stringify(newPoints),
-          x: minX,
-          y: minY,
-          width: maxX - minX,
-          height: maxY - minY
-        };
+              updateData = {
+                points: JSON.stringify(newPoints),
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY
+              };
+            }
+          } catch (error) {
+            console.warn('Error parsing points data during drag:', error);
+          }
+        }
+        
+        // Fallback if points parsing fails
+        if (!updateData) {
+          updateData = {
+            x: selectedObject.x + deltaX,
+            y: selectedObject.y + deltaY
+          };
+        }
       } else {
         updateData = {
           x: selectedObject.x + deltaX,
@@ -1239,6 +1440,21 @@ const Whiteboard = () => {
           userSelect: 'none'   // Prevent text selection
         }}
       >
+        {/* Connection Status Indicator */}
+        <div className="absolute top-4 left-4 z-50 flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm border">
+          <div className={`w-2 h-2 rounded-full ${
+            connectionStatus === 'connected' ? 'bg-green-500' :
+            connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+            connectionStatus === 'fallback' ? 'bg-orange-500' :
+            'bg-red-500'
+          }`}></div>
+          <span className="text-xs text-gray-600 font-medium">
+            {connectionStatus === 'connected' ? 'Live Sync' :
+             connectionStatus === 'connecting' ? 'Connecting...' :
+             connectionStatus === 'fallback' ? 'Auto-sync (10s)' :
+             'Offline Mode'}
+          </span>
+        </div>
       {/* Canvas */}
       <canvas
         ref={canvasRef}

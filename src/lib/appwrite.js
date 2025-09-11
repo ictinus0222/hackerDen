@@ -113,7 +113,9 @@ export const COLLECTIONS = {
   SUBMISSIONS: 'submissions',
   POLLS: 'polls',
   POLL_VOTES: 'poll_votes',
-  REACTIONS: 'reactions'
+  REACTIONS: 'reactions',
+  // Whiteboard collection
+  WHITEBOARD_OBJECTS: 'whiteboard_objects'
 };
 
 export { Query, ID };

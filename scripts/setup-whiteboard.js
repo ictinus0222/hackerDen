@@ -1,4 +1,4 @@
-import { Client, Databases, Permission, Role } from 'appwrite';
+import { Client, Databases, Permission, Role } from 'node-appwrite';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -9,7 +9,8 @@ const databases = new Databases(client);
 
 client
     .setEndpoint(process.env.VITE_APPWRITE_ENDPOINT)
-    .setProject(process.env.VITE_APPWRITE_PROJECT_ID);
+    .setProject(process.env.VITE_APPWRITE_PROJECT_ID)
+    .setKey(process.env.APPWRITE_API_KEY);
 
 const DATABASE_ID = process.env.VITE_APPWRITE_DATABASE_ID;
 const COLLECTION_ID = 'whiteboard_objects';
