@@ -9,15 +9,14 @@ class SubmissionService {
    * Create a new submission for a team
    * @param {string} teamId - Team identifier
    * @param {Object} submissionData - Submission content
-   * @param {string} hackathonId - Hackathon identifier (optional, will be fetched from team if not provided)
+   * @param {string} hackathonId - Hackathon identifier (required)
    * @returns {Promise<Object>} Submission document
    */
-  async createSubmission(teamId, submissionData, hackathonId = null) {
+  async createSubmission(teamId, submissionData, hackathonId) {
     try {
-      // Get hackathon ID from team if not provided
+      // Validate required parameters
       if (!hackathonId) {
-        const team = await databases.getDocument(DATABASE_ID, COLLECTIONS.TEAMS, teamId);
-        hackathonId = team.hackathonId;
+        throw new Error('hackathonId is required to create a submission');
       }
 
       // Check if submission already exists for team in this hackathon
@@ -82,13 +81,13 @@ class SubmissionService {
       );
 
       if (submission.isFinalized) {
-        throw new Error('Cannot update finalized submission');
+        throw new Error('Cannot update finalized submission. Please contact support if you need to make changes.');
       }
 
       // Check if hackathon has ended
       const hackathonEnded = await this.checkHackathonEnded(submission.teamId);
       if (hackathonEnded) {
-        throw new Error('Cannot update submission after hackathon has ended');
+        throw new Error('Cannot update submission after hackathon has ended. The deadline has passed.');
       }
 
       const updatedSubmission = await databases.updateDocument(
@@ -444,7 +443,14 @@ class SubmissionService {
       const now = new Date();
       const endDate = new Date(hackathon.endDate);
       
-      return now > endDate;
+      // Validate date
+      if (isNaN(endDate.getTime())) {
+        console.warn('Invalid end date for hackathon:', hackathon.endDate);
+        return false; // Fail open - allow editing if date is invalid
+      }
+      
+      // Use >= for inclusive end time
+      return now >= endDate;
     } catch (error) {
       console.warn('Could not check hackathon end date:', error);
       // If we can't determine, allow editing (fail open)

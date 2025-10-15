@@ -43,24 +43,37 @@ export const teamMemberService = {
         console.warn('Could not pre-cache user names from tasks:', taskError);
       }
 
-      // Get user names from team membership data (with resolution service)
+      // Get user names from team membership data (with improved resolution)
       const members = await Promise.all(memberships.documents.map(async (membership) => {
         // Prefer current user's name; otherwise resolve via userNameService; fallback to membership.userName
         let resolvedName = membership.userName;
 
-        const isGeneric = !resolvedName || resolvedName === 'Team Member' || resolvedName === 'Team Owner' || resolvedName === membership.userId;
-        if (currentUser && membership.userId === currentUser.$id && currentUser.name) {
-          resolvedName = currentUser.name;
-        } else if (isGeneric) {
-          try {
-            const lookedUp = await userNameService.getUserName(membership.userId, currentUser);
-            if (lookedUp) {
-              resolvedName = lookedUp;
+        // Check if name is generic or missing
+        const isGeneric = !resolvedName || 
+                          resolvedName === 'Team Member' || 
+                          resolvedName === 'Team Owner' || 
+                          resolvedName === membership.userId ||
+                          resolvedName.trim() === '';
+
+        if (isGeneric) {
+          // Try current user first
+          if (currentUser && membership.userId === currentUser.$id && currentUser.name) {
+            resolvedName = currentUser.name;
+          } else {
+            // Try userNameService
+            try {
+              const lookedUp = await userNameService.getUserName(membership.userId, currentUser);
+              if (lookedUp && lookedUp !== 'Team Member' && lookedUp !== 'Team Owner') {
+                resolvedName = lookedUp;
+              }
+            } catch (err) {
+              console.warn('Name lookup failed for user:', membership.userId);
             }
-          } catch {}
+          }
         }
 
-        if (!resolvedName) {
+        // Final fallback
+        if (!resolvedName || resolvedName.trim() === '') {
           resolvedName = 'Team Member';
         }
 

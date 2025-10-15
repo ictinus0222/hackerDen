@@ -170,14 +170,7 @@ const TeamVaultPage = () => {
   // Handle file download
   const handleDownloadFile = async (file) => {
     try {
-      // Verify file integrity first
-      const isIntegrityOk = await fileService.verifyFileIntegrity(file.storageId, file.fileSize);
-      if (!isIntegrityOk) {
-        console.warn('File integrity check failed, but proceeding with download');
-        toast.warning('File may be corrupted, but download will proceed');
-      }
-      
-      // Use the improved download method with fallback
+      // Use the simplified download method
       await fileService.downloadFileWithFallback(file.storageId, file.fileName);
       toast.success('Download started');
     } catch (error) {

@@ -208,76 +208,31 @@ export const fileService = {
    */
   async downloadFileWithFallback(storageId, fileName) {
     try {
-      // Get the download URL (this should be the original file, not compressed)
+      // Get the download URL - Appwrite returns the original file, not compressed
       const downloadUrl = this.getFileDownloadUrl(storageId);
-      console.log('Download URL:', downloadUrl);
+      console.log('Initiating download for:', fileName);
       
-      // Also get the view URL for comparison
-      const viewUrl = this.getFileViewUrl(storageId);
-      console.log('View URL:', viewUrl);
-      
-      // Method 1: Try direct download first
-      try {
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = fileName;
-        link.target = '_blank';
-        link.setAttribute('rel', 'noopener noreferrer');
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        console.log('Direct download initiated');
-        return;
-      } catch (directError) {
-        console.warn('Direct download failed, trying fetch method:', directError);
-      }
-      
-      // Method 2: Use fetch to get the file and ensure it's the original
-      console.log('Using fetch method to download original file...');
-      const response = await fetch(downloadUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': '*/*',
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-      console.log('Content-Type:', response.headers.get('content-type'));
-      console.log('Content-Length:', response.headers.get('content-length'));
-      
-      // Get the file as array buffer to preserve binary data
-      const arrayBuffer = await response.arrayBuffer();
-      console.log('Downloaded file size:', arrayBuffer.byteLength, 'bytes');
-      
-      // Create blob with the correct MIME type
-      const contentType = response.headers.get('content-type') || 'application/octet-stream';
-      const blob = new Blob([arrayBuffer], { type: contentType });
-      
-      // Create object URL and download
-      const url = window.URL.createObjectURL(blob);
+      // Create a temporary link and trigger download
+      // This is the simplest and most reliable method
       const link = document.createElement('a');
-      link.href = url;
+      link.href = downloadUrl;
       link.download = fileName;
-      link.setAttribute('rel', 'noopener noreferrer');
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       
+      // Trigger download
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
       
-      // Clean up
-      window.URL.revokeObjectURL(url);
+      // Cleanup after a short delay
+      setTimeout(() => {
+        document.body.removeChild(link);
+      }, 100);
       
-      console.log('File downloaded successfully via fetch method');
-      
+      console.log('File download initiated successfully:', fileName);
     } catch (error) {
-      console.error('All download methods failed:', error);
-      throw new Error('Failed to download file');
+      console.error('Download failed:', error);
+      throw new Error('Failed to download file: ' + error.message);
     }
   },
 

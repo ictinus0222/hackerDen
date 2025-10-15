@@ -90,15 +90,28 @@ export const hackathonService = {
       };
 
       const computeStatus = (startIso, endIso, explicitStatus) => {
-        const now = new Date();
-        const start = new Date(startIso);
-        const end = new Date(endIso);
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        try {
+          const now = new Date();
+          const start = new Date(startIso);
+          const end = new Date(endIso);
+          
+          // Validate dates
+          if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            console.warn('Invalid date format:', { startIso, endIso });
+            return explicitStatus || 'upcoming';
+          }
+          
+          // Add 1 minute buffer to prevent flickering at boundaries
+          const nowWithBuffer = new Date(now.getTime() + 60000); // +1 minute
+          
+          // Use >= for inclusive end time
+          if (nowWithBuffer < start) return 'upcoming';
+          if (now >= end) return 'completed';
+          return 'ongoing';
+        } catch (error) {
+          console.error('Error computing hackathon status:', error);
           return explicitStatus || 'upcoming';
         }
-        if (now < start) return 'upcoming';
-        if (now > end) return 'completed';
-        return 'ongoing';
       };
 
       // Combine hackathon data with team data
