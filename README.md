@@ -4,6 +4,13 @@ A modern, real-time collaborative platform built for hackathon teams. Streamline
 
 Built with React 19, Appwrite, and Tailwind CSS.
 
+<img width="1080" height="231" alt="Project_HackerDen 1" src="https://github.com/user-attachments/assets/15d2ee5e-7974-4e5a-9e75-f4d4707dbab5" />
+
+**[View Demo](https://youtu.be/56Tjh-BkIMU?si=6vrPaZ0ZxuO-Vk34)**
+**[View Submission](https://devpost.com/software/hackerden)**
+
+
+
 ## ✨ Features
 
 ### 🏆 Hackathon Management
