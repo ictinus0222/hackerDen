@@ -1,4 +1,4 @@
-# HackerDen 🚀
+# HackerDen- What do hackers want?
 
 A modern, real-time collaborative platform built for hackathon teams. Streamline your team coordination, task management, and project submissions all in one place.
 
@@ -12,7 +12,8 @@ Built with React 19, Appwrite, and Tailwind CSS.
 - **Role-Based Permissions** - Team leaders with full control, members with appropriate access
 - **OAuth Authentication** - Secure login with Google and GitHub
 
-<!-- Add screenshot: Hackathon Console -->
+![hackathon-dashboard](https://github.com/user-attachments/assets/ad054bd7-3ff6-4d2e-bde7-44c1a3206d53)
+
 
 ### 📋 Real-Time Task Management
 - **Kanban Board** - Four-column board (To-Do, In Progress, Blocked, Done) with drag-and-drop
@@ -20,7 +21,8 @@ Built with React 19, Appwrite, and Tailwind CSS.
 - **Task Assignment** - Assign tasks with priority levels and custom labels
 - **Progress Tracking** - Visual progress indicators and completion metrics
 
-<!-- Add screenshot: Kanban Board -->
+![kanban-board](https://github.com/user-attachments/assets/39893869-d3ad-4ec9-9abb-b8e4fb882c9f)
+
 
 ### 💬 Team Communication
 - **Real-Time Chat** - Instant messaging with your team members
@@ -28,7 +30,8 @@ Built with React 19, Appwrite, and Tailwind CSS.
 - **User Avatars** - Colorful avatars with team member names
 - **Message History** - Persistent chat history with timestamps
 
-<!-- Add screenshot: Team Chat -->
+![chat](https://github.com/user-attachments/assets/3343135e-27b6-4fa3-8d2e-4ad5db9bd1bc)
+
 
 ### 📁 File Sharing & Collaboration
 - **File Upload** - Share images, PDFs, code files, and documents (up to 10MB)
@@ -36,7 +39,8 @@ Built with React 19, Appwrite, and Tailwind CSS.
 - **Syntax Highlighting** - Code preview with language-specific highlighting
 - **Real-Time Sync** - Live file updates across the team
 
-<!-- Add screenshot: File Library -->
+![vault-files](https://github.com/user-attachments/assets/bd08df92-6554-435e-ab6e-d484599ded51)
+
 
 ### 🏅 Judge Submission System
 - **Submission Builder** - Comprehensive project submission forms
@@ -44,7 +48,8 @@ Built with React 19, Appwrite, and Tailwind CSS.
 - **Auto-Aggregation** - Automatically pull data from tasks and files
 - **Submission Lock** - Finalize submissions when judging begins
 
-<!-- Add screenshot: Submission Builder -->
+![team-submission](https://github.com/user-attachments/assets/59ebbb80-e2e9-430a-85ca-09c4b34c9557)
+
 
 ### 🎨 Modern UI/UX
 - **Dark Theme** - Professional dark interface with green accents
@@ -52,7 +57,8 @@ Built with React 19, Appwrite, and Tailwind CSS.
 - **Smooth Animations** - Polished transitions and interactions
 - **Accessibility** - WCAG compliant with keyboard navigation and screen reader support
 
-<!-- Add screenshot: Dashboard Overview -->
+![hackerden netlify app_home(HighRes Screenshot)_compressed](https://github.com/user-attachments/assets/f72b1bfa-267d-42a5-8bf4-8c374cccbab5)
+
 
 ## 🛠️ Tech Stack
 
@@ -200,4 +206,4 @@ Built with:
 
 ---
 
-Made with ❤️ for hackathon teams worldwide
+Made with Kiro & ❤️ for hackathon teams worldwide
