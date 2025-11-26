@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @import "./styles/easter-egg-effects.css";
 @import "./styles/mobile-optimizations.css";
+@import "./styles/halloween-theme.css";
 
 /* Custom scrollbar styles for sidebar navigation */
 .sidebar-nav-scroll::-webkit-scrollbar {

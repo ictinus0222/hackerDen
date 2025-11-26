@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { applyThemeVariables, validateThemeConsistency } from '../lib/theme-config';
+import { applyThemeVariables, validateThemeConsistency, applyHalloweenTheme } from '../lib/theme-config';
 import { enableThemeTransitions, persistTheme, loadPersistedTheme } from '../lib/theme-integration';
 
 const ThemeContext = createContext({
@@ -7,6 +7,9 @@ const ThemeContext = createContext({
   setTheme: () => null,
   systemTheme: 'dark',
   resolvedTheme: 'dark',
+  halloweenMode: false,
+  setHalloweenMode: () => null,
+  effectiveTheme: 'dark',
   isThemeReady: false,
   themeConsistency: null,
 });
@@ -14,12 +17,29 @@ const ThemeContext = createContext({
 export function ThemeProvider({ 
   children, 
   defaultTheme = 'dark', 
+  defaultHalloweenMode = false,
   storageKey = 'hackerden-theme',
+  halloweenStorageKey = 'hackerden-halloween-mode',
   enableSystem = true,
   disableTransitionOnChange = true,
 }) {
   const [theme, setTheme] = useState(() => {
     return loadPersistedTheme(defaultTheme, storageKey);
+  });
+
+  const [halloweenMode, setHalloweenModeState] = useState(() => {
+    // Load Halloween mode from localStorage on initialization
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(halloweenStorageKey);
+        if (stored !== null) {
+          return stored === 'true';
+        }
+      } catch (error) {
+        console.warn('Could not load Halloween mode preference:', error);
+      }
+    }
+    return defaultHalloweenMode;
   });
 
   const [systemTheme, setSystemTheme] = useState(() => {
@@ -34,6 +54,9 @@ export function ThemeProvider({
 
   // Resolved theme is the actual theme being applied (handles 'system' theme)
   const resolvedTheme = theme === 'system' ? systemTheme : theme;
+  
+  // Effective theme combines base theme and Halloween mode
+  const effectiveTheme = halloweenMode ? `${resolvedTheme}-halloween` : resolvedTheme;
 
   // Enable theme transitions on mount
   useEffect(() => {
@@ -76,14 +99,24 @@ export function ThemeProvider({
     // Remove all theme classes
     root.classList.remove('light', 'dark');
     
-    // Apply the resolved theme
+    // Apply the resolved theme (base theme)
     root.classList.add(resolvedTheme);
+    
+    // Apply Halloween theme class if enabled
+    if (halloweenMode) {
+      root.classList.add('theme-halloween');
+    } else {
+      root.classList.remove('theme-halloween');
+    }
     
     // Set data attribute for CSS targeting
     root.setAttribute('data-theme', resolvedTheme);
     
     // Apply CSS custom properties for Shadcn integration
     applyThemeVariables(resolvedTheme);
+    
+    // Apply Halloween theme CSS variables
+    applyHalloweenTheme(resolvedTheme, halloweenMode);
     
     // Update meta theme-color for mobile browsers
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -100,7 +133,22 @@ export function ThemeProvider({
       setThemeConsistency(consistency);
       setIsThemeReady(true);
     }, 50);
-  }, [resolvedTheme, disableTransitionOnChange]);
+  }, [resolvedTheme, halloweenMode, disableTransitionOnChange]);
+
+  const setHalloweenMode = (enabled) => {
+    setIsThemeReady(false);
+    
+    // Persist Halloween mode to localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(halloweenStorageKey, String(enabled));
+      } catch (error) {
+        console.warn('Could not persist Halloween mode preference:', error);
+      }
+    }
+    
+    setHalloweenModeState(enabled);
+  };
 
   const value = {
     theme,
@@ -111,6 +159,9 @@ export function ThemeProvider({
     },
     systemTheme,
     resolvedTheme,
+    halloweenMode,
+    setHalloweenMode,
+    effectiveTheme,
     isThemeReady,
     themeConsistency,
     themes: enableSystem ? ['light', 'dark', 'system'] : ['light', 'dark'],

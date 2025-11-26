@@ -1,0 +1,286 @@
+/**
+ * Halloween Theme CSS
+ * Seasonal overlay theme with spooky visual styling
+ * 
+ * This file defines Halloween-specific CSS custom properties that override
+ * base theme variables when Halloween mode is enabled. The theme works as
+ * an overlay on top of both light and dark base themes.
+ */
+
+/* ============================================================================
+   Halloween Font Declarations
+   ============================================================================ */
+
+/**
+ * Halloween fonts with font-display: swap for optimal loading performance
+ * Fallback to system serif fonts with similar characteristics
+ */
+@font-face {
+  font-family: 'Creepster';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Creepster'),
+       url('https://fonts.gstatic.com/s/creepster/v13/AlZy_zVUqJz4yMrniH4hdXf4XB0Tow.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Nosifer';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Nosifer'),
+       url('https://fonts.gstatic.com/s/nosifer/v22/ZGjXol5JTp0g5bxZaC1RVDNdGDs.woff2') format('woff2');
+}
+
+/* ============================================================================
+   Halloween Theme Variables - Light Mode
+   ============================================================================ */
+
+/**
+ * Light mode Halloween color palette
+ * Uses OKLCH color space for perceptually uniform colors
+ * Maintains WCAG AA contrast ratios for accessibility
+ */
+.theme-light.theme-halloween {
+  /* Primary Halloween colors */
+  --halloween-primary: oklch(0.65 0.19 45);           /* Pumpkin orange */
+  --halloween-primary-hover: oklch(0.70 0.22 45);     /* Brighter orange on hover */
+  --halloween-primary-active: oklch(0.60 0.17 45);    /* Darker orange on active */
+  
+  --halloween-secondary: oklch(0.45 0.15 300);        /* Deep purple */
+  --halloween-secondary-hover: oklch(0.50 0.18 300);  /* Brighter purple on hover */
+  --halloween-secondary-active: oklch(0.40 0.13 300); /* Darker purple on active */
+  
+  --halloween-accent: oklch(0.35 0.08 150);           /* Dark green */
+  --halloween-accent-hover: oklch(0.40 0.10 150);     /* Brighter green on hover */
+  --halloween-accent-active: oklch(0.30 0.06 150);    /* Darker green on active */
+  
+  /* Background and foreground */
+  --halloween-background: oklch(0.95 0.02 45);        /* Light cream */
+  --halloween-foreground: oklch(0.15 0.05 30);        /* Dark brown */
+  
+  /* UI element colors */
+  --halloween-border: oklch(0.30 0.10 45);            /* Dark orange border */
+  --halloween-card: oklch(0.97 0.01 45);              /* Slightly off-white card */
+  --halloween-card-foreground: oklch(0.15 0.05 30);   /* Dark text on cards */
+  
+  /* Interactive states */
+  --halloween-muted: oklch(0.85 0.03 45);             /* Muted orange-tinted background */
+  --halloween-muted-foreground: oklch(0.40 0.08 45);  /* Muted text */
+  
+  /* Visual effects */
+  --halloween-glow: oklch(0.70 0.22 45);              /* Bright orange glow */
+  --halloween-shadow: 0 0 20px var(--halloween-glow); /* Soft glow shadow */
+  --halloween-text-shadow: 0 0 10px var(--halloween-glow); /* Text glow */
+  --halloween-border-width: 2px;
+  --halloween-border-style: solid;
+  
+  /* Font configuration */
+  --halloween-font-heading: 'Creepster', 'Nosifer', 'Georgia', 'Times New Roman', serif;
+  --halloween-font-fallback: 'Georgia', 'Times New Roman', serif;
+  
+  /* Override base theme variables with Halloween colors */
+  --primary: var(--halloween-primary);
+  --primary-foreground: oklch(1.0000 0 0);
+  --secondary: var(--halloween-secondary);
+  --secondary-foreground: oklch(1.0000 0 0);
+  --accent: var(--halloween-accent);
+  --accent-foreground: oklch(1.0000 0 0);
+  --background: var(--halloween-background);
+  --foreground: var(--halloween-foreground);
+  --card: var(--halloween-card);
+  --card-foreground: var(--halloween-card-foreground);
+  --border: var(--halloween-border);
+  --muted: var(--halloween-muted);
+  --muted-foreground: var(--halloween-muted-foreground);
+  
+  /* Sidebar overrides */
+  --sidebar-primary: var(--halloween-primary);
+  --sidebar-accent: var(--halloween-accent);
+  --sidebar-border: var(--halloween-border);
+}
+
+/* ============================================================================
+   Halloween Theme Variables - Dark Mode
+   ============================================================================ */
+
+/**
+ * Dark mode Halloween color palette
+ * Adjusted for visibility and contrast in dark environments
+ * Maintains WCAG AA contrast ratios for accessibility
+ */
+.theme-dark.theme-halloween {
+  /* Primary Halloween colors */
+  --halloween-primary: oklch(0.70 0.22 45);           /* Bright orange */
+  --halloween-primary-hover: oklch(0.75 0.25 45);     /* Brighter orange on hover */
+  --halloween-primary-active: oklch(0.65 0.19 45);    /* Darker orange on active */
+  
+  --halloween-secondary: oklch(0.55 0.18 300);        /* Purple */
+  --halloween-secondary-hover: oklch(0.60 0.21 300);  /* Brighter purple on hover */
+  --halloween-secondary-active: oklch(0.50 0.15 300); /* Darker purple on active */
+  
+  --halloween-accent: oklch(0.45 0.10 150);           /* Green */
+  --halloween-accent-hover: oklch(0.50 0.12 150);     /* Brighter green on hover */
+  --halloween-accent-active: oklch(0.40 0.08 150);    /* Darker green on active */
+  
+  /* Background and foreground */
+  --halloween-background: oklch(0.12 0.02 300);       /* Very dark purple */
+  --halloween-foreground: oklch(0.85 0.05 45);        /* Light orange-white */
+  
+  /* UI element colors */
+  --halloween-border: oklch(0.40 0.15 45);            /* Medium orange border */
+  --halloween-card: oklch(0.15 0.03 300);             /* Dark purple card */
+  --halloween-card-foreground: oklch(0.85 0.05 45);   /* Light text on cards */
+  
+  /* Interactive states */
+  --halloween-muted: oklch(0.20 0.04 300);            /* Muted purple background */
+  --halloween-muted-foreground: oklch(0.60 0.10 45);  /* Muted orange text */
+  
+  /* Visual effects */
+  --halloween-glow: oklch(0.75 0.25 45);              /* Intense orange glow */
+  --halloween-shadow: 0 0 20px var(--halloween-glow); /* Soft glow shadow */
+  --halloween-text-shadow: 0 0 10px var(--halloween-glow); /* Text glow */
+  --halloween-border-width: 2px;
+  --halloween-border-style: solid;
+  
+  /* Font configuration */
+  --halloween-font-heading: 'Creepster', 'Nosifer', 'Georgia', 'Times New Roman', serif;
+  --halloween-font-fallback: 'Georgia', 'Times New Roman', serif;
+  
+  /* Override base theme variables with Halloween colors */
+  --primary: var(--halloween-primary);
+  --primary-foreground: oklch(0.12 0.02 300);
+  --secondary: var(--halloween-secondary);
+  --secondary-foreground: oklch(0.12 0.02 300);
+  --accent: var(--halloween-accent);
+  --accent-foreground: oklch(0.85 0.05 45);
+  --background: var(--halloween-background);
+  --foreground: var(--halloween-foreground);
+  --card: var(--halloween-card);
+  --card-foreground: var(--halloween-card-foreground);
+  --border: var(--halloween-border);
+  --muted: var(--halloween-muted);
+  --muted-foreground: var(--halloween-muted-foreground);
+  
+  /* Sidebar overrides */
+  --sidebar: var(--halloween-card);
+  --sidebar-foreground: var(--halloween-foreground);
+  --sidebar-primary: var(--halloween-primary);
+  --sidebar-primary-foreground: oklch(0.12 0.02 300);
+  --sidebar-accent: var(--halloween-accent);
+  --sidebar-accent-foreground: var(--halloween-foreground);
+  --sidebar-border: var(--halloween-border);
+}
+
+/* ============================================================================
+   Halloween Typography
+   ============================================================================ */
+
+/**
+ * Apply Halloween fonts to heading elements
+ * Maintains readability with appropriate fallbacks
+ */
+.theme-halloween h1,
+.theme-halloween h2,
+.theme-halloween h3,
+.theme-halloween h4,
+.theme-halloween h5,
+.theme-halloween h6 {
+  font-family: var(--halloween-font-heading);
+  letter-spacing: 0.02em;
+}
+
+/* Ensure body text remains readable */
+.theme-halloween body,
+.theme-halloween p,
+.theme-halloween span,
+.theme-halloween div {
+  font-family: inherit; /* Keep base theme body font */
+}
+
+/* ============================================================================
+   Halloween Visual Effects
+   ============================================================================ */
+
+/**
+ * Soft glows and eerie shadows for immersive atmosphere
+ * Uses GPU-accelerated properties (opacity, transform) for performance
+ */
+
+/* Button effects */
+.theme-halloween button:not(:disabled),
+.theme-halloween [role="button"]:not([aria-disabled="true"]) {
+  transition: box-shadow 120ms ease-out, transform 120ms ease-out;
+}
+
+.theme-halloween button:hover:not(:disabled),
+.theme-halloween [role="button"]:hover:not([aria-disabled="true"]) {
+  box-shadow: var(--halloween-shadow);
+}
+
+/* Card effects */
+.theme-halloween [class*="card"] {
+  border: var(--halloween-border-width) var(--halloween-border-style) var(--halloween-border);
+  transition: box-shadow 120ms ease-out;
+}
+
+.theme-halloween [class*="card"]:hover {
+  box-shadow: 0 4px 12px rgba(255, 107, 26, 0.2);
+}
+
+/* Input effects */
+.theme-halloween input:focus,
+.theme-halloween textarea:focus,
+.theme-halloween select:focus {
+  box-shadow: 0 0 0 2px var(--halloween-glow);
+  border-color: var(--halloween-primary);
+}
+
+/* ============================================================================
+   Reduced Motion Support
+   ============================================================================ */
+
+/**
+ * Respect user preference for reduced motion
+ * Disable or minimize animations for accessibility
+ */
+@media (prefers-reduced-motion: reduce) {
+  .theme-halloween * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .theme-halloween button:hover:not(:disabled),
+  .theme-halloween [role="button"]:hover:not([aria-disabled="true"]),
+  .theme-halloween [class*="card"]:hover {
+    box-shadow: none;
+  }
+}
+
+/* ============================================================================
+   Browser Compatibility Fallbacks
+   ============================================================================ */
+
+/**
+ * Fallback styles for browsers without CSS custom property support
+ * Provides basic Halloween colors using standard CSS
+ */
+@supports not (color: oklch(0.5 0.1 180)) {
+  .theme-light.theme-halloween {
+    --halloween-primary: #ff6b1a;
+    --halloween-secondary: #7f3fbf;
+    --halloween-accent: #0f3d2e;
+    --halloween-background: #f5f0e8;
+    --halloween-foreground: #2b1f1a;
+  }
+  
+  .theme-dark.theme-halloween {
+    --halloween-primary: #ff8c3a;
+    --halloween-secondary: #9f5fdf;
+    --halloween-accent: #1f5d4e;
+    --halloween-background: #1a0f1f;
+    --halloween-foreground: #f5e8d8;
+  }
+}
